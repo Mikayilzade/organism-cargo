@@ -48,7 +48,7 @@ func _test_duplicate_content_id_rejected() -> void:
 	_expect_equal(result["error"], "duplicate_id:same_id", "duplicate id diagnostic")
 
 func _test_atomic_save_and_backup_recovery() -> void:
-	var store: RefCounted = AtomicSaveStoreScript.new(test_root.path_join("saves"))
+	var store = AtomicSaveStoreScript.new(test_root.path_join("saves"))
 	var first: Dictionary = store.write(&"profile", {"profile_uuid": "p1", "bronze": ["C01"]})
 	_expect_true(first["ok"], "first profile generation written")
 	var second: Dictionary = store.write(&"profile", {"profile_uuid": "p1", "bronze": ["C01", "C02"]})
@@ -69,7 +69,7 @@ func _test_atomic_save_and_backup_recovery() -> void:
 		_expect_equal(recovered["envelope"].payload["bronze"].size(), 1, "backup preserves previous generation")
 
 func _test_settings_isolation() -> void:
-	var store: RefCounted = AtomicSaveStoreScript.new(test_root.path_join("isolation"))
+	var store = AtomicSaveStoreScript.new(test_root.path_join("isolation"))
 	_expect_true(store.write(&"profile", {"profile_uuid": "p2", "bronze": []})["ok"], "profile written for isolation")
 	_expect_true(store.write(&"settings", {"ui_scale": 125})["ok"], "settings written separately")
 	var settings_paths: Dictionary = store.paths_for(&"settings")
