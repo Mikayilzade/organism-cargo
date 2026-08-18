@@ -57,8 +57,9 @@ func _test_atomic_save_and_backup_recovery() -> void:
 	_expect_true(loaded["ok"], "primary profile loads")
 	if loaded["ok"]:
 		var loaded_envelope: SaveEnvelope = loaded["envelope"]
+		var loaded_bronze: Array = loaded_envelope.payload["bronze"] as Array
 		_expect_equal(loaded["source"], "primary", "primary preferred")
-		_expect_equal(loaded_envelope.payload["bronze"].size(), 2, "newest primary payload")
+		_expect_equal(loaded_bronze.size(), 2, "newest primary payload")
 
 	var paths: Dictionary = store.paths_for(&"profile")
 	var primary_text: String = FileAccess.get_file_as_string(paths["primary"])
@@ -67,8 +68,9 @@ func _test_atomic_save_and_backup_recovery() -> void:
 	_expect_true(recovered["ok"], "backup recovered after tamper")
 	if recovered["ok"]:
 		var recovered_envelope: SaveEnvelope = recovered["envelope"]
+		var recovered_bronze: Array = recovered_envelope.payload["bronze"] as Array
 		_expect_equal(recovered["source"], "backup", "backup source selected")
-		_expect_equal(recovered_envelope.payload["bronze"].size(), 1, "backup preserves previous generation")
+		_expect_equal(recovered_bronze.size(), 1, "backup preserves previous generation")
 
 func _test_settings_isolation() -> void:
 	var store: AtomicSaveStore = AtomicSaveStoreScript.new(test_root.path_join("isolation"))
