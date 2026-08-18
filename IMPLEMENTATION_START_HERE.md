@@ -1,89 +1,112 @@
 # ORGANISM CARGO — IMPLEMENTATION START HERE
 
-Status: DESIGN FROZEN / IMPLEMENTATION NOT STARTED
+Status: **DESIGN FROZEN / IMPLEMENTATION NOT STARTED**
 
-This repository is the implementation home for Organism Cargo. The design is already complete. Implementation must follow the frozen design rather than inventing or casually simplifying gameplay.
+This repository is the dedicated implementation home for Organism Cargo. The game design is complete and frozen. Implementation must follow the canonical design instead of inventing, silently simplifying, or replacing gameplay rules.
 
-## Required read order
-1. `STATUS.md`
-2. `PHASE11_FINAL_FREEZE.md`
-3. `GAME_BIBLE.md`
-4. `PHASE11_FREEZE.md`
-5. `MECHANICS.md`
-6. `DECISION_ARCHITECTURE.md`
-7. `CONTENT_ARCHITECTURE.md`
-8. `PHASE11_TECH_PERSISTENCE.md`
-9. `PHASE11_UX_ACCESSIBILITY.md`
-10. `PHASE11_PROGRESSION.md`
-11. `TECHNICAL_SPEC.md`
-12. `UX_ARCHITECTURE.md`
-13. `ECONOMY_COMMERCIAL.md`
-14. `PHASE4_CLOSURE.md`
-15. `WHOLE_GAME_SIMULATION.md`
-16. `ADVERSARIAL_REVIEW.md`
+## Read this first on every fresh implementation session
+1. `IMPLEMENTATION_START_HERE.md`
+2. `IMPLEMENTATION_STATUS.md`
+3. `DESIGN_STATUS.md`
+4. `PHASE11_FINAL_FREEZE.md`
+5. `GAME_BIBLE.md`
+6. `PHASE11_FREEZE.md`
+7. `MECHANICS.md`
+8. `DECISION_ARCHITECTURE.md`
+9. `CONTENT_ARCHITECTURE.md`
+10. `PHASE11_TECH_PERSISTENCE.md`
+11. `PHASE11_UX_ACCESSIBILITY.md`
+12. `PHASE11_PROGRESSION.md`
+13. `TECHNICAL_SPEC.md`
+14. `UX_ARCHITECTURE.md`
+15. `ECONOMY_COMMERCIAL.md`
+16. `PHASE4_CLOSURE.md`
+17. `WHOLE_GAME_SIMULATION.md`
+18. `ADVERSARIAL_REVIEW.md`
+
+Selection history (`RESEARCH.md`, `TOURNAMENT.md`, `TOURNAMENT_ROUND2.md`, `CROSS_ROUND_FINAL.md`) is non-authoritative unless the implementation task specifically needs historical rationale.
 
 When files disagree on implementation-sensitive behavior, obey the authority order in `PHASE11_FINAL_FREEZE.md`.
 
 ## Autonomous implementation protocol
-A continuation prompt means: read the current implementation status, perform the next substantial verifiable increment, test it, commit it, and update implementation status before ending. Never leave important state only in chat.
+A user message such as `го`, or an hourly continuation task, authorizes exactly the next substantial implementation increment from `IMPLEMENTATION_STATUS.md`.
 
-One run is not one phase. A phase may require multiple runs. Prefer a working, testable increment over a large partially implemented batch.
+Every run must:
+1. read the current status and required canonical files for the affected subsystem;
+2. perform one substantial but recoverable increment;
+3. run the most relevant automated/manual checks available;
+4. keep the repository in a coherent state;
+5. commit/save all meaningful work;
+6. update `IMPLEMENTATION_STATUS.md` with what changed, what was tested, blockers, and the exact `NEXT ACTION`;
+7. never leave critical implementation state only in chat.
+
+One run is **not** one phase. A phase may require many runs. Prefer a smaller tested increment over a huge partially working batch.
 
 ## Phase 12 implementation ladder
 
 ### 12A — Technical bootstrap
-Create the engine/project structure, data model, deterministic simulation foundation, input abstraction, persistence skeleton, test harness, and minimal runnable shell.
+Create the engine/project structure, deterministic simulation foundation, content/data loading, input abstraction, persistence skeleton, test harness, and minimal runnable shell.
 
-Exit gate: project boots cleanly and automated tests can run.
+Exit gate: project boots cleanly; deterministic unit tests can run; the frozen domain model has a clear code home.
 
 ### 12B — Vertical slice
-Implement one complete playable contract: planning -> cargo placement -> Launch -> deterministic transit -> success/failure -> Causal Review -> targeted Retry.
+Implement one complete playable contract with deliberately tiny content:
+planning -> cargo placement -> validation -> exactly-once Launch -> deterministic transit -> success/failure -> Causal Review -> targeted Retry.
 
-Use a deliberately tiny content subset. Do not populate the full game yet.
-
-Exit gate: the complete loop is playable and its simulation result is deterministic from committed inputs.
+Exit gate: the complete loop is playable and the same committed input reproduces the same authoritative result.
 
 ### 12C — Core systems complete
-Implement all frozen simulation rules and their interactions, including growth, stress, sleep, hazards, supports, adjacency, causal ancestry, blocked-growth semantics, Brownout/tick ordering, launch idempotency, result idempotency, and persistence/recovery.
+Implement all frozen simulation rules and interactions, including tick ordering, Brownout, growth, blocked-growth episodes, stress, sleep, hazards, supports, adjacency, state transitions, cause ancestry, Launch/result idempotency, save/recovery and deterministic resume.
 
-Exit gate: canonical mechanical acceptance tests pass.
+Exit gate: canonical mechanical acceptance tests pass and no frozen core rule is stubbed.
 
 ### 12D — Content population
-Populate the frozen 22-species roster, supports, campaign C01–C48, Challenge content, demo mapping, and data-driven balance/content definitions.
+Populate the frozen 22-species roster, support set, campaign C01–C48, Challenges, demo mapping and data-driven balance/content definitions.
 
-Exit gate: campaign prerequisite graph and launch content ceilings validate automatically.
+Exit gate: exact campaign prerequisites, content ceilings, challenge validity and launch constraints validate automatically.
 
 ### 12E — UX / accessibility / controller / Deck
-Implement onboarding, planning UI, transit feedback, Causal Review, menus/settings, keyboard-only, controller-only, Steam Deck 1280x800, remapping, reduced motion/flashing, UI scaling, non-color and non-audio equivalents.
+Implement onboarding, planning UI, transit presentation, Causal Review, menus/settings, keyboard-only, controller-only, Steam Deck 1280×800, remapping, UI scale, Reduced Motion/Flashing and non-color/non-audio equivalents.
 
-Exit gate: every required gameplay path passes frozen accessibility/input acceptance criteria.
+Exit gate: every required gameplay path passes the frozen accessibility/input acceptance criteria.
 
 ### 12F — Adversarial QA
-Attack saves, duplicate Launch, recovery, corrupted/legacy state, impossible layouts, campaign locks, generated challenge validity, dominant strategies, targeted Retry, cloud/profile merge behavior, and hostile edge cases.
+Attack saves, duplicate Launch, duplicate Results, recovery, corruption/legacy state, impossible layouts, campaign locks, generated challenge validity, dominant strategies, targeted Retry, cloud/profile merge behavior, hostile timing and edge cases.
 
-Exit gate: no known spec-breaking blocker remains.
+Exit gate: no known specification-breaking blocker remains and regression coverage exists for repaired failures.
 
-### 12G — Empirical design gates
-Prototype/playtest the frozen empirical gates from `PHASE11_FINAL_FREEZE.md`. These are validation obligations, not permission to redesign casually.
+### 12G — Empirical gates / playtest validation
+Validate the prototype-dependent gates in `PHASE11_FINAL_FREEZE.md`.
 
-If a gate fails, record exact evidence and reopen only the minimum affected canonical design rule before changing gameplay.
+These are empirical obligations, not permission for casual redesign. If a gate fails, record evidence, reopen only the minimum affected canonical rule, reconcile the design deliberately, then implement the approved amendment.
 
 ### 12H — Release candidate
-Performance, packaging, regression, demo build, store/achievement integrations if frozen in scope, final save compatibility, and release checklist.
+Performance, packaging, regression, save compatibility, demo build, required platform/store integration already in scope, release checklist and final candidate verification.
 
-Exit gate: `IMPLEMENTATION COMPLETE = YES` only after build, tests, QA and release-candidate criteria are satisfied.
+Exit gate: `IMPLEMENTATION COMPLETE = YES` only after implementation, content, UX/accessibility, persistence, QA, empirical gates, regression and release-candidate criteria are all satisfied.
 
 ## Hard rules
 - Do not change gameplay because implementation is inconvenient.
-- Do not add new species, supports, currencies, modes, platforms, multiplayer, monetization systems or core mechanics without a deliberate canonical design amendment.
-- Keep simulation logic deterministic and testable outside presentation where possible.
+- Do not add species, supports, currencies, campaign nodes, hazard families, modes, platforms, multiplayer, monetization systems or new core mechanics unless a deliberate canonical design amendment is first recorded.
+- Keep authoritative simulation deterministic and testable independently from presentation wherever practical.
 - Make content data-driven where the frozen specification permits it.
-- Every run must update implementation status with exactly what changed, tests run, failures, and next action.
-- Commit only working coherent increments when possible.
-- If a run cannot finish a risky migration, preserve a recoverable state and document the exact blocker.
+- Do not hide failed tests. Record the failure and either repair it in the same increment or make it the next explicit blocker.
+- Do not mark a phase complete because code exists; satisfy its exit gate.
+- Do not mark the project complete before `IMPLEMENTATION COMPLETE = YES`.
 
-## Recommended implementation status file
-Create and maintain `IMPLEMENTATION_STATUS.md` from the first implementation run. Keep design `STATUS.md` as frozen design history; implementation progress belongs in the new status file.
+## Design-change protocol
+If implementation reveals a real contradiction or impossible requirement:
+1. stop only the affected behavior;
+2. document the exact conflict and evidence;
+3. identify the minimum canonical files affected;
+4. amend design deliberately before changing gameplay behavior;
+5. add regression/acceptance coverage for the amendment;
+6. continue implementation from the updated canon.
+
+## Status ownership
+- `DESIGN_STATUS.md` is frozen design history.
+- `IMPLEMENTATION_STATUS.md` is the live source of truth for Phase 12+.
+- `PHASE11_FINAL_FREEZE.md` remains the highest implementation-sensitive design authority.
 
 ## Completion condition
-Do not report the game finished merely because all systems exist. Completion requires implementation, content, UX/accessibility, persistence, adversarial QA, empirical gates, regression and a release candidate to be complete.
+The implementation chat may report **Завершено** only when `IMPLEMENTATION COMPLETE = YES`. Intermediate runs remain **В процессе** even when an individual phase or milestone finishes.
