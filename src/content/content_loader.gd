@@ -4,7 +4,7 @@ extends RefCounted
 const ContentDocumentScript := preload("res://src/content/content_document.gd")
 
 static func load_directory(path: String, expected_kind: StringName = &"") -> Dictionary:
-	var directory := DirAccess.open(path)
+	var directory: DirAccess = DirAccess.open(path)
 	if directory == null:
 		return {"ok": false, "error": "directory_unavailable", "documents": {}}
 
@@ -18,7 +18,7 @@ static func load_directory(path: String, expected_kind: StringName = &"") -> Dic
 		var text: String = FileAccess.get_file_as_string(full_path)
 		if text.is_empty() and FileAccess.get_open_error() != OK:
 			return {"ok": false, "error": "read_failed:%s" % filename, "documents": {}}
-		var document = ContentDocumentScript.parse_utf8_json(text, expected_kind)
+		var document: ContentDocument = ContentDocumentScript.parse_utf8_json(text, expected_kind)
 		if document == null:
 			return {"ok": false, "error": "invalid_document:%s" % filename, "documents": {}}
 		var stable_id: StringName = document.id

@@ -18,10 +18,10 @@ func write(kind: StringName, payload: Dictionary) -> Dictionary:
 	var primary: String = _path(kind, ".sav")
 	var temp: String = _path(kind, ".sav.tmp")
 	var backup: String = _path(kind, ".sav.bak")
-	var envelope = SaveEnvelopeScript.create(kind, payload)
+	var envelope: SaveEnvelope = SaveEnvelopeScript.create(kind, payload)
 	var serialized: String = envelope.serialize()
 
-	var file := FileAccess.open(temp, FileAccess.WRITE)
+	var file: FileAccess = FileAccess.open(temp, FileAccess.WRITE)
 	if file == null:
 		return {"ok": false, "error": "temp_open_failed:%d" % FileAccess.get_open_error()}
 	file.store_string(serialized)
@@ -79,7 +79,7 @@ func _load_path(path: String, kind: StringName) -> Dictionary:
 	if not FileAccess.file_exists(path):
 		return {"ok": false, "error": "missing", "envelope": null}
 	var text: String = FileAccess.get_file_as_string(path)
-	var envelope = SaveEnvelopeScript.parse_and_validate(text, kind)
+	var envelope: SaveEnvelope = SaveEnvelopeScript.parse_and_validate(text, kind)
 	if envelope == null:
 		return {"ok": false, "error": "invalid", "envelope": null}
 	return {"ok": true, "error": "", "envelope": envelope}

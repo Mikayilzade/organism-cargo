@@ -40,24 +40,32 @@ Repository: `Mikayilzade/organism-cargo`
 - Those annotations hid the concrete script API from the static analyzer while the code immediately accessed script-defined members such as `id`, `serialize()`, `write()`, and `SimulationInput` fields; values now use script-return inference so the concrete API remains visible to Godot.
 - No gameplay rule, persistence semantic, content definition, or test expectation changed.
 
+### Increment 5
+- Tightened the current Phase-12A boundary for Godot 4.7.1 strict-warning execution by replacing Variant-derived local inference with explicit global-class types where the concrete class is known.
+- `bootstrap_test_runner.gd` now types the constructed `SimulationInput` explicitly.
+- Boundary tests now type `ContentDocument` and `SaveEnvelope` round-trip values explicitly.
+- Storage/content tests now type `AtomicSaveStore`, recovered `SaveEnvelope` values, `FileAccess`, and `DirAccess` handles explicitly.
+- `ContentLoader` now types its directory handle and parsed `ContentDocument`; `AtomicSaveStore` now types file handles and `SaveEnvelope` values on both write and load paths.
+- This is a compatibility repair only; no gameplay, persistence semantics, content definitions, or acceptance expectations changed.
+
 ## Checks performed
-- Re-read `IMPLEMENTATION_START_HERE.md`, live status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` before acting.
-- Re-checked the latest main branch and existing headless workflow before modifications.
-- Inspected the committed content/persistence source and all current test runners for Godot 4 typed-script API hazards.
-- GitHub connector still exposes no combined status contexts for the latest pushed checkpoint, and commit workflow lookup exposes no usable push run; therefore this checkpoint does **not** claim that Godot 4.7.1 has executed green.
-- Repository remains coherent and all compatibility repairs were saved to `main`.
+- Re-read the required implementation handoff, live status, autonomy rules, frozen design status, and final freeze before acting.
+- Re-read the current test runners and the concrete `class_name` declarations for `SimulationInput`, `ContentDocument`, `SaveEnvelope`, and `AtomicSaveStore` before editing.
+- Confirmed the current runtime blocker class is strict static typing around values produced through preloaded-script APIs; this increment removes that class of warning from the existing 12A boundary instead of expanding architecture prematurely.
+- Changes were batched into one Git tree/commit checkpoint to avoid repeated push-triggered CI runs.
+- A fresh Godot 4.7.1 CI result for this checkpoint is intentionally left for observation on the next run; no green claim is made before that result exists.
 
 ## Current blockers
 - No design blocker.
-- Runtime validation remains open until an actual Godot 4.7.1 parse/headless execution result is observable and any remaining parser/type/test failures are repaired.
+- Runtime validation remains open until this checkpoint's Godot 4.7.1 headless suites are observed and any next concrete parser/type/test failure is repaired.
 
 ## NEXT ACTION
-**Continue Phase 12A — obtain/observe the first real Godot 4.7.1 execution and drive the current suites to demonstrable green.**
+**Continue Phase 12A — inspect this checkpoint's single CI run and drive the existing suites to demonstrable green before broadening the bootstrap.**
 
 Next run:
-1. inspect the newest main checkpoint and any newly visible Actions/check result; if a Godot failure is observable, use the job/log details and repair it before any architectural expansion;
-2. if execution status remains unavailable, perform the next narrow compatibility audit against the actual committed Godot APIs, especially filesystem/hash/JSON calls and project/shell parsing, without inventing new architecture merely to create work;
-3. once the existing bootstrap, boundary, and storage/content suites are demonstrably green, add the next 12A composition layer: typed content registry/bootstrap service plus the frozen top-level app-state skeleton;
+1. inspect the newest main checkpoint's Godot Headless Tests result and job log;
+2. if it fails, repair the first concrete parser/type/test blocker as one coherent batch and leave any subsequent failure for the following run;
+3. if all current suites are green, add the next 12A composition layer: typed content registry/bootstrap service plus the frozen top-level app-state skeleton;
 4. test deterministic registry ordering, family validation, and legal state-transition ownership;
 5. update this status with exact checks and the following recoverable increment.
 

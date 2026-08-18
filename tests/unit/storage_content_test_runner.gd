@@ -48,7 +48,7 @@ func _test_duplicate_content_id_rejected() -> void:
 	_expect_equal(result["error"], "duplicate_id:same_id", "duplicate id diagnostic")
 
 func _test_atomic_save_and_backup_recovery() -> void:
-	var store = AtomicSaveStoreScript.new(test_root.path_join("saves"))
+	var store: AtomicSaveStore = AtomicSaveStoreScript.new(test_root.path_join("saves"))
 	var first: Dictionary = store.write(&"profile", {"profile_uuid": "p1", "bronze": ["C01"]})
 	_expect_true(first["ok"], "first profile generation written")
 	var second: Dictionary = store.write(&"profile", {"profile_uuid": "p1", "bronze": ["C01", "C02"]})
@@ -56,8 +56,9 @@ func _test_atomic_save_and_backup_recovery() -> void:
 	var loaded: Dictionary = store.load(&"profile")
 	_expect_true(loaded["ok"], "primary profile loads")
 	if loaded["ok"]:
+		var loaded_envelope: SaveEnvelope = loaded["envelope"]
 		_expect_equal(loaded["source"], "primary", "primary preferred")
-		_expect_equal(loaded["envelope"].payload["bronze"].size(), 2, "newest primary payload")
+		_expect_equal(loaded_envelope.payload["bronze"].size(), 2, "newest primary payload")
 
 	var paths: Dictionary = store.paths_for(&"profile")
 	var primary_text: String = FileAccess.get_file_as_string(paths["primary"])
@@ -65,11 +66,12 @@ func _test_atomic_save_and_backup_recovery() -> void:
 	var recovered: Dictionary = store.load(&"profile")
 	_expect_true(recovered["ok"], "backup recovered after tamper")
 	if recovered["ok"]:
+		var recovered_envelope: SaveEnvelope = recovered["envelope"]
 		_expect_equal(recovered["source"], "backup", "backup source selected")
-		_expect_equal(recovered["envelope"].payload["bronze"].size(), 1, "backup preserves previous generation")
+		_expect_equal(recovered_envelope.payload["bronze"].size(), 1, "backup preserves previous generation")
 
 func _test_settings_isolation() -> void:
-	var store = AtomicSaveStoreScript.new(test_root.path_join("isolation"))
+	var store: AtomicSaveStore = AtomicSaveStoreScript.new(test_root.path_join("isolation"))
 	_expect_true(store.write(&"profile", {"profile_uuid": "p2", "bronze": []})["ok"], "profile written for isolation")
 	_expect_true(store.write(&"settings", {"ui_scale": 125})["ok"], "settings written separately")
 	var settings_paths: Dictionary = store.paths_for(&"settings")
@@ -81,7 +83,7 @@ func _test_settings_isolation() -> void:
 	_expect_true(intact_profile["ok"], "profile remains loadable after settings corruption")
 
 func _write_raw(path: String, text: String) -> void:
-	var file := FileAccess.open(path, FileAccess.WRITE)
+	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		failures += 1
 		push_error("failed to open test file: %s" % path)
@@ -97,7 +99,7 @@ func _reset_test_root() -> void:
 	DirAccess.make_dir_recursive_absolute(absolute_root)
 
 func _remove_tree(path: String) -> void:
-	var directory := DirAccess.open(path)
+	var directory: DirAccess = DirAccess.open(path)
 	if directory == null:
 		return
 	for filename: String in directory.get_files():

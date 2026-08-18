@@ -30,7 +30,7 @@ func _expect_null(actual: Variant, label: String) -> void:
 
 func _test_content_document() -> void:
 	var good_json := '{"schema_version":1,"content_version":"c0","kind":"species","id":"species_test","payload":{"mass":3}}'
-	var document = ContentDocumentScript.parse_utf8_json(good_json, &"species")
+	var document: ContentDocument = ContentDocumentScript.parse_utf8_json(good_json, &"species")
 	_expect_true(document != null, "valid content parses")
 	if document != null:
 		_expect_equal(document.id, &"species_test", "content id")
@@ -41,9 +41,9 @@ func _test_content_document() -> void:
 
 func _test_save_envelope() -> void:
 	var payload: Dictionary = {"profile_uuid": "p1", "bronze": ["C01"]}
-	var envelope = SaveEnvelopeScript.create(&"profile", payload)
+	var envelope: SaveEnvelope = SaveEnvelopeScript.create(&"profile", payload)
 	var serialized: String = envelope.serialize()
-	var parsed = SaveEnvelopeScript.parse_and_validate(serialized, &"profile")
+	var parsed: SaveEnvelope = SaveEnvelopeScript.parse_and_validate(serialized, &"profile")
 	_expect_true(parsed != null, "save envelope round trip")
 	if parsed != null:
 		_expect_equal(parsed.payload["profile_uuid"], "p1", "save payload retained")
