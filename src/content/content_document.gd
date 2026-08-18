@@ -27,9 +27,9 @@ static func parse_utf8_json(text: String, expected_kind: StringName = &"") -> Co
 	if parsed == null or not parsed is Dictionary:
 		return null
 	var root: Dictionary = parsed
-	if not _has_exact_header_types(root):
+	if not _has_required_header_types(root):
 		return null
-	var parsed_schema: int = root["schema_version"]
+	var parsed_schema: int = _schema_version_from_json(root["schema_version"])
 	var parsed_content_version: String = root["content_version"]
 	var parsed_kind: StringName = StringName(root["kind"])
 	var parsed_id: StringName = StringName(root["id"])
@@ -50,8 +50,11 @@ static func parse_utf8_json(text: String, expected_kind: StringName = &"") -> Co
 		parsed_payload
 	)
 
-static func _has_exact_header_types(root: Dictionary) -> bool:
-	if not root.has("schema_version") or typeof(root["schema_version"]) != TYPE_INT:
+static func _has_required_header_types(root: Dictionary) -> bool:
+	if not root.has("schema_version"):
+		return false
+	var schema_type: int = typeof(root["schema_version"])
+	if schema_type != TYPE_INT and schema_type != TYPE_FLOAT:
 		return false
 	if not root.has("content_version") or typeof(root["content_version"]) != TYPE_STRING:
 		return false
@@ -62,3 +65,13 @@ static func _has_exact_header_types(root: Dictionary) -> bool:
 	if not root.has("payload") or typeof(root["payload"]) != TYPE_DICTIONARY:
 		return false
 	return true
+
+static func _schema_version_from_json(value: Variant) -> int:
+	if typeof(value) == TYPE_INT:
+		return value
+	if typeof(value) != TYPE_FLOAT:
+		return 0
+	var numeric_value: float = value
+	if not is_finite(numeric_value) or numeric_value != floor(numeric_value):
+		return 0
+	return int(numeric_value)

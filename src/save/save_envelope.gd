@@ -15,7 +15,7 @@ func _init(p_schema_version: int, p_kind: StringName, p_payload: Dictionary, p_p
 	payload_checksum = p_payload_checksum
 
 static func create(p_kind: StringName, p_payload: Dictionary) -> SaveEnvelope:
-	var canonical_payload: String = JSON.stringify(p_payload, "", true, true)
+	var canonical_payload: String = _canonical_payload_json(p_payload)
 	return SaveEnvelope.new(
 		CURRENT_SCHEMA_VERSION,
 		p_kind,
@@ -37,7 +37,10 @@ static func parse_and_validate(text: String, expected_kind: StringName = &"") ->
 	if parsed == null or not parsed is Dictionary:
 		return null
 	var root: Dictionary = parsed
-	if not root.has("schema_version") or typeof(root["schema_version"]) != TYPE_INT:
+	if not root.has("schema_version"):
+		return null
+	var schema_type: int = typeof(root["schema_version"])
+	if schema_type != TYPE_INT and schema_type != TYPE_FLOAT:
 		return null
 	if not root.has("kind") or typeof(root["kind"]) != TYPE_STRING:
 		return null
@@ -45,7 +48,7 @@ static func parse_and_validate(text: String, expected_kind: StringName = &"") ->
 		return null
 	if not root.has("payload_checksum") or typeof(root["payload_checksum"]) != TYPE_STRING:
 		return null
-	var parsed_schema: int = root["schema_version"]
+	var parsed_schema: int = _schema_version_from_json(root["schema_version"])
 	var parsed_kind: StringName = StringName(root["kind"])
 	var parsed_payload: Dictionary = root["payload"]
 	var parsed_checksum: String = root["payload_checksum"]
@@ -55,10 +58,45 @@ static func parse_and_validate(text: String, expected_kind: StringName = &"") ->
 		return null
 	if expected_kind != &"" and parsed_kind != expected_kind:
 		return null
-	var canonical_payload: String = JSON.stringify(parsed_payload, "", true, true)
+	var canonical_payload: String = _canonical_payload_json(parsed_payload)
 	if not _constant_time_equal(parsed_checksum, _sha256(canonical_payload)):
 		return null
 	return SaveEnvelope.new(parsed_schema, parsed_kind, parsed_payload, parsed_checksum)
+
+static func _schema_version_from_json(value: Variant) -> int:
+	if typeof(value) == TYPE_INT:
+		return value
+	if typeof(value) != TYPE_FLOAT:
+		return 0
+	var numeric_value: float = value
+	if not is_finite(numeric_value) or numeric_value != floor(numeric_value):
+		return 0
+	return int(numeric_value)
+
+static func _canonical_payload_json(p_payload: Dictionary) -> String:
+	return JSON.stringify(_canonicalize_json_value(p_payload), "", true, true)
+
+static func _canonicalize_json_value(value: Variant) -> Variant:
+	match typeof(value):
+		TYPE_DICTIONARY:
+			var source_dictionary: Dictionary = value
+			var normalized_dictionary: Dictionary = {}
+			for key: Variant in source_dictionary.keys():
+				normalized_dictionary[key] = _canonicalize_json_value(source_dictionary[key])
+			return normalized_dictionary
+		TYPE_ARRAY:
+			var source_array: Array = value
+			var normalized_array: Array = []
+			for item: Variant in source_array:
+				normalized_array.append(_canonicalize_json_value(item))
+			return normalized_array
+		TYPE_FLOAT:
+			var numeric_value: float = value
+			if is_finite(numeric_value) and numeric_value == floor(numeric_value):
+				return int(numeric_value)
+			return numeric_value
+		_:
+			return value
 
 static func _sha256(text: String) -> String:
 	var context := HashingContext.new()

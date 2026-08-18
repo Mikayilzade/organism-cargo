@@ -35,19 +35,29 @@ func _test_content_document() -> void:
 	if document != null:
 		_expect_equal(document.id, &"species_test", "content id")
 		_expect_equal(document.content_version, "c0", "content version")
+		_expect_equal(document.schema_version, 1, "JSON numeric schema normalized to integer")
 	_expect_null(ContentDocumentScript.parse_utf8_json(good_json, &"support"), "wrong content kind rejected")
 	_expect_null(ContentDocumentScript.parse_utf8_json('{"schema_version":0,"content_version":"c0","kind":"species","id":"x","payload":{}}'), "old schema rejected")
+	_expect_null(ContentDocumentScript.parse_utf8_json('{"schema_version":1.5,"content_version":"c0","kind":"species","id":"x","payload":{}}'), "fractional schema rejected")
 	_expect_null(ContentDocumentScript.parse_utf8_json('{"schema_version":1,"content_version":"","kind":"species","id":"x","payload":{}}'), "empty version rejected")
 
 func _test_save_envelope() -> void:
-	var payload: Dictionary = {"profile_uuid": "p1", "bronze": ["C01"]}
+	var payload: Dictionary = {
+		"profile_uuid": "p1",
+		"bronze": ["C01"],
+		"retry_count": 2,
+		"nested": {"tick": 3},
+	}
 	var envelope: SaveEnvelope = SaveEnvelopeScript.create(&"profile", payload)
 	var serialized: String = envelope.serialize()
 	var parsed: SaveEnvelope = SaveEnvelopeScript.parse_and_validate(serialized, &"profile")
 	_expect_true(parsed != null, "save envelope round trip")
 	if parsed != null:
 		_expect_equal(parsed.payload["profile_uuid"], "p1", "save payload retained")
+		_expect_equal(parsed.payload["retry_count"], 2, "integer-valued payload survives JSON checksum validation")
 	_expect_null(SaveEnvelopeScript.parse_and_validate(serialized, &"session"), "save kind separation")
+	var fractional_schema: String = serialized.replace('"schema_version":1', '"schema_version":1.5')
+	_expect_null(SaveEnvelopeScript.parse_and_validate(fractional_schema, &"profile"), "fractional save schema rejected")
 	var tampered: String = serialized.replace("C01", "C02")
 	_expect_null(SaveEnvelopeScript.parse_and_validate(tampered, &"profile"), "tampered save rejected")
 
