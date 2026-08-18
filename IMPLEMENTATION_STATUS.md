@@ -34,23 +34,30 @@ Repository: `Mikayilzade/organism-cargo`
 - Added `tests/unit/storage_content_test_runner.gd` for content loading, duplicate-ID rejection, primary/backup recovery, and settings/profile isolation.
 - Extended `.github/workflows/headless-tests.yml` to execute the new storage/content suite.
 
+### Increment 4
+- Performed a focused Godot-typing compatibility pass on the current 12A boundary rather than broadening the architecture without a demonstrated runtime pass.
+- Removed misleading `RefCounted` static annotations from values returned by preloaded scripts in `ContentLoader`, `AtomicSaveStore`, and all three current headless test runners.
+- Those annotations hid the concrete script API from the static analyzer while the code immediately accessed script-defined members such as `id`, `serialize()`, `write()`, and `SimulationInput` fields; values now use script-return inference so the concrete API remains visible to Godot.
+- No gameplay rule, persistence semantic, content definition, or test expectation changed.
+
 ## Checks performed
-- Re-read the required implementation handoff, live status, autonomy rules, design status, final freeze, and Phase-11 persistence contract.
-- Inspected the latest main commit and existing CI definition before writing.
-- Queried GitHub combined commit status for the prior checkpoint and latest workflow commit. No status contexts were exposed by the available connector, so this run does not claim a successful Godot execution.
-- No gameplay or production content rules were changed.
+- Re-read `IMPLEMENTATION_START_HERE.md`, live status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` before acting.
+- Re-checked the latest main branch and existing headless workflow before modifications.
+- Inspected the committed content/persistence source and all current test runners for Godot 4 typed-script API hazards.
+- GitHub connector still exposes no combined status contexts for the latest pushed checkpoint, and commit workflow lookup exposes no usable push run; therefore this checkpoint does **not** claim that Godot 4.7.1 has executed green.
+- Repository remains coherent and all compatibility repairs were saved to `main`.
 
 ## Current blockers
 - No design blocker.
-- Runtime validation remains open until a real Godot 4.7.1 parse/headless run is observable and any parser/type/test failures are repaired.
+- Runtime validation remains open until an actual Godot 4.7.1 parse/headless execution result is observable and any remaining parser/type/test failures are repaired.
 
 ## NEXT ACTION
-**Continue Phase 12A — obtain/observe the first real Godot 4.7.1 execution and repair the current suites to green before broadening the bootstrap.**
+**Continue Phase 12A — obtain/observe the first real Godot 4.7.1 execution and drive the current suites to demonstrable green.**
 
 Next run:
-1. inspect the latest Actions/check result through any available GitHub interface and repair all Godot parser/type/test failures first;
-2. if CI status is still unavailable, inspect the committed GDScript for concrete Godot-4.7 API/type hazards and make only compatibility repairs supported by the engine API;
-3. after the current suites are demonstrably green, add the next 12A composition layer: typed content registry/bootstrap service plus the frozen top-level app-state skeleton;
+1. inspect the newest main checkpoint and any newly visible Actions/check result; if a Godot failure is observable, use the job/log details and repair it before any architectural expansion;
+2. if execution status remains unavailable, perform the next narrow compatibility audit against the actual committed Godot APIs, especially filesystem/hash/JSON calls and project/shell parsing, without inventing new architecture merely to create work;
+3. once the existing bootstrap, boundary, and storage/content suites are demonstrably green, add the next 12A composition layer: typed content registry/bootstrap service plus the frozen top-level app-state skeleton;
 4. test deterministic registry ordering, family validation, and legal state-transition ownership;
 5. update this status with exact checks and the following recoverable increment.
 
