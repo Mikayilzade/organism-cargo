@@ -27,62 +27,49 @@ Repository: `Mikayilzade/organism-cargo`
 - Added JSON `ContentDocument`, deterministic `SaveEnvelope`, semantic input action catalog, boundary tests, and a Godot 4.7.1 GitHub Actions headless-test workflow.
 
 ### Increment 3
-- Added `src/content/content_loader.gd` for file-backed JSON loading in stable filename order with header validation and duplicate stable-ID rejection.
-- Added two tiny bootstrap content fixtures under `tests/fixtures/content_bootstrap`; these are test-only and do not populate production game content.
-- Added `src/save/atomic_save_store.gd` with separate profile/session/settings generations and the required temp-write, validation, backup, and primary-install sequence.
-- Added load recovery that prefers a valid primary and falls back to the retained backup generation when primary validation fails.
-- Added `tests/unit/storage_content_test_runner.gd` for content loading, duplicate-ID rejection, primary/backup recovery, and settings/profile isolation.
-- Extended `.github/workflows/headless-tests.yml` to execute the new storage/content suite.
+- Added stable-order file-backed content loading, bootstrap fixtures, atomic profile/session/settings save generations, backup recovery, and storage/content tests.
 
 ### Increment 4
-- Performed a focused Godot-typing compatibility pass on the current 12A boundary rather than broadening the architecture without a demonstrated runtime pass.
-- Removed misleading `RefCounted` static annotations from values returned by preloaded scripts in `ContentLoader`, `AtomicSaveStore`, and all three current headless test runners.
-- Those annotations hid the concrete script API from the static analyzer while the code immediately accessed script-defined members such as `id`, `serialize()`, `write()`, and `SimulationInput` fields; values now use script-return inference so the concrete API remains visible to Godot.
-- No gameplay rule, persistence semantic, content definition, or test expectation changed.
+- Performed a focused Godot typing compatibility pass without changing gameplay or persistence semantics.
 
 ### Increment 5
-- Tightened the current Phase-12A boundary for Godot 4.7.1 strict-warning execution by replacing Variant-derived local inference with explicit global-class types where the concrete class is known.
-- `bootstrap_test_runner.gd` now types the constructed `SimulationInput` explicitly.
-- Boundary tests now type `ContentDocument` and `SaveEnvelope` round-trip values explicitly.
-- Storage/content tests now type `AtomicSaveStore`, recovered `SaveEnvelope` values, `FileAccess`, and `DirAccess` handles explicitly.
-- `ContentLoader` now types its directory handle and parsed `ContentDocument`; `AtomicSaveStore` now types file handles and `SaveEnvelope` values on both write and load paths.
-- This is a compatibility repair only; no gameplay, persistence semantics, content definitions, or acceptance expectations changed.
+- Tightened strict-warning typing across bootstrap, boundary, content, and storage code for Godot 4.7.1.
 
 ### Increment 6
-- Inspected the first post-Increment-5 Godot 4.7.1 CI run. Project import and bootstrap deterministic tests are now demonstrably green; the next failure moved to boundary serialization tests.
-- Identified the concrete cause: Godot JSON decoding represents JSON numbers as floating-point Variants, while the content/save schema validators required `TYPE_INT` for `schema_version`, causing valid version `1` documents to be rejected after JSON parsing.
-- Updated `ContentDocument` and `SaveEnvelope` to accept JSON numeric schema values only when they are finite integral numbers, normalize them to integer schema versions, and still reject fractional/invalid versions.
-- Hardened `SaveEnvelope` checksum canonicalization so integer-valued numbers remain checksum-equivalent across JSON encode/decode (`2` versus decoded `2.0`), which is necessary for future numeric save payloads.
-- Added regression coverage for normalized schema versions, fractional-schema rejection, and nested integer-valued numeric save payload round trips.
-- No gameplay rule or persistence transaction semantic changed; this increment only repairs JSON representation compatibility at the frozen persistence/content boundary.
+- Repaired JSON numeric schema-version normalization and checksum canonicalization; added fractional-schema and numeric payload regressions.
 
 ### Increment 7
-- Observed CI for checkpoint `f294118`: project import, bootstrap deterministic tests, and boundary serialization tests all pass under Godot 4.7.1.
-- The first remaining failure moved to `storage_content_test_runner.gd`, where strict warnings rejected `.size()` calls on `Variant` values read from `SaveEnvelope.payload`.
-- Repaired that concrete blocker by casting the known `bronze` payload arrays to typed `Array` locals before size assertions for both primary-load and backup-recovery paths.
-- No production gameplay or persistence behavior changed; this is a test-boundary typing repair only.
+- Repaired the remaining strict-warning storage test boundary by typing known payload arrays explicitly.
+
+### Increment 8
+- Added `src/content/content_registry.gd` as the first typed composition layer over file-backed content loading.
+- Registry family loading is deterministic by kind and stable content ID, rejects wrong content families through the existing `expected_kind` contract, and enforces one coherent `content_version` across loaded families.
+- Added `src/state/app_state_machine.gd` with the 16 canonical top-level states from `TECHNICAL_SPEC.md` and one owner for legal transitions.
+- The frozen core flow cannot bypass `LAUNCH_CONFIRM` before transit or `CAUSAL_REVIEW` before Results.
+- Added `tests/unit/composition_test_runner.gd` covering deterministic registry ordering, family rejection, content-version exposure, and legal/illegal state transitions.
+- Extended the single headless CI workflow with the new composition suite.
+- No frozen gameplay mechanic, content roster, campaign rule, persistence semantic, or UX rule was redesigned.
 
 ## Checks performed
-- Re-read `IMPLEMENTATION_START_HERE.md`, live status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and the relevant frozen persistence/content requirements before acting.
-- Inspected Godot Headless Tests run `32182179866` for checkpoint `f294118`.
-- Confirmed `Import and parse project`, `Bootstrap deterministic tests`, and `Content persistence input boundary tests` all passed.
-- Confirmed the only observed failure was `storage_content_test_runner.gd` lines 61 and 71: `size()` called on an inferred `Variant` under warnings-as-errors.
-- Applied one focused code checkpoint for that concrete failure.
-- Updated this status in a separate `[skip ci]` checkpoint so the documentation update does not create a second Actions run or extra failure-notification email.
-- A fresh Godot 4.7.1 result for code checkpoint `06cba383` is intentionally left for observation on the next run; no green claim is made before that result exists.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, `CONTENT_ARCHITECTURE.md`, and the relevant `TECHNICAL_SPEC.md` sections before acting.
+- Re-inspected code checkpoint `06cba383` and the current repository head.
+- GitHub's combined-status connector still exposes no status contexts for this push workflow. A targeted Gmail search found no failure notification for checkpoint `06cba383` after its execution window; this is consistent with the prior storage typing repair succeeding, but is not treated as stronger evidence than an observable Actions result.
+- Reviewed the current content loader/document APIs before introducing the registry.
+- Added only one coherent code/test/workflow/status checkpoint in this run to avoid CI/email spam.
+- Fresh Godot 4.7.1 execution for this checkpoint is intentionally left for the next run; no green claim is made before the run is observed.
 
 ## Current blockers
 - No design blocker.
-- Runtime validation remains open until code checkpoint `06cba383` proves the storage/content suite green under Godot 4.7.1 or exposes the next concrete failure.
+- Runtime validation remains open until the single CI run for Increment 8 proves all existing suites plus `composition_test_runner.gd` green or exposes the first concrete parser/type/test failure.
 
 ## NEXT ACTION
-**Continue Phase 12A — inspect the single CI run for code checkpoint `06cba383` and finish driving all existing suites to demonstrable green before broadening the bootstrap.**
+**Continue Phase 12A — inspect the single Godot Headless Tests run for Increment 8 and repair only the first concrete failure if any; if green, wire the registry/state machine into the persistent shell bootstrap without expanding gameplay.**
 
 Next run:
-1. inspect the Godot Headless Tests result for code checkpoint `06cba383`;
-2. if the storage/content suite still fails, repair only the first concrete blocker as one coherent batch;
-3. if all existing suites are green, begin the next 12A composition increment: typed content registry/bootstrap service plus the frozen top-level app-state skeleton;
-4. test deterministic registry ordering, family validation, and legal state-transition ownership;
-5. update this status with exact checks and the following recoverable increment, using `[skip ci]` for status-only documentation checkpoints to avoid duplicate Actions runs.
+1. inspect the newest Actions result for the Increment-8 checkpoint;
+2. if any suite fails, repair the first concrete blocker as one coherent batch and leave remaining issues to the next run;
+3. if all suites are green, add a minimal bootstrap/composition service that validates required core content families before exposing campaign states and hands fatal validation failures to `FATAL_CONTENT_ERROR`;
+4. keep the shell/presentation non-authoritative and preserve deterministic simulation boundaries;
+5. update this status with exact checks and the next recoverable increment.
 
-Do not mark 12A complete until the project boots cleanly and deterministic tests actually execute successfully under Godot 4.7.1.
+Do not mark 12A complete until the project boots cleanly, deterministic tests execute successfully under Godot 4.7.1, and the frozen domain model has a stable composition root.

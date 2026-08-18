@@ -51,3 +51,9 @@ jobs:
         run: |
           set -euo pipefail
           /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/storage_content_test_runner.gd
+
+      - name: Content registry and app state composition tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/composition_test_runner.gd
