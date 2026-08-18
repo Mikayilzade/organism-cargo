@@ -37,7 +37,7 @@ func _test_canonical_checksum() -> void:
 	_expect_equal(ChecksumScript.sha256(serialized), "c0910e1b5609e66cdf8177e9815c3d191300824f28ec03d815f57449dca405f2", "deterministic SHA-256")
 
 func _test_simulation_input() -> void:
-	var input: RefCounted = SimulationInputScript.new("c0", "r0", &"C01", &"route_intro", 42)
+	var input = SimulationInputScript.new("c0", "r0", &"C01", &"route_intro", 42)
 	_expect_equal(input.content_version, "c0", "input content version")
 	_expect_equal(input.rules_version, "r0", "input rules version")
 	_expect_equal(input.contract_id, &"C01", "input contract id")
