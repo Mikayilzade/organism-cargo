@@ -113,7 +113,11 @@ func _test_planning_validation_to_durable_launch() -> void:
 		var record: Dictionary = envelope.payload["committed_run"]
 		_expect_equal(String(record["planning_revision_id"]), "revision-valid", "durable record retains validated planning revision")
 		_expect_equal(String(record["run_id"]), "run-planning-slice-1", "durable record retains run identity")
-		_expect_equal(record["canonical_committed_input"]["placements"], canonical_input["placements"], "durable record retains resolved placement snapshot")
+		var expected_persisted_input_value: Variant = JSON.parse_string(JSON.stringify(canonical_input, "", true, true))
+		_expect_true(expected_persisted_input_value is Dictionary, "test fixture normalizes through persistence JSON representation")
+		if expected_persisted_input_value is Dictionary:
+			var expected_persisted_input: Dictionary = expected_persisted_input_value
+			_expect_equal(record["canonical_committed_input"]["placements"], expected_persisted_input["placements"], "durable record retains persistence-normalized placement snapshot")
 
 func _payload(registry: ContentRegistry, kind: StringName, id: StringName) -> Dictionary:
 	for document: ContentDocument in registry.ordered_documents(kind):

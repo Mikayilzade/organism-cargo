@@ -71,29 +71,37 @@ Repository: `Mikayilzade/organism-cargo`
 - Replaced both unsafe reason-list copies with one typed `_duplicate_reasons()` boundary that validates `TYPE_ARRAY`, narrows to `Array`, and returns a defensive copy.
 - No planning legality, Launch semantics, transit behavior, delivery predicates or frozen gameplay rules changed.
 
+### Increment 23 — persistence-normalized durable planning assertion
+- Inspected the actual Increment-22 Godot 4.7.1 Actions run and confirmed the `PlanningSession` typing repair compiled and all suites through exactly-once Launch passed.
+- The first remaining failure moved into the planning-to-launch flow test: the durable JSON round trip correctly reloaded integral placement numbers as floating-point JSON numbers, while the test compared them directly against the pre-persistence integer Variant tree.
+- Kept production persistence semantics unchanged because `LaunchCommitService` intentionally normalizes committed input through the exact JSON representation before hashing and durable write.
+- Repaired the regression to normalize its expected planning input through the same JSON representation before asserting the reloaded placement snapshot. This tests durable semantic preservation instead of Godot's in-memory numeric Variant subtype.
+- No gameplay rule, launch transaction, checksum contract, transit behavior or content value changed.
+
 ## Checks performed
-- Re-read `IMPLEMENTATION_START_HERE.md`, this status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` before acting.
-- Inspected Increment-21 workflow run `32247759419`: import/parse, shell smoke, bootstrap, boundary, storage, composition and exactly-once Launch tests passed before later suites exposed compile errors.
-- Confirmed the first concrete failure in execution order was `src/planning/planning_session.gd:58` / `:71`: `duplicate()` invoked on inferred `Variant` under warning-as-error policy.
-- Applied only the focused typing repair required by the status NEXT ACTION; known later failures in `TransitSliceRunner` were deliberately not mixed into this checkpoint.
+- Re-read `IMPLEMENTATION_START_HERE.md`, this status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then `PHASE11_TECH_PERSISTENCE.md` as the exact active authority for the durable Launch boundary.
+- Inspected Increment-22 workflow run `32252916458`: import/parse, shell smoke, bootstrap, boundary, storage, composition and exactly-once Launch all passed; `planning_launch_flow_test_runner.gd` was the first failing suite.
+- Confirmed the observed failure was only the expected integer-vs-float Variant representation after JSON persistence: anchors/orientations retained the same numeric values and structure.
+- Confirmed the current production `LaunchCommitService` deliberately normalizes committed input through JSON before checksum generation and durable write, so changing production code to satisfy a raw Variant-subtype assertion would contradict the existing persistence/checksum boundary rather than fix gameplay.
+- Updated only the focused regression assertion required by the status NEXT ACTION.
 - No local Godot executable is available in this runtime; executable verification is delegated to the single GitHub Actions push run created by this checkpoint.
-- Batched source and status changes into one Git tree/commit/ref update to preserve the anti-spam rule and trigger only one normal push workflow.
+- Batched test and status changes into one Git tree/commit/ref update to preserve the anti-spam rule and trigger only one normal push workflow.
 
 ## Current blockers
 - No design blocker.
-- Increment-22 Godot 4.7.1 CI is the next runtime gate.
-- The prior run already exposed later `TransitSliceRunner` compile issues (`PHASE_ORDER` constant expression and `duplicate()` on inferred `Variant`), but per the recoverable-failure rule they are deferred until the next run after confirming the first repair checkpoint.
+- Increment-23 Godot 4.7.1 CI is the next runtime gate.
+- The prior Increment-21 log had exposed later `TransitSliceRunner` compile issues (`PHASE_ORDER` constant expression and `duplicate()` on inferred `Variant`); if they remain after the planning suite advances, the next run must repair only the first concrete one in execution order.
 - The mandatory-predicate grammar remains intentionally vertical-slice-small and currently reads only authoritative final organism stress/primary state.
 - Causal Review ownership exists, but causal event ancestry, actionable first-cause presentation and targeted Retry are not yet implemented.
 - Thermal organism runtime still supports the tiny one-cell-per-placement slice only; multi-cell body stages, supports, growth, H02-H06, sleep, contamination and satiety remain deferred.
 - Production campaign/species content remains intentionally absent; current slice values are test-only.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect the single Godot Headless Tests run from Increment 22. If red, repair only the first concrete remaining parser/type/API/test failure in execution order and checkpoint once. If green, implement the first deterministic Causal Review evidence boundary for the tiny slice.**
+**Continue Phase 12B — inspect the single Godot Headless Tests run from Increment 23. If red, repair only the first concrete remaining parser/type/API/test failure in execution order and checkpoint once. If green, implement the first deterministic Causal Review evidence boundary for the tiny slice.**
 
 Next run:
-1. inspect Increment-22 Actions and confirm the `PlanningSession` Variant-copy compile errors are gone;
-2. if red, repair only the first concrete remaining failure (expected from the prior log to be the `TransitSliceRunner` constant/Variant typing boundary) and checkpoint once;
+1. inspect Increment-23 Actions and confirm the persistence-normalized planning-to-launch assertion passes;
+2. if red, repair only the first concrete remaining failure in execution order, expected to be in `TransitSliceRunner` if the previously observed compile issues still exist;
 3. if green, read the exact causal ancestry / Causal Review / targeted Retry authority before writing;
 4. add stable causal event records for the already-implemented H01 thermal path only, without pretending full multi-root ancestry is complete;
 5. bind failed/passed mandatory predicate evidence to the relevant final causal event(s) and expose a deterministic review payload;
