@@ -87,3 +87,9 @@ jobs:
         run: |
           set -euo pipefail
           /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/transit_slice_test_runner.gd
+
+      - name: Thermal propagation and organism response tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/thermal_response_test_runner.gd

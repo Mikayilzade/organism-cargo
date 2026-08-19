@@ -49,29 +49,39 @@ Repository: `Mikayilzade/organism-cargo`
 - End-of-tick snapshots now retain active hazard IDs plus ordered per-cell heat, and the checksum sequence now includes route activation and row-major heat state.
 - Added transit regressions proving pre/during/post hazard activation, hold-wide heat application, environmental persistence without authored decay, and checksum divergence when the same thermal event occurs at a different tick.
 
+### Increment 19 — authored Phase-D thermal transfer/vent and Phase-E/F/G organism response kernel
+- Added `ThermalResponseKernel` as a deterministic, scene-free simulation component for the next vertical-slice transit state change.
+- Phase-D heat transfer is entirely authored through explicit orthogonal transfer edges. The kernel validates adjacency, rejects missing/negative definitions, rejects overdraw when authored outbound transfer exceeds the common source snapshot, then applies authored per-cell venting and integer clamps.
+- This deliberately avoids inventing a diffusion coefficient or hidden propagation formula not frozen in design: the tiny slice can author exact transfer amounts while later production content conversion can derive those edges from canonical hold/route propagation data.
+- Added deterministic organism heat sampling across occupied cells, authored heat-safe burden and integer stress conversion, Phase-F stress clamping, and Phase-G CALM/AGITATED/PANICKED threshold evaluation with required hysteresis.
+- Primary-state support is intentionally limited to CALM/AGITATED/PANICKED in this kernel; ASLEEP and other state-gated behavior remain explicitly rejected until their vertical-slice need is introduced.
+- Added a dedicated Godot headless regression suite proving authored orthogonal transfer + vent, deterministic heat -> stress -> AGITATED transition, recovery hysteresis, and rejection of diagonal transfer.
+- Extended the existing single workflow with one additional test step only; no new workflow or extra trigger was created.
+
 ## Checks performed
 - Re-read `IMPLEMENTATION_START_HERE.md`, this status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the current transit authorities in `MECHANICS.md`, `PHASE11_FREEZE.md` and `TECHNICAL_SPEC.md` before writing.
-- Confirmed current `main` before this increment was `f18172d215bbe9d233a99ca0622fab417b747bcd` (`12B: add deterministic transit phase skeleton`).
-- Checked recent GitHub failure notifications: there is no failure notification for `f18172d`; earlier failing checkpoints remain visible, so Increment 17 is treated as having no observed failure while not overclaiming a connector-visible success status.
-- Preserved the exact A-I phase order, route-event-before-environment ordering, row-major grid serialization requirement, integer authoritative values and no global RNG.
-- Extended only the existing transit test runner; no new workflow or trigger was added.
+- Confirmed current `main` before this increment was `225f66b5d4bed81366e145a26a6e8952b10a1591` (`12B: add authored thermal route state`).
+- Searched the connected Gmail failure notifications for Increment 18 and found no failure notification for commit `225f66b`; direct push-run status remains unavailable through the connected GitHub status wrapper, so this run does not overclaim a connector-visible green result.
+- Preserved the exact A-I authority split: propagation/vent belongs to Phase D, environmental sampling/direct exposure to Phase E, internal stress application to Phase F, and threshold state evaluation to Phase G.
+- Preserved integer authority, common-source propagation semantics, orthogonal topology only, deterministic stable instance ordering and explicit hysteresis.
+- No production balance numbers were added. All numeric values in the new tests are test-only authored fixtures.
 - Batched this run into one tree/commit/ref checkpoint so it produces one normal Actions push run only.
 
 ## Current blockers
 - No design blocker.
-- The Increment-18 Godot 4.7.1 run is the next runtime gate; repair its first concrete parser/type/API/test failure before adding further transit mechanics.
-- Phase D does not yet propagate/decay/clamp heat because the tiny slice has not introduced the authored propagation/vent parameters needed to do so without inventing numbers.
-- Route zones, H02-H06, organism exposures/meters, thresholds, growth and supports remain intentionally absent.
-- Production campaign/species content remains intentionally absent; current vertical-slice definitions are test-only.
+- The Increment-19 Godot 4.7.1 run is the next runtime gate; repair its first concrete parser/type/API/test failure before integration into `TransitSliceRunner`.
+- `ThermalResponseKernel` is not yet wired into `TransitSliceRunner`; Increment 18 still publishes Phase-D heat unchanged inside the runner until this new kernel passes runtime validation and is composed into the transit owner.
+- Route zones, H02-H06, sleep, contamination, satiety, growth, supports, causal event ancestry and success/failure evaluation remain intentionally absent.
+- Production campaign/species content remains intentionally absent; current vertical-slice values are test-only.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect the single Godot Headless Tests run from Increment 18 and repair only its first concrete failure if any. If green, extend the tiny slice with the minimum authored heat propagation/vent parameters and Phase-E/F organism heat exposure -> internal stress state needed to create the first deterministic organism-state change.**
+**Continue Phase 12B — inspect the single Godot Headless Tests run from Increment 19 and repair only its first concrete failure if any. If green, integrate `ThermalResponseKernel` into `TransitSliceRunner` so the authored H01 route produces the first checksum-visible organism stress/state transition in the same end-to-end transit trace.**
 
 Next run:
-1. inspect Increment-18 Actions; repair only the first concrete failure before broadening;
-2. if green, re-read the exact Heat, exposure, stress/hysteresis and relevant content-schema sections of `MECHANICS.md` and `TECHNICAL_SPEC.md`;
-3. introduce only authored propagation/vent values and the minimum organism runtime fields needed for one heat-driven state change; do not invent omitted production balance values;
-4. preserve snapshot boundaries, row-major grid order, stable instance ordering and checksum reconstruction;
+1. inspect Increment-19 Actions; repair only the first concrete failure before broadening;
+2. if green, wire Phase D -> E -> F -> G through `ThermalResponseKernel` from the existing route/hold/organism simulation definitions;
+3. add organism runtime state to end-of-tick snapshots and canonical checksum serialization in stable `instance_id` order;
+4. prove the same committed input and authored definitions reproduce the same heat/stress/state trace and that a changed thermal event changes the organism-state checksum sequence;
 5. keep supports/growth/other hazards out until the vertical slice requires them;
 6. do not mark 12B complete until planning -> cargo placement -> validation -> exactly-once Launch -> deterministic transit -> success/failure -> Causal Review -> targeted Retry is playable end to end.
 
