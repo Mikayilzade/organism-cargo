@@ -88,6 +88,12 @@ jobs:
           set -euo pipefail
           /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/transit_slice_test_runner.gd
 
+      - name: Phase-I delivery completion and Causal Review handoff tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/delivery_completion_test_runner.gd
+
       - name: Thermal propagation and organism response tests
         shell: bash
         run: |

@@ -37,7 +37,6 @@ Repository: `Mikayilzade/organism-cargo`
 - Added `TransitSliceRunner` as the first post-Launch authoritative transit owner for the tiny no-support vertical slice.
 - It executes the frozen global A-I phase order for each integer tick and emits an authoritative SHA-256 checksum sequence from rules/content version, route, seed, tick and canonically ordered committed placements.
 - `run_id` is deliberately excluded from simulation entropy: two independent run identities with byte-equivalent authoritative committed input produce the same checksum sequence.
-- Placement array iteration order is normalized before hashing, while a real committed placement change changes the trace.
 
 ### Increment 18 — authored H01 route input and Phase-C/D heat authority
 - Extended `TransitSliceRunner` with separate route, hold and hazard simulation-definition boundaries.
@@ -50,44 +49,50 @@ Repository: `Mikayilzade/organism-cargo`
 - Phase-D heat transfer is authored through explicit orthogonal edges from a common source snapshot, followed by authored venting and integer clamps.
 - Added deterministic occupied-cell heat sampling, authored heat-safe burden, integer stress conversion, Phase-F clamping, and Phase-G CALM/AGITATED/PANICKED hysteresis.
 - Added a dedicated headless regression suite for transfer/vent, heat -> stress -> state, recovery hysteresis and diagonal-transfer rejection.
-- Supports, growth, other hazards and ASLEEP remain deliberately outside this kernel.
 
 ### Increment 20 — end-to-end H01 heat -> stress/state transit trace
 - Integrated `ThermalResponseKernel` into `TransitSliceRunner` without changing the frozen A-I order.
-- Thermal integration is opt-in through explicit `thermal_rules` plus `organism_definitions`; legacy/no-definition transit remains unchanged.
-- Organism runtime state is constructed from immutable committed placement anchors plus authored stress/state definitions, then normalized in stable `instance_id` order.
-- Phase D now executes authored propagation/vent/clamp when thermal rules are present.
-- The same tick then evaluates Phase-E heat exposure, Phase-F stress application and Phase-G threshold state using the kernel; updated stress/state persist into subsequent ticks.
-- End-of-tick snapshots now include stable organism response records (`instance_id`, exposure, stress delta, stress, primary state) for thermal runs.
-- Canonical tick serialization now includes organism `instance_id`, stress and primary state in stable order, making the H01-induced organism transition checksum-visible.
-- Transit regression coverage now proves: pre-hazard CALM, H01-driven AGITATED, persistent-heat PANICKED, stable replay under reordered committed placements/run identity, and checksum divergence when hazard timing changes.
+- Organism runtime is built from immutable committed placement anchors plus authored stress/state definitions and normalized in stable `instance_id` order.
+- Phase D executes authored propagation/vent/clamp; Phase E samples exposure; Phase F applies stress; Phase G resolves hysteresis; updated state persists into later ticks.
+- End-of-tick snapshots and authoritative tick hashes now include organism stress and primary state.
+- Regression coverage proves pre-hazard CALM, H01-driven AGITATED, persistent-heat PANICKED, replay stability under reordered committed placements/run identity, and checksum divergence when hazard timing changes.
+
+### Increment 21 — Phase-I mandatory delivery completion and Causal Review ownership
+- Added `DeliveryPredicateEvaluator` with the intentionally closed vertical-slice grammar `STRESS_AT_MOST` and `PRIMARY_STATE_IS`; all authored mandatory predicates must pass for delivery success.
+- Added `DeliveryCompletionRunner`, which consumes the authoritative completed transit snapshot, evaluates mandatory final-state predicates at the completion/Phase-I boundary, and emits deterministic `delivery_result`, `completion_checksum`, and `next_state = CAUSAL_REVIEW`.
+- Delivery failure is an authoritative completed result, not a simulation error. The completion checksum binds the final transit hash, final success bit, authored predicate identity/target/kind, required value, observed value and pass/fail result.
+- `run_id` remains persistence identity only and is not completion entropy.
+- Extended `AppStateMachine` with `accept_completed_transit()`: both successful and failed completed runs must hand ownership from `TRANSIT_PLAYBACK` to `CAUSAL_REVIEW`; malformed/incomplete results are rejected and Results/progression are still not written here.
+- Added a dedicated headless regression suite proving deterministic successful completion, authoritative failure, checksum-visible predicate outcomes, unknown-target rejection and success/failure Causal Review handoff.
 
 ## Checks performed
-- Re-read `IMPLEMENTATION_START_HERE.md`, this status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the active transit authority in `MECHANICS.md`, `PHASE11_FREEZE.md` and `TECHNICAL_SPEC.md`.
-- Confirmed `main` before this increment was `dc8856166fba21dc387220c1fc5c3a20a79b94d9` (`12B: add authored thermal response kernel`).
-- Searched connected Gmail for a failure notification tied to Increment 19 / `dc885616`; none was present. The available GitHub combined-status wrapper still does not expose push-run checks, so this is treated only as absence of a failure notification, not proof of green.
-- Reviewed the existing `ThermalResponseKernel`, `TransitSliceRunner`, transit tests and single `Godot Headless Tests` workflow before composing the increment.
-- Preserved deterministic integer authority, common-source Phase-D semantics, orthogonal topology only, stable `instance_id` ordering, immutable committed placement ownership and the exact A-I phase sequence.
-- No production balance numbers or production content were added; all new values remain test-only fixtures.
-- No local Godot executable is available in this runtime, so the relevant executable verification is the single existing GitHub Actions push run produced by this checkpoint.
-- Batched all source/test/status changes into one tree/commit/ref checkpoint to preserve the anti-spam rule and trigger at most one normal push workflow.
+- Re-read `IMPLEMENTATION_START_HERE.md`, this status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the active success/failure/transit/Causal Review authority in `GAME_BIBLE.md` and `MECHANICS.md`.
+- Confirmed `main` before this increment was `aa7f43e5a7c3fe1052d3860adf3f21972be6708e` (`12B: integrate thermal organism transit state`).
+- Checked connected Gmail for an Increment-20 failure notification tied to `aa7f43e`; none was present. The available GitHub connector still does not expose the push run directly, so absence of mail is not claimed as proof of green.
+- Kept the completion grammar deliberately smaller than the frozen full-game predicate language: only final-state stress ceiling and exact primary-state equality are implemented for the tiny slice; survival/criticality, growth stage, satiety, forbidden events, final zone and timeline predicates remain deferred.
+- Preserved the frozen rule that all mandatory predicates must pass for Bronze/delivery success and that both success and failure enter Causal Review before Results/retry ownership.
+- No Results/progression write, causal ancestry fabrication, production balance number or production content was added.
+- No local Godot executable is available in this runtime; executable verification is delegated to the single GitHub Actions push run created by this checkpoint.
+- Batched source, state-machine, test, workflow and status changes into one Git tree/commit/ref update to preserve the anti-spam rule and trigger only one normal push workflow.
 
 ## Current blockers
 - No design blocker.
-- Increment-20 Godot 4.7.1 CI is the next runtime gate. Repair only its first concrete parser/type/API/test failure if it fails.
-- Thermal organism runtime currently supports the tiny one-cell-per-placement vertical slice only; multi-cell body stages remain intentionally deferred to the growth/body implementation.
-- Route zones, H02-H06, sleep, contamination, satiety, growth, supports, causal event ancestry and success/failure evaluation remain intentionally absent.
-- Production campaign/species content remains intentionally absent; current vertical-slice values are test-only.
+- Increment-21 Godot 4.7.1 CI is the next runtime gate. Repair only its first concrete parser/type/API/test failure if it fails.
+- The mandatory-predicate grammar is intentionally vertical-slice-small and currently reads only authoritative final organism stress/primary state.
+- Causal Review ownership exists, but causal event ancestry, actionable first-cause presentation and targeted Retry are not yet implemented.
+- Thermal organism runtime still supports the tiny one-cell-per-placement slice only; multi-cell body stages, supports, growth, H02-H06, sleep, contamination and satiety remain deferred.
+- Production campaign/species content remains intentionally absent; current slice values are test-only.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect the single Godot Headless Tests run from Increment 20 and repair only its first concrete failure if any. If green, implement the first vertical-slice completion boundary: deterministic Phase-I mandatory delivery success/failure from final organism state, then route Transit completion into Causal Review ownership without yet inventing full causal ancestry.**
+**Continue Phase 12B — inspect the single Godot Headless Tests run from Increment 21 and repair only its first concrete failure if any. If green, implement the first deterministic Causal Review evidence boundary for the tiny slice: record minimal causal events for H01 activation -> heat exposure -> stress delta -> primary-state transition -> mandatory predicate outcome, preserve stable IDs/parent links, and add targeted Retry ownership back to PLANNING without writing Results/progression.**
 
 Next run:
-1. inspect Increment-20 Actions; if red, repair only the first concrete failure and checkpoint once;
-2. if green, read the exact mandatory-predicate/result/Causal Review authority before writing;
-3. add the smallest closed predicate grammar needed by the tiny slice for final-state stress/primary-state delivery conditions;
-4. evaluate it only in Phase I from authoritative final state and expose deterministic success/failure in the transit result/checksum;
-5. hand completed transit ownership to the existing app-state path toward `CAUSAL_REVIEW`, keeping Results/progression writes separate and later;
-6. do not mark 12B complete until planning -> cargo placement -> validation -> exactly-once Launch -> deterministic transit -> success/failure -> Causal Review -> targeted Retry is playable end to end.
+1. inspect Increment-21 Actions; if red, repair only the first concrete failure and checkpoint once;
+2. if green, read the exact causal ancestry / Causal Review / targeted Retry authority before writing;
+3. add stable causal event records for the already-implemented H01 thermal path only, without pretending full multi-root ancestry is complete;
+4. bind failed/passed mandatory predicate evidence to the relevant final causal event(s) and expose a deterministic review payload;
+5. add a targeted Retry command that returns from `CAUSAL_REVIEW` to `PLANNING` while preserving the prior committed plan as the editable starting revision;
+6. keep Results/progression application separate and later;
+7. do not mark 12B complete until planning -> cargo placement -> validation -> exactly-once Launch -> deterministic transit -> success/failure -> Causal Review -> targeted Retry is playable end to end.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.

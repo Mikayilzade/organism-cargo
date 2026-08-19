@@ -69,5 +69,20 @@ func transition_to(next_state: State) -> bool:
 	_state = next_state
 	return true
 
+func accept_completed_transit(transit_result: Dictionary) -> bool:
+	if _state != State.TRANSIT_PLAYBACK:
+		return false
+	if not bool(transit_result.get("ok", false)) or not bool(transit_result.get("completed", false)):
+		return false
+	var delivery_value: Variant = transit_result.get("delivery_result", null)
+	if not delivery_value is Dictionary:
+		return false
+	var delivery: Dictionary = delivery_value
+	if not bool(delivery.get("ok", false)) or not delivery.has("success"):
+		return false
+	if String(transit_result.get("next_state", "")) != "CAUSAL_REVIEW":
+		return false
+	return transition_to(State.CAUSAL_REVIEW)
+
 func force_boot_for_tests() -> void:
 	_state = State.BOOT
