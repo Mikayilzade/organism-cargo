@@ -45,45 +45,24 @@ func _test_exactly_once_launch_commit() -> void:
 	var contract_definition_checksum: String = "contract-def-checksum-1"
 
 	var illegal: Dictionary = service.request_launch(
-		"token-illegal",
-		"revision-1",
-		false,
-		"profile-1",
-		"contract-1",
-		canonical_input,
-		"rules-r1",
-		"content-c1",
-		contract_definition_checksum
+		"token-illegal", "revision-1", false, "profile-1", "contract-1", canonical_input,
+		"rules-r1", "content-c1", contract_definition_checksum
 	)
 	_expect_true(not bool(illegal["ok"]), "structurally illegal launch rejected")
 	_expect_equal(String(illegal["error"]), "structural_illegal", "illegal launch reason")
 	_expect_equal(allocated_run_ids, 0, "illegal launch allocates no run id")
 
 	var missing_contract_checksum: Dictionary = service.request_launch(
-		"token-missing-contract-checksum",
-		"revision-1",
-		true,
-		"profile-1",
-		"contract-1",
-		canonical_input,
-		"rules-r1",
-		"content-c1",
-		""
+		"token-missing-contract-checksum", "revision-1", true, "profile-1", "contract-1", canonical_input,
+		"rules-r1", "content-c1", ""
 	)
 	_expect_true(not bool(missing_contract_checksum["ok"]), "missing contract definition checksum rejected")
 	_expect_equal(String(missing_contract_checksum["error"]), "missing_contract_definition_checksum", "missing contract checksum reason")
 	_expect_equal(allocated_run_ids, 0, "missing contract checksum allocates no run id")
 
 	var committed: Dictionary = service.request_launch(
-		"token-1",
-		"revision-1",
-		true,
-		"profile-1",
-		"contract-1",
-		canonical_input,
-		"rules-r1",
-		"content-c1",
-		contract_definition_checksum
+		"token-1", "revision-1", true, "profile-1", "contract-1", canonical_input,
+		"rules-r1", "content-c1", contract_definition_checksum
 	)
 	_expect_true(bool(committed["ok"]), "legal launch commits")
 	_expect_true(not bool(committed["duplicate"]), "first launch is not duplicate")
@@ -107,20 +86,20 @@ func _test_exactly_once_launch_commit() -> void:
 		expected_committed_input["content_version"] = "content-c1"
 		expected_committed_input["generator_version"] = ""
 		expected_committed_input["expected_contract_definition_checksum"] = contract_definition_checksum
-		_expect_equal(record["canonical_committed_input"], expected_committed_input, "canonical committed input includes compatibility identity")
-		var expected_checksum: String = JSON.stringify(expected_committed_input, "", true, true).sha256_text()
-		_expect_equal(String(record["committed_input_checksum"]), expected_checksum, "committed input checksum covers compatibility identity")
+		var expected_pre_normalized: String = JSON.stringify(expected_committed_input, "", true, true)
+		var expected_parsed: Variant = JSON.parse_string(expected_pre_normalized)
+		_expect_true(expected_parsed is Dictionary, "expected committed input normalizes through persistence JSON")
+		if expected_parsed is Dictionary:
+			var expected_normalized: Dictionary = expected_parsed
+			_expect_equal(record["canonical_committed_input"], expected_normalized, "canonical committed input matches persisted numeric representation")
+			var expected_checksum: String = JSON.stringify(expected_normalized, "", true, true).sha256_text()
+			_expect_equal(String(record["committed_input_checksum"]), expected_checksum, "committed input checksum covers persisted canonical representation")
+			var persisted_checksum: String = JSON.stringify(record["canonical_committed_input"], "", true, true).sha256_text()
+			_expect_equal(String(record["committed_input_checksum"]), persisted_checksum, "persisted committed input reconstructs its own checksum")
 
 	var duplicate: Dictionary = service.request_launch(
-		"token-duplicate-callback",
-		"revision-1",
-		true,
-		"profile-1",
-		"contract-1",
-		canonical_input,
-		"rules-r1",
-		"content-c1",
-		contract_definition_checksum
+		"token-duplicate-callback", "revision-1", true, "profile-1", "contract-1", canonical_input,
+		"rules-r1", "content-c1", contract_definition_checksum
 	)
 	_expect_true(bool(duplicate["ok"]), "duplicate callback returns existing commit")
 	_expect_true(bool(duplicate["duplicate"]), "duplicate callback identified")
@@ -128,15 +107,8 @@ func _test_exactly_once_launch_commit() -> void:
 	_expect_equal(allocated_run_ids, 1, "duplicate allocates no second run id")
 
 	var wrong_revision: Dictionary = service.request_launch(
-		"token-2",
-		"revision-2",
-		true,
-		"profile-1",
-		"contract-1",
-		canonical_input,
-		"rules-r1",
-		"content-c1",
-		contract_definition_checksum
+		"token-2", "revision-2", true, "profile-1", "contract-1", canonical_input,
+		"rules-r1", "content-c1", contract_definition_checksum
 	)
 	_expect_true(not bool(wrong_revision["ok"]), "new revision cannot launch from transit")
 	_expect_equal(String(wrong_revision["error"]), "invalid_state", "transit launch rejected by state owner")

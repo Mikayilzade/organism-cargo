@@ -51,6 +51,15 @@ func request_launch(
 	committed_input["content_version"] = content_version
 	committed_input["generator_version"] = generator_version
 	committed_input["expected_contract_definition_checksum"] = expected_contract_definition_checksum
+
+	# Normalize through the same JSON representation used by persistence before hashing.
+	# Godot JSON parses integral JSON numbers as floats, so hashing the pre-save Variant tree
+	# would make a reconstructed persisted record serialize differently from the committed hash.
+	var pre_normalized_serialized: String = JSON.stringify(committed_input, "", true, true)
+	var parsed_normalized_input: Variant = JSON.parse_string(pre_normalized_serialized)
+	if parsed_normalized_input == null or not parsed_normalized_input is Dictionary:
+		return _failure("canonical_input_normalization_failed")
+	committed_input = parsed_normalized_input
 	var committed_input_serialized: String = JSON.stringify(committed_input, "", true, true)
 	var committed_input_checksum: String = committed_input_serialized.sha256_text()
 	var run_id: String = _allocate_run_id()
