@@ -43,51 +43,52 @@ Increments 1-13 established the runnable Godot project, deterministic/fixed-poin
 ### Increment 25 — first deterministic Causal Review evidence boundary
 - Added `src/sim/causal_review_evidence_builder.gd` as a scene-free review-data boundary over completed transit trace.
 - Added stable event IDs, H01 -> organism parent binding, mandatory-predicate evidence binding, separate first meaningful/actionable events, deterministic review checksum, malformed-result rejection tests, and CI coverage.
-- Multi-root material ancestry, supports, growth, Brownout, H02-H06 and richer causal kinds remain future Phase 12C work.
 
 ### Increment 26 — targeted Retry boundary
 - Added `src/run/targeted_retry_service.gd`.
 - `CAUSAL_REVIEW -> PLANNING` Retry seeds a new editable planning revision from a deep copy of the prior authoritative `canonical_committed_input` while retaining source `run_id` and source planning revision identity.
 - Retry does not mutate the supplied completed-run record.
-- Added `tests/unit/targeted_retry_test_runner.gd` covering immutable source-run snapshot, unchanged retry baseline equivalence, editable retry revision, and a new Launch/run identity after an edit.
-- Extended the single headless workflow with the targeted Retry regression suite.
-- Results/progression application remains separate.
+- Added headless coverage for immutable source-run snapshot, unchanged retry baseline equivalence, editable retry revision, and a new Launch/run identity after an edit.
 
 ### Increment 27 — targeted Retry Godot typing repair
-- Inspected the actual Godot 4.7.1 Actions run for Increment 26. All suites through deterministic Causal Review evidence passed; only the new targeted Retry suite failed.
-- First concrete failure was a warnings-as-errors parse error at `tests/unit/targeted_retry_test_runner.gd:70`: `duplicate()` was called on an inferred `Variant` returned from a dictionary index.
-- Repaired only that first execution-order failure by validating the value is a `Dictionary`, assigning it to a typed `Dictionary`, then deep-duplicating that typed value.
-- No gameplay, Retry semantics, persistence behavior, state ownership, or test expectation changed.
+- Repaired the first concrete warnings-as-errors parse failure in the targeted Retry suite without gameplay changes.
 
 ### Increment 28 — production shell content-path gate
-- Re-read the frozen UX/state authority before touching the scene composition boundary.
-- Added a deliberately tiny `content/` bootstrap set for all ten required core families using one shared `vertical-slice-1` content version. Empty payloads are composition placeholders only; the existing VS01 contract manifest is the only non-empty document in this increment.
-- This content does not populate the frozen production roster/campaign and does not add gameplay; it exists so the persistent production shell can resolve the paths it already owns instead of silently printing `content_load:body_plans:directory_unavailable`.
-- Added `tests/unit/shell_content_boot_test_runner.gd`, which boots `AppBootstrapService` against the exact production `res://content/...` paths and requires ready content plus the expected content version.
-- Extended the single GitHub Actions workflow so this contract test runs before the permissive persistent-shell smoke boot.
+- Added a deliberately tiny `content/` bootstrap set for all ten required core families using shared `vertical-slice-1` content version.
+- Empty payloads are composition placeholders only; VS01 contract content remains deliberately tiny and does not populate the frozen production roster/campaign.
+- Added `tests/unit/shell_content_boot_test_runner.gd` and CI coverage to prove the exact production `res://content/...` paths can satisfy `AppBootstrapService`.
+
+### Increment 29 — production shell boot CI typing repair
+- Inspected the actual Godot 4.7.1 Actions run for Increment 28 (`8b90342`).
+- Project import and global-class registration passed; the first failing step was `Production core content shell boot contract test`.
+- Concrete failure: `tests/unit/shell_content_boot_test_runner.gd:19` declared `service` without a static type while warnings are treated as errors.
+- Repaired only that first execution-order failure by declaring `service: AppBootstrapService = AppBootstrapServiceScript.new()`.
+- No gameplay rule, content meaning, bootstrap behavior, persistence semantic, state transition, or test expectation changed.
 
 ## Checks performed this run
-- Re-read `IMPLEMENTATION_START_HERE.md`, this status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, `PHASE11_UX_ACCESSIBILITY.md`, `UX_ARCHITECTURE.md`, `src/app/shell.gd`, `src/app/app_bootstrap_service.gd`, `src/state/app_state_machine.gd`, and the current content registry.
-- Inspected latest `main` checkpoint `a2712ab4a151fe6e4909f16e4122d2796c9e4f4f` (`12B: repair targeted Retry CI typing failure`). The available connector does not expose its push-triggered Actions run directly; no matching GitHub failure notification was present when checked, so this run does not invent a green result.
-- Confirmed the repository previously had no `content/` directory while `src/app/shell.gd` requires ten concrete `res://content/...` family paths.
-- Parsed and validated all ten new JSON documents before checkpointing: required headers are present, each `kind` matches its registry family key, and all use the same `vertical-slice-1` content version.
-- Local Godot execution is unavailable in this runtime. The new checkpoint's single CI run is therefore the next authoritative Godot 4.7.1 gate.
-- Per anti-spam rules, all source/data/test/status/workflow changes are batched into one checkpoint commit/push.
+- Re-read `IMPLEMENTATION_START_HERE.md`, live `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and the current UX/accessibility authority relevant to the pending scene-flow boundary.
+- Re-read the current `src/app/shell.gd`, `src/app/app_bootstrap_service.gd`, `src/state/app_state_machine.gd`, `src/planning/planning_session.gd`, and `src/run/launch_commit_service.gd` before making changes.
+- Inspected latest `main` checkpoint `8b90342c02fba3da564696aa334a3f7c60909270` and its actual GitHub Actions run `32287594041`.
+- Confirmed Godot 4.7.1 installation, project import, and global class registration passed in that run.
+- Confirmed the first runtime blocker is the warnings-as-errors static typing failure in `shell_content_boot_test_runner.gd:19`; later suites were skipped by execution order.
+- Applied only the focused typing repair required by the anti-spam/first-failure rule.
+- Local Godot execution remains unavailable in this automation runtime; the new checkpoint's single CI run is therefore the authoritative verification gate.
+- Per anti-spam rules, code and status are batched into one checkpoint commit/push.
 
 ## Current blockers
 - No design blocker.
-- Increment-28 Godot 4.7.1 CI is the next runtime gate. If red, the next run must repair only the first concrete failure in execution order.
-- The shell content-path blocker is structurally reconciled, but not claimed runtime-green until Increment-28 CI executes.
+- Increment-29 Godot 4.7.1 CI is the next runtime gate. If red, the next run must repair only the first concrete failure in execution order.
+- The production shell content paths are structurally present but are not claimed runtime-green until the repaired shell boot contract executes successfully.
 - The scene-level vertical loop is not yet wired; the current shell only owns composition/bootstrap.
 - Causal Review evidence still covers only the tiny H01 thermal path and one-organism response ancestry.
 - Results/progression application remains intentionally separate and later.
 - Support placement semantics, full multi-cell organism bodies, growth, H02-H06, sleep, contamination, satiety, Brownout and production campaign/species content remain deferred to later phases.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 28. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, wire the already-existing planning, durable Launch, deterministic transit, Causal Review evidence and targeted Retry services through the persistent shell into one minimal scene-level playable VS01 contract flow without adding Results/progression or new gameplay.**
+**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 29. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, wire the already-existing planning, durable Launch, deterministic transit, Causal Review evidence and targeted Retry services through the persistent shell into one minimal scene-level playable VS01 contract flow without adding Results/progression or new gameplay.**
 
 Next run:
-1. inspect Increment-28 Actions result and confirm the production core-content shell boot contract executes;
+1. inspect Increment-29 Actions result and confirm the production core-content shell boot contract executes;
 2. if red, repair only the first concrete failure in execution order and leave later failures for the following run;
 3. if green, use the existing state machine to traverse `TITLE -> CAMPAIGN_MAP -> CONTRACT_BRIEF -> PLANNING -> LAUNCH_CONFIRM -> TRANSIT_PLAYBACK -> CAUSAL_REVIEW -> PLANNING` for Retry;
 4. connect only existing deterministic services and VS01 tiny content; do not invent new mechanics or Results/progression behavior;

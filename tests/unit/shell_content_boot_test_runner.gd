@@ -16,7 +16,7 @@ const CORE_CONTENT_PATHS: Dictionary = {
 }
 
 func _init() -> void:
-	var service = AppBootstrapServiceScript.new()
+	var service: AppBootstrapService = AppBootstrapServiceScript.new()
 	var result: Dictionary = service.boot(CORE_CONTENT_PATHS)
 	_assert_true(bool(result.get("ok", false)), "production core content paths must boot")
 	_assert_equal(String(result.get("content_version", "")), "vertical-slice-1", "content version")
