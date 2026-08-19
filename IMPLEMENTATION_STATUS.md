@@ -36,53 +36,58 @@ Repository: `Mikayilzade/organism-cargo`
 ### Increment 17 — deterministic transit authority skeleton
 - Added `TransitSliceRunner` as the first post-Launch authoritative transit owner for the tiny no-support vertical slice.
 - It executes the frozen global A-I phase order for each integer tick and emits an authoritative SHA-256 checksum sequence from rules/content version, route, seed, tick and canonically ordered committed placements.
-- `run_id` is deliberately excluded from simulation entropy: two independent run identities with byte-equivalent authoritative committed input produce the same checksum sequence, matching the Phase-11 persistence acceptance rule.
+- `run_id` is deliberately excluded from simulation entropy: two independent run identities with byte-equivalent authoritative committed input produce the same checksum sequence.
 - Placement array iteration order is normalized before hashing, while a real committed placement change changes the trace.
-- This increment is intentionally state-inert: it establishes deterministic tick/phase ownership and replay hashes before implementing route hazards, environmental fields, organism meters, thresholds, growth transitions or supports. No frozen mechanic is stubbed as if complete.
-- Extended the existing single Godot workflow with one transit suite; no new workflow or extra trigger was created.
 
 ### Increment 18 — authored H01 route input and Phase-C/D heat authority
-- Extended `TransitSliceRunner` with an external simulation-definition boundary matching the frozen content split: route profile, hold definition and hazard definitions are supplied separately from immutable committed input.
-- Added deterministic route-event ordering by tick, authored order and hazard ID, and Phase-A activation/deactivation for the first real vertical-slice hazard family: H01 Thermal Surge, hold-scoped only.
-- Added a row-major usable-cell heat field initialized from the authored hold definition. Active H01 contributions are accumulated in Phase C and published through an explicit Phase-D exposure boundary while preserving prior heat state.
-- Spatial transfer, venting, clamps, zones and non-H01 hazards are deliberately rejected/not implemented rather than guessed; Phase D currently publishes the generated field unchanged until authored parameters for those rules enter the slice.
-- End-of-tick snapshots now retain active hazard IDs plus ordered per-cell heat, and the checksum sequence now includes route activation and row-major heat state.
-- Added transit regressions proving pre/during/post hazard activation, hold-wide heat application, environmental persistence without authored decay, and checksum divergence when the same thermal event occurs at a different tick.
+- Extended `TransitSliceRunner` with separate route, hold and hazard simulation-definition boundaries.
+- Added deterministic route-event ordering and Phase-A activation/deactivation for H01 Thermal Surge, hold-scoped only.
+- Added a row-major usable-cell heat field; active H01 contributions are accumulated in Phase C and published at the Phase-D exposure boundary.
+- End-of-tick snapshots retain active hazard IDs plus ordered per-cell heat, and the checksum includes route activation and row-major heat state.
 
-### Increment 19 — authored Phase-D thermal transfer/vent and Phase-E/F/G organism response kernel
-- Added `ThermalResponseKernel` as a deterministic, scene-free simulation component for the next vertical-slice transit state change.
-- Phase-D heat transfer is entirely authored through explicit orthogonal transfer edges. The kernel validates adjacency, rejects missing/negative definitions, rejects overdraw when authored outbound transfer exceeds the common source snapshot, then applies authored per-cell venting and integer clamps.
-- This deliberately avoids inventing a diffusion coefficient or hidden propagation formula not frozen in design: the tiny slice can author exact transfer amounts while later production content conversion can derive those edges from canonical hold/route propagation data.
-- Added deterministic organism heat sampling across occupied cells, authored heat-safe burden and integer stress conversion, Phase-F stress clamping, and Phase-G CALM/AGITATED/PANICKED threshold evaluation with required hysteresis.
-- Primary-state support is intentionally limited to CALM/AGITATED/PANICKED in this kernel; ASLEEP and other state-gated behavior remain explicitly rejected until their vertical-slice need is introduced.
-- Added a dedicated Godot headless regression suite proving authored orthogonal transfer + vent, deterministic heat -> stress -> AGITATED transition, recovery hysteresis, and rejection of diagonal transfer.
-- Extended the existing single workflow with one additional test step only; no new workflow or extra trigger was created.
+### Increment 19 — authored thermal transfer/vent and organism response kernel
+- Added scene-free `ThermalResponseKernel`.
+- Phase-D heat transfer is authored through explicit orthogonal edges from a common source snapshot, followed by authored venting and integer clamps.
+- Added deterministic occupied-cell heat sampling, authored heat-safe burden, integer stress conversion, Phase-F clamping, and Phase-G CALM/AGITATED/PANICKED hysteresis.
+- Added a dedicated headless regression suite for transfer/vent, heat -> stress -> state, recovery hysteresis and diagonal-transfer rejection.
+- Supports, growth, other hazards and ASLEEP remain deliberately outside this kernel.
+
+### Increment 20 — end-to-end H01 heat -> stress/state transit trace
+- Integrated `ThermalResponseKernel` into `TransitSliceRunner` without changing the frozen A-I order.
+- Thermal integration is opt-in through explicit `thermal_rules` plus `organism_definitions`; legacy/no-definition transit remains unchanged.
+- Organism runtime state is constructed from immutable committed placement anchors plus authored stress/state definitions, then normalized in stable `instance_id` order.
+- Phase D now executes authored propagation/vent/clamp when thermal rules are present.
+- The same tick then evaluates Phase-E heat exposure, Phase-F stress application and Phase-G threshold state using the kernel; updated stress/state persist into subsequent ticks.
+- End-of-tick snapshots now include stable organism response records (`instance_id`, exposure, stress delta, stress, primary state) for thermal runs.
+- Canonical tick serialization now includes organism `instance_id`, stress and primary state in stable order, making the H01-induced organism transition checksum-visible.
+- Transit regression coverage now proves: pre-hazard CALM, H01-driven AGITATED, persistent-heat PANICKED, stable replay under reordered committed placements/run identity, and checksum divergence when hazard timing changes.
 
 ## Checks performed
-- Re-read `IMPLEMENTATION_START_HERE.md`, this status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the current transit authorities in `MECHANICS.md`, `PHASE11_FREEZE.md` and `TECHNICAL_SPEC.md` before writing.
-- Confirmed current `main` before this increment was `225f66b5d4bed81366e145a26a6e8952b10a1591` (`12B: add authored thermal route state`).
-- Searched the connected Gmail failure notifications for Increment 18 and found no failure notification for commit `225f66b`; direct push-run status remains unavailable through the connected GitHub status wrapper, so this run does not overclaim a connector-visible green result.
-- Preserved the exact A-I authority split: propagation/vent belongs to Phase D, environmental sampling/direct exposure to Phase E, internal stress application to Phase F, and threshold state evaluation to Phase G.
-- Preserved integer authority, common-source propagation semantics, orthogonal topology only, deterministic stable instance ordering and explicit hysteresis.
-- No production balance numbers were added. All numeric values in the new tests are test-only authored fixtures.
-- Batched this run into one tree/commit/ref checkpoint so it produces one normal Actions push run only.
+- Re-read `IMPLEMENTATION_START_HERE.md`, this status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the active transit authority in `MECHANICS.md`, `PHASE11_FREEZE.md` and `TECHNICAL_SPEC.md`.
+- Confirmed `main` before this increment was `dc8856166fba21dc387220c1fc5c3a20a79b94d9` (`12B: add authored thermal response kernel`).
+- Searched connected Gmail for a failure notification tied to Increment 19 / `dc885616`; none was present. The available GitHub combined-status wrapper still does not expose push-run checks, so this is treated only as absence of a failure notification, not proof of green.
+- Reviewed the existing `ThermalResponseKernel`, `TransitSliceRunner`, transit tests and single `Godot Headless Tests` workflow before composing the increment.
+- Preserved deterministic integer authority, common-source Phase-D semantics, orthogonal topology only, stable `instance_id` ordering, immutable committed placement ownership and the exact A-I phase sequence.
+- No production balance numbers or production content were added; all new values remain test-only fixtures.
+- No local Godot executable is available in this runtime, so the relevant executable verification is the single existing GitHub Actions push run produced by this checkpoint.
+- Batched all source/test/status changes into one tree/commit/ref checkpoint to preserve the anti-spam rule and trigger at most one normal push workflow.
 
 ## Current blockers
 - No design blocker.
-- The Increment-19 Godot 4.7.1 run is the next runtime gate; repair its first concrete parser/type/API/test failure before integration into `TransitSliceRunner`.
-- `ThermalResponseKernel` is not yet wired into `TransitSliceRunner`; Increment 18 still publishes Phase-D heat unchanged inside the runner until this new kernel passes runtime validation and is composed into the transit owner.
+- Increment-20 Godot 4.7.1 CI is the next runtime gate. Repair only its first concrete parser/type/API/test failure if it fails.
+- Thermal organism runtime currently supports the tiny one-cell-per-placement vertical slice only; multi-cell body stages remain intentionally deferred to the growth/body implementation.
 - Route zones, H02-H06, sleep, contamination, satiety, growth, supports, causal event ancestry and success/failure evaluation remain intentionally absent.
 - Production campaign/species content remains intentionally absent; current vertical-slice values are test-only.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect the single Godot Headless Tests run from Increment 19 and repair only its first concrete failure if any. If green, integrate `ThermalResponseKernel` into `TransitSliceRunner` so the authored H01 route produces the first checksum-visible organism stress/state transition in the same end-to-end transit trace.**
+**Continue Phase 12B — inspect the single Godot Headless Tests run from Increment 20 and repair only its first concrete failure if any. If green, implement the first vertical-slice completion boundary: deterministic Phase-I mandatory delivery success/failure from final organism state, then route Transit completion into Causal Review ownership without yet inventing full causal ancestry.**
 
 Next run:
-1. inspect Increment-19 Actions; repair only the first concrete failure before broadening;
-2. if green, wire Phase D -> E -> F -> G through `ThermalResponseKernel` from the existing route/hold/organism simulation definitions;
-3. add organism runtime state to end-of-tick snapshots and canonical checksum serialization in stable `instance_id` order;
-4. prove the same committed input and authored definitions reproduce the same heat/stress/state trace and that a changed thermal event changes the organism-state checksum sequence;
-5. keep supports/growth/other hazards out until the vertical slice requires them;
+1. inspect Increment-20 Actions; if red, repair only the first concrete failure and checkpoint once;
+2. if green, read the exact mandatory-predicate/result/Causal Review authority before writing;
+3. add the smallest closed predicate grammar needed by the tiny slice for final-state stress/primary-state delivery conditions;
+4. evaluate it only in Phase I from authoritative final state and expose deterministic success/failure in the transit result/checksum;
+5. hand completed transit ownership to the existing app-state path toward `CAUSAL_REVIEW`, keeping Results/progression writes separate and later;
 6. do not mark 12B complete until planning -> cargo placement -> validation -> exactly-once Launch -> deterministic transit -> success/failure -> Causal Review -> targeted Retry is playable end to end.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.
