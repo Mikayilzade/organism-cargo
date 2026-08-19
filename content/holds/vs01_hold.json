@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-1",
+  "kind": "holds",
+  "id": "VS_HOLD_01",
+  "payload": {
+    "width": 3,
+    "height": 2,
+    "blocked_cells": [[2, 1]],
+    "zones": {
+      "cool_zone": [[0, 0], [0, 1]],
+      "general_zone": [[1, 0], [1, 1], [2, 0]]
+    }
+  }
+}

@@ -54,31 +54,39 @@ Increments 1-13 established the runnable Godot project, deterministic/fixed-poin
 - Added a headless presentation contract that drives the coordinator through the VS01 state sequence and verifies deliberate two-step Launch and targeted Retry.
 - Added the presentation contract to GitHub Actions.
 
+### Increment 32 — player-built VS01 planning editor boundary
+- Replaced test-only plan injection as the only shell planning path with a small player-facing manifest + logical hold-cell editor inside `VerticalSliceControl`.
+- Added discrete manifest selection, logical cell focus movement and focused-cell placement APIs; mouse buttons and discrete focus operate the same canonical placement state rather than separate gameplay paths.
+- Every edit is resolved through `VerticalSliceFlowCoordinator.apply_plan_from_content()` and the existing `StructuralResolver`; the UI does not duplicate structural legality rules.
+- Added production-loadable tiny-slice hold `VS_HOLD_01` and O01/O03 current-footprint definitions matching the already-tested vertical-slice fixtures; no roster/campaign expansion was introduced.
+- Wired the persistent shell to pass the production VS01 contract/hold/species payloads into the control and provide the existing tiny-slice launch/transit/retry context so the shell no longer depends on a test harness to construct a legal planning revision.
+- Added `vertical_slice_planning_editor_test_runner.gd` covering production content loading, discrete focus, both mandatory placements, structural validation and deliberate transition to Launch confirmation.
+
 ## Checks performed this run
-- Re-read required implementation authority files and the UX/accessibility supplement before acting.
-- Re-read the current shell, coordinator, app-state machine, scene-flow integration contract and headless workflow.
-- Confirmed `main` before this increment was `44fb3b52e5e9d89e28223e878a820321abd32cbb` (`12B: compose shell-owned vertical slice flow`).
-- GitHub's connected commit-status interface exposes no status context for that push, so this run did not invent a green claim for Increment 30.
-- Added a deterministic headless contract for the new UI boundary; actual Godot 4.7.1 execution is delegated to the single CI run triggered by this checkpoint.
-- Per anti-spam policy, all source, workflow and status changes are staged into one Git tree/commit/ref update.
+- Re-read `IMPLEMENTATION_START_HERE.md`, live status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md` and the Phase-11 UX/accessibility contract before changing the planning surface.
+- Re-read the live coordinator, planning session/resolver, shell, player-facing control, production content registry paths and current headless workflow.
+- Confirmed main at run start was `cbd81845985fe49dc4a418ee06a9787115b711a1` (`12B: add player-facing vertical slice control surface`).
+- The available GitHub connector still does not expose push-triggered workflow runs for that commit; therefore this run does not invent a green claim for Increment 31.
+- Added one new headless contract for the editor path and kept all source/content/workflow/status changes in one Git tree/checkpoint to preserve the anti-spam rule.
+- Actual Godot 4.7.1 execution of Increment 32 is the next runtime gate; if red, repair the first concrete failure only.
 
 ## Current blockers
-- Increment-31 Godot 4.7.1 CI is the next runtime gate. If red, repair only the first concrete failure in execution order.
-- The shell now has a visible state/control surface, but production VS01 planning content is not yet wired into an interactive grid/editor; the UI test supplies a legal revision through the existing planning boundary.
+- Increment-32 Godot 4.7.1 CI is pending as the next runtime gate.
+- The planning editor is deliberately tiny: only the two VS01 organisms, fixed orientation 0 and no supports, matching the current 12B content boundary. Full rotate/remove/undo/support workflows remain later frozen-scope work rather than hidden stubs.
 - Results/progression remain intentionally outside the vertical slice.
-- Full controller/keyboard parity, remapping, Deck layout and accessibility acceptance remain Phase 12E work; this increment only avoids pointer-only assumptions in the state/action structure.
+- Full controller/keyboard remapping, Deck layout and accessibility acceptance remain Phase 12E; this increment establishes discrete logical focus/selection instead of drag-only dependence.
 - Full growth/support/hazard families and production roster/campaign remain deferred.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 31. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, wire the tiny VS01 planning data into the player-facing shell with a minimal logical 2x2 hold editor so a player can place/move the two vertical-slice organisms, reach structural validation, Launch, Transit, Causal Review and Retry without test-only plan injection.**
+**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 32. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, complete the tiny shell-playability gap by verifying the persistent shell itself can execute the player-built VS01 plan through two-step Launch, deterministic Transit, Causal Review and targeted Retry without any test-only plan injection, then add the smallest missing production-context repair or shell integration test required by that evidence.**
 
 Next run:
-1. inspect Increment-31 CI first;
+1. inspect Increment-32 CI first;
 2. if red, repair only the first concrete failure and preserve one-checkpoint anti-spam behavior;
-3. if green, add the tiny VS01 shell planning adapter/editor using canonical planning APIs rather than duplicating validation;
-4. support discrete logical cell focus/selection so the 12B slice does not hard-code drag-only interaction;
-5. keep Launch two-step and Causal Review/Retry routed through `VerticalSliceControl` and the coordinator;
+3. if green, drive the actual shell-owned control through the full tiny VS01 lifecycle using the production planning context;
+4. add only the missing context/integration repair demonstrated by that run;
+5. keep structural validation routed through the canonical planning resolver and keep Launch two-step;
 6. do not add Results/progression or broaden content beyond the deliberately tiny vertical slice;
-7. do not mark 12B complete until the tiny contract is actually playable end to end through the shell.
+7. do not mark 12B complete until the tiny contract is demonstrably playable end to end through the persistent shell.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.

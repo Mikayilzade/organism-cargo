@@ -129,3 +129,9 @@ jobs:
         run: |
           set -euo pipefail
           /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/vertical_slice_control_test_runner.gd
+
+      - name: Player-built VS01 planning editor contract test
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/vertical_slice_planning_editor_test_runner.gd
