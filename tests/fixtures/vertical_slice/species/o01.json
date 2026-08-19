@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-test-1",
+  "kind": "species",
+  "id": "O01",
+  "payload": {
+    "body_plan_id": "B01",
+    "legal_orientations": [0],
+    "current_footprints": {
+      "0": [[0, 0]]
+    }
+  }
+}

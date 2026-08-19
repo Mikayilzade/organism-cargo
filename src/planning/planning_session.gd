@@ -3,6 +3,7 @@ extends RefCounted
 
 const AppStateMachineScript := preload("res://src/state/app_state_machine.gd")
 const PlanningValidatorScript := preload("res://src/planning/planning_validator.gd")
+const StructuralResolverScript := preload("res://src/planning/structural_resolver.gd")
 
 var _state_machine: AppStateMachine
 var _planning_revision_id: String = ""
@@ -26,6 +27,27 @@ func apply_revision(planning_revision_id: String, canonical_input: Dictionary, s
 	_canonical_input = canonical_input.duplicate(true)
 	_validation = PlanningValidatorScript.validate(structural_facts)
 	return snapshot()
+
+func apply_revision_from_content(
+	planning_revision_id: String,
+	canonical_input: Dictionary,
+	contract_payload: Dictionary,
+	hold_payload: Dictionary,
+	species_by_id: Dictionary
+) -> Dictionary:
+	var resolved: Dictionary = StructuralResolverScript.resolve(
+		contract_payload,
+		hold_payload,
+		species_by_id,
+		canonical_input
+	)
+	if not bool(resolved.get("ok", false)):
+		return _failure(String(resolved.get("error", "structural_resolution_failed")))
+	var structural_facts_value: Variant = resolved.get("structural_facts", {})
+	if typeof(structural_facts_value) != TYPE_DICTIONARY:
+		return _failure("structural_resolution_failed")
+	var structural_facts: Dictionary = structural_facts_value
+	return apply_revision(planning_revision_id, canonical_input, structural_facts)
 
 func snapshot() -> Dictionary:
 	return {

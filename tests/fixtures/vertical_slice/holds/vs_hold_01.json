@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-test-1",
+  "kind": "hold",
+  "id": "VS_HOLD_01",
+  "payload": {
+    "width": 3,
+    "height": 2,
+    "blocked_cells": [
+      [2, 1]
+    ]
+  }
+}

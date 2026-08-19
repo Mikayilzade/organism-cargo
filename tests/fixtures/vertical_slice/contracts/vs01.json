@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-test-1",
+  "kind": "contract",
+  "id": "VS01",
+  "payload": {
+    "manifest": [
+      {
+        "instance_id": "specimen-a",
+        "species_id": "O01",
+        "mandatory": true
+      },
+      {
+        "instance_id": "specimen-b",
+        "species_id": "O03",
+        "mandatory": true
+      }
+    ],
+    "support_allowance_max": 0
+  }
+}
