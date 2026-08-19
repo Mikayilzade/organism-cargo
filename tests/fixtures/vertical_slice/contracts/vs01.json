@@ -8,7 +8,8 @@
       {
         "instance_id": "specimen-a",
         "species_id": "O01",
-        "mandatory": true
+        "mandatory": true,
+        "allowed_zone_ids": ["cool_zone"]
       },
       {
         "instance_id": "specimen-b",

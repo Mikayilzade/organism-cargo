@@ -59,6 +59,18 @@ func _test_real_data_current_footprint_resolution() -> void:
 		"O03 future footprint may reach blocked [2,1] without invalidating current launch legality"
 	)
 
+	var wrong_zone: Dictionary = planning.apply_revision_from_content(
+		"real-data-wrong-zone",
+		_input([
+			{"instance_id": "specimen-a", "anchor": [1, 0], "orientation": 0},
+			{"instance_id": "specimen-b", "anchor": [0, 1], "orientation": 0},
+		]),
+		contract_payload,
+		hold_payload,
+		species_by_id
+	)
+	_expect_reason(wrong_zone, "wrong zone", "explicit manifest zone restriction")
+
 	var blocked: Dictionary = planning.apply_revision_from_content(
 		"real-data-blocked",
 		_input([

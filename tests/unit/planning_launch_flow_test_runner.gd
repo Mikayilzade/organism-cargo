@@ -2,6 +2,7 @@ extends SceneTree
 
 const AppStateMachineScript := preload("res://src/state/app_state_machine.gd")
 const AtomicSaveStoreScript := preload("res://src/save/atomic_save_store.gd")
+const ContentRegistryScript := preload("res://src/content/content_registry.gd")
 const LaunchCommitServiceScript := preload("res://src/run/launch_commit_service.gd")
 const PlanningSessionScript := preload("res://src/planning/planning_session.gd")
 
@@ -23,6 +24,21 @@ func _test_planning_validation_to_durable_launch() -> void:
 	_remove_if_exists(root.path_join("session.sav.bak"))
 	_remove_if_exists(root.path_join("session.sav.tmp"))
 
+	var registry: ContentRegistry = ContentRegistryScript.new()
+	var loaded_content: Dictionary = registry.load_families({
+		"contract": "res://tests/fixtures/vertical_slice/contracts",
+		"hold": "res://tests/fixtures/vertical_slice/holds",
+		"species": "res://tests/fixtures/vertical_slice/species",
+	})
+	_expect_true(bool(loaded_content["ok"]), "launch-flow fixture loads through ContentRegistry")
+	if not bool(loaded_content["ok"]):
+		return
+	var contract_payload: Dictionary = _payload(registry, &"contract", &"VS01")
+	var hold_payload: Dictionary = _payload(registry, &"hold", &"VS_HOLD_01")
+	var species_by_id: Dictionary = {}
+	for document: ContentDocument in registry.ordered_documents(&"species"):
+		species_by_id[String(document.id)] = document.payload.duplicate(true)
+
 	var state_machine: AppStateMachine = AppStateMachineScript.new()
 	_expect_true(state_machine.transition_to(AppStateMachine.State.TITLE), "boot to title")
 	_expect_true(state_machine.transition_to(AppStateMachine.State.CAMPAIGN_MAP), "title to map")
@@ -30,34 +46,42 @@ func _test_planning_validation_to_durable_launch() -> void:
 	_expect_true(state_machine.transition_to(AppStateMachine.State.PLANNING), "brief to planning")
 
 	var planning: PlanningSession = PlanningSessionScript.new(state_machine)
-	var canonical_input: Dictionary = {
-		"route_id": "route-slice",
-		"manifest_instance_ids": ["specimen-a", "specimen-b"],
-		"placements": [
-			{"instance_id": "specimen-a", "anchor": [0, 0], "orientation": 0},
-			{"instance_id": "specimen-b", "anchor": [1, 0], "orientation": 0},
-		],
-		"supports": [],
-		"seed": 101,
-	}
-	var invalid_facts: Dictionary = _legal_facts()
-	invalid_facts["mandatory_manifest_placed"] = false
-	invalid_facts["overlap_free"] = false
-	var invalid_revision: Dictionary = planning.apply_revision("revision-invalid", canonical_input, invalid_facts)
+	var invalid_input: Dictionary = _input([
+		{"instance_id": "specimen-a", "anchor": [0, 0], "orientation": 0},
+		{"instance_id": "specimen-b", "anchor": [0, 0], "orientation": 0},
+	])
+	var invalid_revision: Dictionary = planning.apply_revision_from_content(
+		"revision-invalid",
+		invalid_input,
+		contract_payload,
+		hold_payload,
+		species_by_id
+	)
 	_expect_true(bool(invalid_revision["ok"]), "invalid arrangement is still an editable planning revision")
 	_expect_true(not bool(invalid_revision["structural_legal"]), "invalid arrangement fails structural validation")
-	_expect_true(Array(invalid_revision["reasons"]).has("overlap"), "overlap reason is exact canonical label")
+	_expect_true(Array(invalid_revision["reasons"]).has("overlap"), "overlap reason is derived from real fixture data")
 	var invalid_confirm: Dictionary = planning.request_launch_confirm()
 	_expect_true(not bool(invalid_confirm["ok"]), "structurally illegal arrangement cannot enter launch confirm")
 	_expect_equal(String(invalid_confirm["error"]), "structural_illegal", "illegal confirm reason")
 	_expect_equal(state_machine.current_state(), AppStateMachine.State.PLANNING, "illegal confirm leaves planning editable")
 
-	var valid_revision: Dictionary = planning.apply_revision("revision-valid", canonical_input, _legal_facts())
-	_expect_true(bool(valid_revision["structural_legal"]), "legal arrangement passes structural validation")
+	var canonical_input: Dictionary = _input([
+		{"instance_id": "specimen-a", "anchor": [0, 0], "orientation": 0},
+		{"instance_id": "specimen-b", "anchor": [1, 1], "orientation": 0},
+	])
+	var valid_revision: Dictionary = planning.apply_revision_from_content(
+		"revision-valid",
+		canonical_input,
+		contract_payload,
+		hold_payload,
+		species_by_id
+	)
+	_expect_true(bool(valid_revision["structural_legal"]), "real-data legal arrangement passes structural validation")
+	_expect_true(Array(valid_revision["reasons"]).is_empty(), "real-data legal arrangement has no structural reason labels")
 	var confirm: Dictionary = planning.request_launch_confirm()
 	_expect_true(bool(confirm["ok"]), "legal planning revision enters launch confirm")
 	_expect_equal(String(confirm["planning_revision_id"]), "revision-valid", "launch confirm owns exact planning revision")
-	_expect_equal(confirm["canonical_input"], canonical_input, "launch confirm freezes current canonical input snapshot")
+	_expect_equal(confirm["canonical_input"], canonical_input, "launch confirm freezes real-data canonical input snapshot")
 	_expect_equal(state_machine.current_state(), AppStateMachine.State.LAUNCH_CONFIRM, "state owned by launch confirm")
 
 	_expect_true(planning.cancel_launch_confirm(), "launch confirm can return to editable planning")
@@ -78,7 +102,7 @@ func _test_planning_validation_to_durable_launch() -> void:
 		"content-c1",
 		"contract-definition-slice-1"
 	)
-	_expect_true(bool(committed["ok"]), "validated launch confirm commits durably")
+	_expect_true(bool(committed["ok"]), "real-data validated launch confirm commits durably")
 	_expect_equal(String(committed["run_id"]), "run-planning-slice-1", "durable launch returns allocated run id")
 	_expect_equal(state_machine.current_state(), AppStateMachine.State.TRANSIT_PLAYBACK, "durable commit transitions to transit")
 
@@ -89,19 +113,23 @@ func _test_planning_validation_to_durable_launch() -> void:
 		var record: Dictionary = envelope.payload["committed_run"]
 		_expect_equal(String(record["planning_revision_id"]), "revision-valid", "durable record retains validated planning revision")
 		_expect_equal(String(record["run_id"]), "run-planning-slice-1", "durable record retains run identity")
+		_expect_equal(record["canonical_committed_input"]["placements"], canonical_input["placements"], "durable record retains resolved placement snapshot")
 
-func _legal_facts() -> Dictionary:
+func _payload(registry: ContentRegistry, kind: StringName, id: StringName) -> Dictionary:
+	for document: ContentDocument in registry.ordered_documents(kind):
+		if document.id == id:
+			return document.payload.duplicate(true)
+	failures += 1
+	push_error("FAIL: missing fixture %s/%s" % [String(kind), String(id)])
+	return {}
+
+func _input(placements: Array) -> Dictionary:
 	return {
-		"mandatory_manifest_placed": true,
-		"overlap_free": true,
-		"blocked_free": true,
-		"in_bounds": true,
-		"orientations_valid": true,
-		"zones_valid": true,
-		"fixtures_valid": true,
-		"links_valid": true,
-		"support_resources_valid": true,
-		"structural_prerequisites_met": true,
+		"route_id": "route-slice",
+		"manifest_instance_ids": ["specimen-a", "specimen-b"],
+		"placements": placements,
+		"supports": [],
+		"seed": 101,
 	}
 
 func _remove_if_exists(path: String) -> void:

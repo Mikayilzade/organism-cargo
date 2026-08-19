@@ -35,12 +35,18 @@ static func resolve(
 		return _failure("invalid_blocked_cells")
 	var blocked_cells: Dictionary = blocked_result["cells"]
 
+	var zones_result: Dictionary = _zone_cell_sets(hold_payload.get("zones", {}))
+	if not bool(zones_result["ok"]):
+		return _failure("invalid_zones")
+	var zone_cells_by_id: Dictionary = zones_result["zones"]
+
 	var manifest_value: Variant = contract_payload.get("manifest", [])
 	if typeof(manifest_value) != TYPE_ARRAY:
 		return _failure("invalid_manifest")
 	var manifest: Array = manifest_value
 	var species_by_instance: Dictionary = {}
 	var mandatory_instances: Dictionary = {}
+	var allowed_zones_by_instance: Dictionary = {}
 	for raw_manifest_entry: Variant in manifest:
 		if typeof(raw_manifest_entry) != TYPE_DICTIONARY:
 			return _failure("invalid_manifest_entry")
@@ -53,6 +59,19 @@ static func resolve(
 		if bool(manifest_entry.get("mandatory", true)):
 			mandatory_instances[instance_id] = true
 
+		var allowed_zones_value: Variant = manifest_entry.get("allowed_zone_ids", [])
+		if typeof(allowed_zones_value) != TYPE_ARRAY:
+			return _failure("invalid_zone_restriction")
+		var allowed_zone_ids: Array = []
+		var raw_allowed_zones: Array = allowed_zones_value
+		for raw_allowed_zone_id: Variant in raw_allowed_zones:
+			var allowed_zone_id: String = String(raw_allowed_zone_id).strip_edges()
+			if allowed_zone_id.is_empty() or not zone_cells_by_id.has(allowed_zone_id):
+				return _failure("invalid_zone_restriction")
+			if not allowed_zone_ids.has(allowed_zone_id):
+				allowed_zone_ids.append(allowed_zone_id)
+		allowed_zones_by_instance[instance_id] = allowed_zone_ids
+
 	var placements_value: Variant = canonical_input.get("placements", [])
 	if typeof(placements_value) != TYPE_ARRAY:
 		return _failure("invalid_placements")
@@ -63,6 +82,7 @@ static func resolve(
 	var blocked_free: bool = true
 	var in_bounds: bool = true
 	var orientations_valid: bool = true
+	var zones_valid: bool = true
 	var structural_prerequisites_met: bool = true
 
 	for raw_placement: Variant in placements:
@@ -105,6 +125,11 @@ static func resolve(
 			return _failure("invalid_current_footprint")
 		var offsets: Array = offsets_value
 
+		var allowed_zone_ids_value: Variant = allowed_zones_by_instance.get(instance_id, [])
+		if typeof(allowed_zone_ids_value) != TYPE_ARRAY:
+			return _failure("invalid_zone_restriction")
+		var allowed_zone_ids: Array = allowed_zone_ids_value
+
 		var anchor_result: Dictionary = _cell(placement.get("anchor", null))
 		if not bool(anchor_result["ok"]):
 			return _failure("invalid_anchor")
@@ -126,6 +151,8 @@ static func resolve(
 				overlap_free = false
 			else:
 				occupied_cells[key] = instance_id
+			if not allowed_zone_ids.is_empty() and not _cell_in_any_zone(key, allowed_zone_ids, zone_cells_by_id):
+				zones_valid = false
 
 	var mandatory_manifest_placed: bool = true
 	for raw_instance_id: Variant in mandatory_instances.keys():
@@ -143,7 +170,7 @@ static func resolve(
 		"blocked_free": blocked_free,
 		"in_bounds": in_bounds,
 		"orientations_valid": orientations_valid,
-		"zones_valid": true,
+		"zones_valid": zones_valid,
 		"fixtures_valid": true,
 		"links_valid": true,
 		"support_resources_valid": support_resources_valid,
@@ -164,6 +191,34 @@ static func _orientation_allowed(species: Dictionary, orientation: int) -> bool:
 	for raw_orientation: Variant in legal_orientations:
 		var parsed: Dictionary = _integral_int(raw_orientation)
 		if bool(parsed["ok"]) and int(parsed["value"]) == orientation:
+			return true
+	return false
+
+static func _zone_cell_sets(value: Variant) -> Dictionary:
+	if typeof(value) != TYPE_DICTIONARY:
+		return {"ok": false, "zones": {}}
+	var zone_definitions: Dictionary = value
+	var zone_cells_by_id: Dictionary = {}
+	var raw_zone_ids: Array = zone_definitions.keys()
+	raw_zone_ids.sort()
+	for raw_zone_id: Variant in raw_zone_ids:
+		var zone_id: String = String(raw_zone_id).strip_edges()
+		if zone_id.is_empty():
+			return {"ok": false, "zones": {}}
+		var cells_result: Dictionary = _cell_set(zone_definitions[raw_zone_id])
+		if not bool(cells_result["ok"]):
+			return {"ok": false, "zones": {}}
+		zone_cells_by_id[zone_id] = cells_result["cells"]
+	return {"ok": true, "zones": zone_cells_by_id}
+
+static func _cell_in_any_zone(key: String, allowed_zone_ids: Array, zone_cells_by_id: Dictionary) -> bool:
+	for raw_zone_id: Variant in allowed_zone_ids:
+		var zone_id: String = String(raw_zone_id)
+		var zone_cells_value: Variant = zone_cells_by_id.get(zone_id, {})
+		if typeof(zone_cells_value) != TYPE_DICTIONARY:
+			continue
+		var zone_cells: Dictionary = zone_cells_value
+		if zone_cells.has(key):
 			return true
 	return false
 

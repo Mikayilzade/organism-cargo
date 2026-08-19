@@ -49,29 +49,37 @@ Repository: `Mikayilzade/organism-cargo`
 - Resolver scope is intentionally narrow: this increment rejects non-empty support sets and non-empty explicit structural-prerequisite sets rather than pretending zone/fixture/link/power semantics are already implemented. No frozen gameplay rule is silently defaulted for those unresolved families.
 - Extended the existing single workflow with one additional suite; no second workflow or extra push trigger was created.
 
+### Increment 16
+- Extended the real-data planning resolver by one frozen structural family: explicit **zone legality**. Hold fixture data now declares named zone cell sets, while a manifest entry may declare `allowed_zone_ids`; every current-footprint cell of that instance must lie in at least one allowed zone or the existing validator emits the exact canonical reason `wrong zone`.
+- Zone definitions and restrictions are validated as data: malformed zone maps, empty/unknown zone IDs, or non-array restrictions fail structural resolution instead of being silently ignored. Missing `allowed_zone_ids` means no explicit zone restriction, matching the canonical rule that only explicit restrictions gate placement.
+- Preserved current-footprint-only Launch legality: zone checks operate only on the currently occupied footprint and do not inspect O03's documented future growth footprint.
+- Upgraded the planning-to-Launch integration regression so the legal revision is no longer fed caller-authored `_legal_facts()`. It loads the same file-backed contract/hold/species fixtures, derives legality through `StructuralResolver`, enters `LAUNCH_CONFIRM`, commits through `LaunchCommitService`, reloads the durable record, and verifies the resolved placement snapshot survived persistence before transit ownership.
+- Added a real-data `wrong zone` regression while retaining overlap, blocked, outside-hold, forbidden-orientation, mandatory-manifest and future-growth non-gating coverage.
+- No production campaign content, support behavior, fixture rule, transit mechanic, solver, or gameplay rule was added.
+
 ## Checks performed
-- Re-read `IMPLEMENTATION_START_HERE.md`, this live status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and the exact current-footprint/content authorities in `CONTENT_ARCHITECTURE.md`, `DECISION_ARCHITECTURE.md`, `PHASE11_FREEZE.md`, and `MECHANICS.md` before implementation.
-- Confirmed current `main` was Increment 14 (`ef245e7f9130531478f110804f22e02b94bbf909`) and retained the single Godot 4.7.1 workflow.
-- Queried the connected GitHub status/workflow interfaces for Increment 14; this connector exposes no push-run/status context for that commit, so this run does **not** claim Increment 14 green from unavailable evidence.
-- Re-checked the canonical rule that placement legality uses the **current footprint** only and that known future growth obstruction is warning-only, not a Launch blocker.
-- Parsed the new JSON fixture documents locally before the repository write and kept one shared `content_version` across the three loaded families.
-- Performed a focused static strict-typing pass while constructing the resolver/test boundary; values crossing JSON `Variant` boundaries are explicitly validated/converted rather than trusted.
-- This run batches source, fixtures, regression, workflow and status into one tree/commit/ref update. The resulting single Actions run will execute every earlier suite before the new resolver suite, so any latent Increment-14 failure remains visible and blocks expansion on the next run.
+- Re-read `IMPLEMENTATION_START_HERE.md`, this live status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the planning/content authorities in `DECISION_ARCHITECTURE.md`, `CONTENT_ARCHITECTURE.md`, and `TECHNICAL_SPEC.md` before implementation.
+- Re-checked current `main` at Increment 15 (`15933488da2449b01dd94d2c57df3c0d06cecc42`) and confirmed the repository still uses one Godot 4.7.1 headless workflow containing both planning suites; no workflow trigger was added or multiplied.
+- The connected GitHub push-run wrapper still exposes no run object for the Increment-15 SHA, so this run does not invent a green Actions result from unavailable connector evidence.
+- Re-checked the canonical placement rule: current-footprint cells must obey explicit zone restrictions, while future growth remains warning-only.
+- Parsed the modified JSON fixture structures before writing and kept all vertical-slice fixtures test-only under the same `vertical-slice-test-1` content version.
+- Performed a focused typed-GDScript pass over JSON/Variant boundaries and deterministic zone-map normalization; zone IDs are normalized and hold zone keys are traversed in sorted order rather than relying on dictionary iteration order.
+- Reused the existing two planning workflow steps, so this entire increment is emitted as one tree/commit/ref checkpoint and should produce one normal Actions run only.
 
 ## Current blockers
 - No design blocker.
-- Increment 14 still lacks directly observable push-run evidence through the connected interface; the single Increment-15 Actions run is therefore the next authoritative runtime gate for both Increment 14 and Increment 15.
-- Real-data resolver coverage does not yet implement support placement classes, power, fixtures, links, zones or explicit structural prerequisites. These are deliberately rejected/not entered in this tiny no-support slice rather than guessed.
-- Production core content remains intentionally absent; the new fixtures are test-only and must not be mistaken for authored campaign definitions.
+- The Increment-16 Godot 4.7.1 run is the next runtime gate; any first parser/type/API/test failure must be repaired before transit expansion.
+- Support placement classes, fixture topology, links, pre-launch power and non-empty explicit structural prerequisites remain intentionally unresolved. The tiny vertical-slice fixture uses no supports and no explicit structural prerequisites, so none is silently defaulted into legal gameplay.
+- Production core content remains intentionally absent; the fixture is test-only and must not be mistaken for authored C01/H01 data.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect the single Godot Headless Tests run produced by Increment 15. Repair only its first concrete failure if any. If the full workflow is green, extend the real-data planning boundary by one canonical family required for the tiny slice (prefer contract/hold zone-or-fixture legality before supports), then drive the same resolved revision through the existing durable exactly-once Launch path.**
+**Continue Phase 12B — inspect the single Godot Headless Tests run produced by Increment 16 and repair only its first concrete failure if any. If the full workflow is green, begin the smallest deterministic transit slice from the already durable real-data committed input; do not broaden content or support systems merely to avoid implementing transit.**
 
 Next run:
-1. inspect the Increment-15 Actions run and repair only the first concrete parser/type/API/test failure if one exists;
-2. if green, keep fixture data test-only and add exactly one currently missing structural legality family from canonical data rather than broad content population;
-3. connect the resulting real-data legal revision to `LaunchCommitService` without changing the frozen commit-before-transit ordering;
-4. preserve current-footprint-only launch legality and exact placement reason labels;
-5. do not begin transit simulation until the real-data planning -> validation -> durable Launch boundary is demonstrably green.
+1. inspect the Increment-16 Actions run and repair only the first concrete parser/type/API/test failure if one exists;
+2. if green, re-read `MECHANICS.md`, `PHASE11_FREEZE.md`, `PHASE11_TECH_PERSISTENCE.md` and the transit portions of `TECHNICAL_SPEC.md` before writing;
+3. implement the minimum deterministic transit runner/state required by the tiny O01/O03 no-support fixture while preserving the frozen A-I phase ownership and committed-input authority;
+4. add checksum-sequence/replay coverage before any presentation work;
+5. do not mark 12B complete until planning -> cargo placement -> validation -> exactly-once Launch -> deterministic transit -> success/failure -> Causal Review -> targeted Retry is playable end to end.
 
-Do not mark 12B complete until planning -> cargo placement -> validation -> exactly-once Launch -> deterministic transit -> success/failure -> Causal Review -> targeted Retry is playable end to end.
+Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.
