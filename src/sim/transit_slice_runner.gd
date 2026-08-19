@@ -2,7 +2,7 @@ class_name TransitSliceRunner
 extends RefCounted
 
 const ThermalResponseKernelScript := preload("res://src/sim/thermal_response_kernel.gd")
-const PHASE_ORDER := PackedStringArray(["A", "B", "C", "D", "E", "F", "G", "H", "I"])
+const PHASE_ORDER_CSV := "A,B,C,D,E,F,G,H,I"
 
 func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dictionary = {}) -> Dictionary:
 	if total_ticks <= 0:
@@ -262,7 +262,8 @@ func _merge_organism_response(previous: Array, response: Array) -> Dictionary:
 		var instance_id: String = String(response_organism.get("instance_id", ""))
 		if not previous_by_id.has(instance_id):
 			return {"ok": false, "error": "unknown_organism_response:%s" % instance_id, "organisms": []}
-		var next_organism: Dictionary = previous_by_id[instance_id].duplicate(true)
+		var previous_organism: Dictionary = previous_by_id[instance_id]
+		var next_organism: Dictionary = previous_organism.duplicate(true)
 		next_organism["stress"] = int(response_organism["stress"])
 		next_organism["primary_state"] = String(response_organism["primary_state"])
 		merged.append(next_organism)
@@ -340,7 +341,8 @@ func _phase_c_generate_channels(
 		cell_order: PackedStringArray
 ) -> Dictionary:
 	var generated: Dictionary = previous_environment.duplicate(true)
-	var heat: Dictionary = generated.get("heat", {}).duplicate(true)
+	var generated_heat: Dictionary = generated.get("heat", {})
+	var heat: Dictionary = generated_heat.duplicate(true)
 	for hazard_id: String in active_hazards:
 		var hazard: Dictionary = hazards_by_id[hazard_id]
 		var heat_delta: int = int(hazard["heat_delta"])
@@ -395,7 +397,7 @@ func _serialize_tick(
 	parts.append("route=" + String(committed_input.get("route_id", "")))
 	parts.append("seed=" + str(int(committed_input.get("seed", 0))))
 	parts.append("tick=" + str(tick))
-	parts.append("phases=" + ",".join(PHASE_ORDER))
+	parts.append("phases=" + PHASE_ORDER_CSV)
 	parts.append("active=" + ",".join(active_hazards))
 	for placement: String in canonical_placements:
 		parts.append("placement=" + placement)
