@@ -65,34 +65,40 @@ Repository: `Mikayilzade/organism-cargo`
 - Extended `AppStateMachine` with `accept_completed_transit()`: both successful and failed completed runs must hand ownership from `TRANSIT_PLAYBACK` to `CAUSAL_REVIEW`; malformed/incomplete results are rejected and Results/progression are still not written here.
 - Added a dedicated headless regression suite proving deterministic successful completion, authoritative failure, checksum-visible predicate outcomes, unknown-target rejection and success/failure Causal Review handoff.
 
+### Increment 22 — first concrete CI repair
+- Inspected the actual Increment-21 Godot 4.7.1 Actions failure instead of broadening Phase 12B while the runtime gate was red.
+- The earliest concrete compile failure was `PlanningSession` calling `duplicate()` directly on a `Variant` returned by `Dictionary.get()` with warnings treated as errors.
+- Replaced both unsafe reason-list copies with one typed `_duplicate_reasons()` boundary that validates `TYPE_ARRAY`, narrows to `Array`, and returns a defensive copy.
+- No planning legality, Launch semantics, transit behavior, delivery predicates or frozen gameplay rules changed.
+
 ## Checks performed
-- Re-read `IMPLEMENTATION_START_HERE.md`, this status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the active success/failure/transit/Causal Review authority in `GAME_BIBLE.md` and `MECHANICS.md`.
-- Confirmed `main` before this increment was `aa7f43e5a7c3fe1052d3860adf3f21972be6708e` (`12B: integrate thermal organism transit state`).
-- Checked connected Gmail for an Increment-20 failure notification tied to `aa7f43e`; none was present. The available GitHub connector still does not expose the push run directly, so absence of mail is not claimed as proof of green.
-- Kept the completion grammar deliberately smaller than the frozen full-game predicate language: only final-state stress ceiling and exact primary-state equality are implemented for the tiny slice; survival/criticality, growth stage, satiety, forbidden events, final zone and timeline predicates remain deferred.
-- Preserved the frozen rule that all mandatory predicates must pass for Bronze/delivery success and that both success and failure enter Causal Review before Results/retry ownership.
-- No Results/progression write, causal ancestry fabrication, production balance number or production content was added.
+- Re-read `IMPLEMENTATION_START_HERE.md`, this status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` before acting.
+- Inspected Increment-21 workflow run `32247759419`: import/parse, shell smoke, bootstrap, boundary, storage, composition and exactly-once Launch tests passed before later suites exposed compile errors.
+- Confirmed the first concrete failure in execution order was `src/planning/planning_session.gd:58` / `:71`: `duplicate()` invoked on inferred `Variant` under warning-as-error policy.
+- Applied only the focused typing repair required by the status NEXT ACTION; known later failures in `TransitSliceRunner` were deliberately not mixed into this checkpoint.
 - No local Godot executable is available in this runtime; executable verification is delegated to the single GitHub Actions push run created by this checkpoint.
-- Batched source, state-machine, test, workflow and status changes into one Git tree/commit/ref update to preserve the anti-spam rule and trigger only one normal push workflow.
+- Batched source and status changes into one Git tree/commit/ref update to preserve the anti-spam rule and trigger only one normal push workflow.
 
 ## Current blockers
 - No design blocker.
-- Increment-21 Godot 4.7.1 CI is the next runtime gate. Repair only its first concrete parser/type/API/test failure if it fails.
-- The mandatory-predicate grammar is intentionally vertical-slice-small and currently reads only authoritative final organism stress/primary state.
+- Increment-22 Godot 4.7.1 CI is the next runtime gate.
+- The prior run already exposed later `TransitSliceRunner` compile issues (`PHASE_ORDER` constant expression and `duplicate()` on inferred `Variant`), but per the recoverable-failure rule they are deferred until the next run after confirming the first repair checkpoint.
+- The mandatory-predicate grammar remains intentionally vertical-slice-small and currently reads only authoritative final organism stress/primary state.
 - Causal Review ownership exists, but causal event ancestry, actionable first-cause presentation and targeted Retry are not yet implemented.
 - Thermal organism runtime still supports the tiny one-cell-per-placement slice only; multi-cell body stages, supports, growth, H02-H06, sleep, contamination and satiety remain deferred.
 - Production campaign/species content remains intentionally absent; current slice values are test-only.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect the single Godot Headless Tests run from Increment 21 and repair only its first concrete failure if any. If green, implement the first deterministic Causal Review evidence boundary for the tiny slice: record minimal causal events for H01 activation -> heat exposure -> stress delta -> primary-state transition -> mandatory predicate outcome, preserve stable IDs/parent links, and add targeted Retry ownership back to PLANNING without writing Results/progression.**
+**Continue Phase 12B — inspect the single Godot Headless Tests run from Increment 22. If red, repair only the first concrete remaining parser/type/API/test failure in execution order and checkpoint once. If green, implement the first deterministic Causal Review evidence boundary for the tiny slice.**
 
 Next run:
-1. inspect Increment-21 Actions; if red, repair only the first concrete failure and checkpoint once;
-2. if green, read the exact causal ancestry / Causal Review / targeted Retry authority before writing;
-3. add stable causal event records for the already-implemented H01 thermal path only, without pretending full multi-root ancestry is complete;
-4. bind failed/passed mandatory predicate evidence to the relevant final causal event(s) and expose a deterministic review payload;
-5. add a targeted Retry command that returns from `CAUSAL_REVIEW` to `PLANNING` while preserving the prior committed plan as the editable starting revision;
-6. keep Results/progression application separate and later;
-7. do not mark 12B complete until planning -> cargo placement -> validation -> exactly-once Launch -> deterministic transit -> success/failure -> Causal Review -> targeted Retry is playable end to end.
+1. inspect Increment-22 Actions and confirm the `PlanningSession` Variant-copy compile errors are gone;
+2. if red, repair only the first concrete remaining failure (expected from the prior log to be the `TransitSliceRunner` constant/Variant typing boundary) and checkpoint once;
+3. if green, read the exact causal ancestry / Causal Review / targeted Retry authority before writing;
+4. add stable causal event records for the already-implemented H01 thermal path only, without pretending full multi-root ancestry is complete;
+5. bind failed/passed mandatory predicate evidence to the relevant final causal event(s) and expose a deterministic review payload;
+6. add a targeted Retry command that returns from `CAUSAL_REVIEW` to `PLANNING` while preserving the prior committed plan as the editable starting revision;
+7. keep Results/progression application separate and later;
+8. do not mark 12B complete until planning -> cargo placement -> validation -> exactly-once Launch -> deterministic transit -> success/failure -> Causal Review -> targeted Retry is playable end to end.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.

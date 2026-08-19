@@ -55,7 +55,7 @@ func snapshot() -> Dictionary:
 		"planning_revision_id": _planning_revision_id,
 		"canonical_input": _canonical_input.duplicate(true),
 		"structural_legal": bool(_validation.get("structural_legal", false)),
-		"reasons": _validation.get("reasons", []).duplicate(),
+		"reasons": _duplicate_reasons(),
 		"mandatory_manifest_placed": bool(_validation.get("mandatory_manifest_placed", false)),
 		"structural_prerequisites_met": bool(_validation.get("structural_prerequisites_met", false)),
 		"error": "",
@@ -68,7 +68,7 @@ func request_launch_confirm() -> Dictionary:
 		return _failure("missing_planning_revision")
 	if not bool(_validation.get("structural_legal", false)):
 		var failure: Dictionary = _failure("structural_illegal")
-		failure["reasons"] = _validation.get("reasons", []).duplicate()
+		failure["reasons"] = _duplicate_reasons()
 		failure["mandatory_manifest_placed"] = bool(_validation.get("mandatory_manifest_placed", false))
 		failure["structural_prerequisites_met"] = bool(_validation.get("structural_prerequisites_met", false))
 		return failure
@@ -82,6 +82,13 @@ func cancel_launch_confirm() -> bool:
 	if _state_machine.current_state() != AppStateMachineScript.State.LAUNCH_CONFIRM:
 		return false
 	return _state_machine.transition_to(AppStateMachineScript.State.PLANNING)
+
+func _duplicate_reasons() -> Array:
+	var reasons_value: Variant = _validation.get("reasons", [])
+	if typeof(reasons_value) != TYPE_ARRAY:
+		return []
+	var reasons: Array = reasons_value
+	return reasons.duplicate()
 
 static func _failure(error: String) -> Dictionary:
 	return {
