@@ -34,6 +34,12 @@ jobs:
           set -euo pipefail
           /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --editor --path . --quit
 
+      - name: Production core content shell boot contract test
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/shell_content_boot_test_runner.gd
+
       - name: Persistent shell smoke boot
         shell: bash
         run: |

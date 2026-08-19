@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-1",
+  "kind": "traits",
+  "id": "VS_BOOT_TRAITS",
+  "payload": {}
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-1",
+  "kind": "contracts",
+  "id": "VS01",
+  "payload": {
+    "manifest": [
+      {
+        "instance_id": "specimen-a",
+        "species_id": "O01",
+        "mandatory": true,
+        "allowed_zone_ids": ["cool_zone"]
+      },
+      {
+        "instance_id": "specimen-b",
+        "species_id": "O03",
+        "mandatory": true
+      }
+    ],
+    "support_allowance_max": 0
+  }
+}

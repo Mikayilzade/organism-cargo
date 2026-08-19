@@ -59,31 +59,39 @@ Increments 1-13 established the runnable Godot project, deterministic/fixed-poin
 - Repaired only that first execution-order failure by validating the value is a `Dictionary`, assigning it to a typed `Dictionary`, then deep-duplicating that typed value.
 - No gameplay, Retry semantics, persistence behavior, state ownership, or test expectation changed.
 
+### Increment 28 — production shell content-path gate
+- Re-read the frozen UX/state authority before touching the scene composition boundary.
+- Added a deliberately tiny `content/` bootstrap set for all ten required core families using one shared `vertical-slice-1` content version. Empty payloads are composition placeholders only; the existing VS01 contract manifest is the only non-empty document in this increment.
+- This content does not populate the frozen production roster/campaign and does not add gameplay; it exists so the persistent production shell can resolve the paths it already owns instead of silently printing `content_load:body_plans:directory_unavailable`.
+- Added `tests/unit/shell_content_boot_test_runner.gd`, which boots `AppBootstrapService` against the exact production `res://content/...` paths and requires ready content plus the expected content version.
+- Extended the single GitHub Actions workflow so this contract test runs before the permissive persistent-shell smoke boot.
+
 ## Checks performed this run
-- Re-read `IMPLEMENTATION_START_HERE.md`, this status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and the current Phase-12B Retry/state/planning source.
-- Observed the GitHub Actions run for commit `63867f4a93f856004c758fde67867950356791a2` (`12B: add targeted Retry boundary`).
-- Confirmed project import/parse, persistent shell smoke boot, bootstrap, boundary, storage/content, composition, exactly-once Launch, planning->Launch, structural resolver, transit slice, delivery completion, thermal response, and Causal Review evidence suites all passed before the Retry suite.
-- Confirmed the first failing step was `Targeted Retry ownership and identity tests`, with the concrete parse error described above.
-- Per anti-spam rules, this run repairs only that first concrete failure and batches the test repair plus status update into one checkpoint push.
+- Re-read `IMPLEMENTATION_START_HERE.md`, this status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, `PHASE11_UX_ACCESSIBILITY.md`, `UX_ARCHITECTURE.md`, `src/app/shell.gd`, `src/app/app_bootstrap_service.gd`, `src/state/app_state_machine.gd`, and the current content registry.
+- Inspected latest `main` checkpoint `a2712ab4a151fe6e4909f16e4122d2796c9e4f4f` (`12B: repair targeted Retry CI typing failure`). The available connector does not expose its push-triggered Actions run directly; no matching GitHub failure notification was present when checked, so this run does not invent a green result.
+- Confirmed the repository previously had no `content/` directory while `src/app/shell.gd` requires ten concrete `res://content/...` family paths.
+- Parsed and validated all ten new JSON documents before checkpointing: required headers are present, each `kind` matches its registry family key, and all use the same `vertical-slice-1` content version.
+- Local Godot execution is unavailable in this runtime. The new checkpoint's single CI run is therefore the next authoritative Godot 4.7.1 gate.
+- Per anti-spam rules, all source/data/test/status/workflow changes are batched into one checkpoint commit/push.
 
 ## Current blockers
 - No design blocker.
-- Increment-27 Godot 4.7.1 CI is the next runtime gate. If red, the next run must repair only the first concrete failure in execution order.
-- Persistent shell smoke boot currently reports `content_load:body_plans:directory_unavailable` while still exiting successfully; this is not the current execution-order blocker but must be reconciled before the scene-level vertical loop is treated as playable.
+- Increment-28 Godot 4.7.1 CI is the next runtime gate. If red, the next run must repair only the first concrete failure in execution order.
+- The shell content-path blocker is structurally reconciled, but not claimed runtime-green until Increment-28 CI executes.
+- The scene-level vertical loop is not yet wired; the current shell only owns composition/bootstrap.
 - Causal Review evidence still covers only the tiny H01 thermal path and one-organism response ancestry.
 - Results/progression application remains intentionally separate and later.
 - Support placement semantics, full multi-cell organism bodies, growth, H02-H06, sleep, contamination, satiety, Brownout and production campaign/species content remain deferred to later phases.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 27. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, re-read the frozen UX/state authority and wire the tiny vertical slice into one scene-level playable contract flow from planning through Launch, transit, Causal Review and targeted Retry without adding new gameplay.**
+**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 28. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, wire the already-existing planning, durable Launch, deterministic transit, Causal Review evidence and targeted Retry services through the persistent shell into one minimal scene-level playable VS01 contract flow without adding Results/progression or new gameplay.**
 
 Next run:
-1. inspect Increment-27 Actions result and confirm the targeted Retry suite now executes;
+1. inspect Increment-28 Actions result and confirm the production core-content shell boot contract executes;
 2. if red, repair only the first concrete failure in execution order and leave later failures for the following run;
-3. if green, re-read `PHASE11_UX_ACCESSIBILITY.md`, `UX_ARCHITECTURE.md`, `GAME_BIBLE.md`, and current shell/state authority for the minimal playable vertical loop;
-4. reconcile the shell content-path smoke-boot issue before claiming the scene-level loop is playable;
-5. connect existing deterministic services through the current shell so one tiny fixture can traverse planning -> Launch -> transit -> Causal Review -> targeted Retry;
-6. keep Results/progression application separate until its own explicit increment;
-7. do not mark 12B complete until the complete vertical loop is playable end to end.
+3. if green, use the existing state machine to traverse `TITLE -> CAMPAIGN_MAP -> CONTRACT_BRIEF -> PLANNING -> LAUNCH_CONFIRM -> TRANSIT_PLAYBACK -> CAUSAL_REVIEW -> PLANNING` for Retry;
+4. connect only existing deterministic services and VS01 tiny content; do not invent new mechanics or Results/progression behavior;
+5. add a scene-level/headless interaction test proving the complete tiny loop and a changed Retry can produce a new run identity;
+6. do not mark 12B complete until the complete vertical loop is playable end to end.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.

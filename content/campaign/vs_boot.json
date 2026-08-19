@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-1",
+  "kind": "campaign",
+  "id": "VS_BOOT_CAMPAIGN",
+  "payload": {}
+}
