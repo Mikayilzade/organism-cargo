@@ -59,27 +59,33 @@ Repository: `Mikayilzade/organism-cargo`
 - Extended `composition_test_runner.gd` with a generated filesystem fixture covering complete-core boot, first-run preflight, registry exposure after validation, missing-family rejection, exact fatal reason retention, and fatal-state ownership.
 - No frozen gameplay mechanic or content definition was added or simplified.
 
+### Increment 10
+- Added an explicit `Persistent shell smoke boot` step to the existing Godot 4.7.1 workflow.
+- The gate now executes the actual configured main scene headlessly for one frame after project import, rather than treating editor parsing alone as proof that the persistent shell can enter its boot path.
+- This intentionally preserves the current safe `FATAL_CONTENT_ERROR` behavior when broad production content is absent; it verifies process/scene/composition boot coherence without fabricating Phase-12B gameplay content.
+- Kept this as part of the existing single CI job so one checkpoint push produces one workflow run rather than additional notification-producing workflows.
+
 ## Checks performed
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, `CONTENT_ARCHITECTURE.md`, and the relevant `TECHNICAL_SPEC.md` boot/state/content sections before acting.
-- Confirmed repository head `4696b71e` is the Increment-8 composition checkpoint and inspected the current registry, state machine, shell, loader/document APIs, and CI composition suite before modification.
-- The available GitHub connector does not expose push-triggered workflow-run lookup by commit SHA, so no false green claim is made for Increment 8. A targeted failure-notification check found no failure for the Increment-8 commit after its execution window, but repository/Actions evidence remains the required authority.
-- Kept this run to one coherent code/test/status checkpoint and one push to avoid GitHub Actions/email spam.
-- The new composition tests are committed into the already-existing `composition_test_runner.gd`, so the current single workflow will execute them automatically on this checkpoint.
-- Fresh Godot 4.7.1 execution for Increment 9 remains to be observed on the resulting single CI run; any strict-warning/API failure becomes the next-run repair target.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and the relevant `TECHNICAL_SPEC.md` engine/project/state/content sections before acting.
+- Confirmed repository head `95174c39` is the Increment-9 app-bootstrap checkpoint and inspected the current bootstrap service, persistent shell scene/script, composition tests, and headless workflow.
+- Attempted to observe the prior push-triggered Actions result through the available GitHub interfaces; push-run listing is not exposed by the connector, so no false green claim is made for Increment 9.
+- The workflow already proves project import/parse and runs bootstrap, boundary, storage/content, and composition suites; this increment adds the missing direct main-scene smoke execution needed for the 12A boot gate.
+- This run is intentionally one coherent tree/commit/ref checkpoint to preserve the anti-spam rule.
+- Fresh Godot 4.7.1 execution for Increment 10 remains to be observed on the resulting single CI run; any concrete parser/runtime/test failure becomes the next-run repair target.
 
 ## Current blockers
 - No design blocker.
-- Production core content is intentionally not fabricated in Phase 12A; the shell therefore enters `FATAL_CONTENT_ERROR` when run against absent production content directories, which is the intended safe behavior until a canonical tiny playable content set is introduced by the next implementation phase.
-- Runtime validation remains open until the single CI run for Increment 9 proves all existing suites plus the extended composition coverage green or exposes the first concrete parser/type/test failure.
+- Production core content is intentionally not fabricated in Phase 12A; the shell therefore enters `FATAL_CONTENT_ERROR` when run against absent production content directories, which is the intended safe behavior until deliberately tiny canonical Phase-12B content is introduced.
+- 12A cannot be marked complete until the single Increment-10 CI run demonstrates a clean main-scene smoke boot and all existing deterministic suites pass under Godot 4.7.1.
 
 ## NEXT ACTION
-**Continue Phase 12A — inspect the single Godot Headless Tests run for Increment 9 and repair only the first concrete failure if any; if green, finish the remaining 12A bootstrap gate without inventing production gameplay content.**
+**Continue Phase 12A — inspect the single Godot Headless Tests run for Increment 10; repair only the first concrete failure if any, otherwise close the 12A exit gate and begin the first deliberately tiny Phase-12B vertical-slice increment.**
 
 Next run:
-1. inspect the newest Actions result for the Increment-9 checkpoint;
-2. if any suite fails, repair the first concrete parser/type/API/test blocker as one coherent batch and leave remaining issues to the following run;
-3. if all suites are green, verify the persistent shell/project boot path, deterministic boundaries, content composition root, input abstraction, and persistence skeleton together against the 12A exit gate;
-4. only if every 12A exit criterion is demonstrably satisfied, mark 12A complete and move NEXT ACTION to the first deliberately tiny Phase-12B vertical-slice increment;
+1. inspect the newest Actions result for the Increment-10 checkpoint;
+2. if any step fails, repair the first concrete parser/type/API/test blocker as one coherent batch and leave remaining issues to the following run;
+3. if `Import and parse project`, `Persistent shell smoke boot`, and all four deterministic suites are green, record the actual evidence and mark `12A Technical bootstrap: COMPLETE`;
+4. move NEXT ACTION to Phase 12B only after that evidence exists, beginning with the smallest canonical planning-to-Launch ownership slice rather than broad content population;
 5. do not populate broad launch content, redesign frozen gameplay, or bypass fatal content validation for convenience.
 
 Do not mark 12A complete until the project boots coherently, deterministic tests execute successfully under Godot 4.7.1, and the frozen domain model has a stable composition root.
