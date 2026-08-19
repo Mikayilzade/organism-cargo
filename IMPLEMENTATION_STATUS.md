@@ -1,6 +1,6 @@
 # IMPLEMENTATION STATUS
 
-Last updated: 2026-08-19
+Last updated: 2026-08-20
 Repository: `Mikayilzade/organism-cargo`
 
 ## Master state
@@ -65,34 +65,38 @@ Increments 1-13 established the runnable Godot project, deterministic/fixed-poin
 - Repaired only that first execution-order failure by declaring `service: AppBootstrapService = AppBootstrapServiceScript.new()`.
 - No gameplay rule, content meaning, bootstrap behavior, persistence semantic, state transition, or test expectation changed.
 
+### Increment 30 — shell-owned vertical slice flow composition
+- Added `src/app/vertical_slice_flow_coordinator.gd` to compose the already-existing planning, exactly-once Launch, deterministic delivery completion, Causal Review evidence and targeted Retry services without moving authoritative rules into Nodes.
+- Updated the persistent shell to own one `AtomicSaveStore` and one `VerticalSliceFlowCoordinator` after successful production content bootstrap.
+- Added a single end-to-end headless integration contract covering `TITLE -> CAMPAIGN_MAP -> CONTRACT_BRIEF -> PLANNING -> LAUNCH_CONFIRM -> TRANSIT_PLAYBACK -> CAUSAL_REVIEW -> PLANNING`, then a changed Retry that commits a second distinct durable run identity.
+- Added the scene-flow integration contract to the existing headless workflow; Results/progression remain intentionally outside the vertical slice boundary.
+
 ## Checks performed this run
-- Re-read `IMPLEMENTATION_START_HERE.md`, live `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and the current UX/accessibility authority relevant to the pending scene-flow boundary.
-- Re-read the current `src/app/shell.gd`, `src/app/app_bootstrap_service.gd`, `src/state/app_state_machine.gd`, `src/planning/planning_session.gd`, and `src/run/launch_commit_service.gd` before making changes.
-- Inspected latest `main` checkpoint `8b90342c02fba3da564696aa334a3f7c60909270` and its actual GitHub Actions run `32287594041`.
-- Confirmed Godot 4.7.1 installation, project import, and global class registration passed in that run.
-- Confirmed the first runtime blocker is the warnings-as-errors static typing failure in `shell_content_boot_test_runner.gd:19`; later suites were skipped by execution order.
-- Applied only the focused typing repair required by the anti-spam/first-failure rule.
-- Local Godot execution remains unavailable in this automation runtime; the new checkpoint's single CI run is therefore the authoritative verification gate.
-- Per anti-spam rules, code and status are batched into one checkpoint commit/push.
+- Re-read `IMPLEMENTATION_START_HERE.md`, live `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and `PHASE11_UX_ACCESSIBILITY.md` before acting.
+- Re-read the current shell, bootstrap service, app-state machine, planning session, Launch commit service, delivery completion runner, Causal Review evidence builder, targeted Retry service and relevant existing tests.
+- Confirmed current `main` before this increment was `985284515349a7956afdf41e45114050a0501071` (`12B: repair production shell boot CI typing failure`).
+- The GitHub connector exposes no push-run lookup or combined status contexts for that checkpoint. No newer GitHub failure notification exists for `9852845`; this is supporting evidence only, not a claim that every suite was green.
+- Local networked checkout/Godot execution is unavailable in the automation runtime, so the single CI run created by this checkpoint is the authoritative runtime verification gate.
+- Per anti-spam rules, all code, workflow and status changes are batched into one Git tree/commit/ref update rather than multiple Contents-API commits.
 
 ## Current blockers
 - No design blocker.
-- Increment-29 Godot 4.7.1 CI is the next runtime gate. If red, the next run must repair only the first concrete failure in execution order.
-- The production shell content paths are structurally present but are not claimed runtime-green until the repaired shell boot contract executes successfully.
-- The scene-level vertical loop is not yet wired; the current shell only owns composition/bootstrap.
-- Causal Review evidence still covers only the tiny H01 thermal path and one-organism response ancestry.
+- Increment-30 Godot 4.7.1 CI is the next runtime gate. If red, the next run must repair only the first concrete failure in execution order.
+- The shell now owns the vertical-slice application flow, but there is still no player-facing visual/control surface for traversing it; the integration contract is headless.
 - Results/progression application remains intentionally separate and later.
+- Causal Review evidence still covers only the tiny H01 thermal path and one-organism response ancestry.
 - Support placement semantics, full multi-cell organism bodies, growth, H02-H06, sleep, contamination, satiety, Brownout and production campaign/species content remain deferred to later phases.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 29. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, wire the already-existing planning, durable Launch, deterministic transit, Causal Review evidence and targeted Retry services through the persistent shell into one minimal scene-level playable VS01 contract flow without adding Results/progression or new gameplay.**
+**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 30. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, add the minimal player-facing shell presentation/control surface that drives the existing `VerticalSliceFlowCoordinator` through the VS01 states without adding Results/progression or new gameplay.**
 
 Next run:
-1. inspect Increment-29 Actions result and confirm the production core-content shell boot contract executes;
+1. inspect Increment-30 Actions result and confirm the new shell-owned scene-flow integration contract executes;
 2. if red, repair only the first concrete failure in execution order and leave later failures for the following run;
-3. if green, use the existing state machine to traverse `TITLE -> CAMPAIGN_MAP -> CONTRACT_BRIEF -> PLANNING -> LAUNCH_CONFIRM -> TRANSIT_PLAYBACK -> CAUSAL_REVIEW -> PLANNING` for Retry;
-4. connect only existing deterministic services and VS01 tiny content; do not invent new mechanics or Results/progression behavior;
-5. add a scene-level/headless interaction test proving the complete tiny loop and a changed Retry can produce a new run identity;
-6. do not mark 12B complete until the complete vertical loop is playable end to end.
+3. if green, implement a deliberately minimal state-driven Control presentation for Title, Campaign Map, Contract Brief, Planning, Launch Confirm, Transit Playback and Causal Review/Retry;
+4. route UI actions through the existing coordinator/state machine rather than duplicating gameplay rules in Nodes;
+5. keep keyboard/controller semantic actions in mind, but do not claim Phase 12E accessibility completion during the 12B slice;
+6. do not add Results/progression until its dedicated boundary is implemented and tested;
+7. do not mark 12B complete until the tiny contract is actually playable end to end through the shell.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.
