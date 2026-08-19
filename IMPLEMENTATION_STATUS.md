@@ -47,36 +47,43 @@ Increments 1-13 established the runnable Godot project, deterministic/fixed-poin
 
 ### Increment 26 — targeted Retry boundary
 - Added `src/run/targeted_retry_service.gd`.
-- `CAUSAL_REVIEW -> PLANNING` Retry now seeds a new editable planning revision from a deep copy of the prior authoritative `canonical_committed_input` while retaining source `run_id` and source planning revision identity.
+- `CAUSAL_REVIEW -> PLANNING` Retry seeds a new editable planning revision from a deep copy of the prior authoritative `canonical_committed_input` while retaining source `run_id` and source planning revision identity.
 - Retry does not mutate the supplied completed-run record.
 - Added `tests/unit/targeted_retry_test_runner.gd` covering immutable source-run snapshot, unchanged retry baseline equivalence, editable retry revision, and a new Launch/run identity after an edit.
 - Extended the single headless workflow with the targeted Retry regression suite.
 - Results/progression application remains separate.
 
+### Increment 27 — targeted Retry Godot typing repair
+- Inspected the actual Godot 4.7.1 Actions run for Increment 26. All suites through deterministic Causal Review evidence passed; only the new targeted Retry suite failed.
+- First concrete failure was a warnings-as-errors parse error at `tests/unit/targeted_retry_test_runner.gd:70`: `duplicate()` was called on an inferred `Variant` returned from a dictionary index.
+- Repaired only that first execution-order failure by validating the value is a `Dictionary`, assigning it to a typed `Dictionary`, then deep-duplicating that typed value.
+- No gameplay, Retry semantics, persistence behavior, state ownership, or test expectation changed.
+
 ## Checks performed this run
-- Re-read `IMPLEMENTATION_START_HERE.md`, this status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, `GAME_BIBLE.md`, and current planning/app-state/Launch source before writing.
-- Confirmed canonical top-level Retry rule: a failed run is evidence; Retry preserves the same committed inputs unless the player changes them.
-- Confirmed `AppStateMachine` already canonically owns `CAUSAL_REVIEW -> PLANNING`.
-- Inspected current `PlanningSession`, `PlanningValidator`, `LaunchCommitService`, existing planning->Launch test patterns, and the single CI workflow.
-- Runtime cannot directly execute Godot 4.7.1 locally in this automation environment. The new regression is therefore queued to the repository's normal single push workflow.
-- Per anti-spam rules, this increment is batched into one Git tree/commit/ref update so exactly one normal push workflow is triggered.
+- Re-read `IMPLEMENTATION_START_HERE.md`, this status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and the current Phase-12B Retry/state/planning source.
+- Observed the GitHub Actions run for commit `63867f4a93f856004c758fde67867950356791a2` (`12B: add targeted Retry boundary`).
+- Confirmed project import/parse, persistent shell smoke boot, bootstrap, boundary, storage/content, composition, exactly-once Launch, planning->Launch, structural resolver, transit slice, delivery completion, thermal response, and Causal Review evidence suites all passed before the Retry suite.
+- Confirmed the first failing step was `Targeted Retry ownership and identity tests`, with the concrete parse error described above.
+- Per anti-spam rules, this run repairs only that first concrete failure and batches the test repair plus status update into one checkpoint push.
 
 ## Current blockers
 - No design blocker.
-- Increment-26 Godot 4.7.1 CI is the next runtime gate; if red, the next run must repair only the first concrete failure in execution order.
+- Increment-27 Godot 4.7.1 CI is the next runtime gate. If red, the next run must repair only the first concrete failure in execution order.
+- Persistent shell smoke boot currently reports `content_load:body_plans:directory_unavailable` while still exiting successfully; this is not the current execution-order blocker but must be reconciled before the scene-level vertical loop is treated as playable.
 - Causal Review evidence still covers only the tiny H01 thermal path and one-organism response ancestry.
 - Results/progression application remains intentionally separate and later.
 - Support placement semantics, full multi-cell organism bodies, growth, H02-H06, sleep, contamination, satiety, Brownout and production campaign/species content remain deferred to later phases.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 26. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, wire the tiny vertical slice into one scene-level playable contract flow from planning through Launch, transit, Causal Review and targeted Retry without adding new gameplay.**
+**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 27. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, re-read the frozen UX/state authority and wire the tiny vertical slice into one scene-level playable contract flow from planning through Launch, transit, Causal Review and targeted Retry without adding new gameplay.**
 
 Next run:
-1. inspect Increment-26 Actions result and confirm the new targeted Retry suite executes after all earlier suites;
+1. inspect Increment-27 Actions result and confirm the targeted Retry suite now executes;
 2. if red, repair only the first concrete failure in execution order and leave later failures for the following run;
-3. if green, re-read the frozen UX/state authority for the minimal playable vertical loop;
-4. connect existing deterministic services through the current shell so one tiny fixture can traverse planning -> Launch -> transit -> Causal Review -> targeted Retry;
-5. keep Results/progression application separate until its own explicit increment;
-6. do not mark 12B complete until the complete vertical loop is playable end to end.
+3. if green, re-read `PHASE11_UX_ACCESSIBILITY.md`, `UX_ARCHITECTURE.md`, `GAME_BIBLE.md`, and current shell/state authority for the minimal playable vertical loop;
+4. reconcile the shell content-path smoke-boot issue before claiming the scene-level loop is playable;
+5. connect existing deterministic services through the current shell so one tiny fixture can traverse planning -> Launch -> transit -> Causal Review -> targeted Retry;
+6. keep Results/progression application separate until its own explicit increment;
+7. do not mark 12B complete until the complete vertical loop is playable end to end.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.

@@ -67,7 +67,12 @@ func _test_targeted_retry_preserves_completed_run_and_creates_new_launch_identit
 	_expect_equal(retry["canonical_input"], completed_run_before_retry["canonical_committed_input"], "unchanged retry baseline is byte-equivalent at Variant level")
 	_expect_equal(completed_run, completed_run_before_retry, "retry seeding does not mutate authoritative completed run")
 
-	var edited_input: Dictionary = retry["canonical_input"].duplicate(true)
+	var retry_input_value: Variant = retry["canonical_input"]
+	_expect_true(retry_input_value is Dictionary, "retry canonical input remains a dictionary")
+	if not retry_input_value is Dictionary:
+		return
+	var retry_input: Dictionary = retry_input_value
+	var edited_input: Dictionary = retry_input.duplicate(true)
 	var placements: Array = edited_input["placements"]
 	placements[0]["anchor"] = [1, 0]
 	var edited_revision: Dictionary = planning.apply_revision("revision-retry-edited", edited_input, _valid_structural_facts())
