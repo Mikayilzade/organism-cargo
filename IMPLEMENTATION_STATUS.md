@@ -39,43 +39,44 @@ Increments 1-13 established the runnable Godot project, deterministic/fixed-poin
 
 ### Increments 22-24 — Godot 4.7.1 CI repair sequence
 - Repaired concrete warnings-as-errors/type hazards in planning persistence assertions and `TransitSliceRunner` without changing gameplay semantics.
-- Latest pre-this-run checkpoint: `04d50eb` (`12B: repair TransitSliceRunner Godot compile hazards`).
 
 ### Increment 25 — first deterministic Causal Review evidence boundary
-- Added `src/sim/causal_review_evidence_builder.gd` as a scene-free review-data boundary over the already-authoritative completed transit trace.
-- The tiny H01 path now emits stable review event IDs for active hazards, organism stress/state responses, and mandatory predicate results.
-- Same-tick H01 hazard activation is preserved as the immediate parent of the corresponding organism response; mandatory predicate evidence points to the latest relevant organism response.
-- The builder exposes separate `first_meaningful_event_id` and `first_actionable_event_id`; for the tiny slice this keeps immutable route-hazard evidence distinct from the first plan-revisable organism response.
-- Review evidence gets its own deterministic checksum and deliberately excludes persistence-only `run_id` entropy.
-- This is intentionally **not** the final causal graph implementation: multi-root material ancestry, supports, growth, Brownout, H02-H06 and richer causal kinds remain future Phase 12C work.
-- Added `tests/unit/causal_review_evidence_test_runner.gd` covering deterministic replay, H01 -> organism parent binding, failed mandatory-predicate binding and malformed-result rejection.
-- Extended the single headless workflow with the new review-evidence regression suite.
+- Added `src/sim/causal_review_evidence_builder.gd` as a scene-free review-data boundary over completed transit trace.
+- Added stable event IDs, H01 -> organism parent binding, mandatory-predicate evidence binding, separate first meaningful/actionable events, deterministic review checksum, malformed-result rejection tests, and CI coverage.
+- Multi-root material ancestry, supports, growth, Brownout, H02-H06 and richer causal kinds remain future Phase 12C work.
+
+### Increment 26 — targeted Retry boundary
+- Added `src/run/targeted_retry_service.gd`.
+- `CAUSAL_REVIEW -> PLANNING` Retry now seeds a new editable planning revision from a deep copy of the prior authoritative `canonical_committed_input` while retaining source `run_id` and source planning revision identity.
+- Retry does not mutate the supplied completed-run record.
+- Added `tests/unit/targeted_retry_test_runner.gd` covering immutable source-run snapshot, unchanged retry baseline equivalence, editable retry revision, and a new Launch/run identity after an edit.
+- Extended the single headless workflow with the targeted Retry regression suite.
+- Results/progression application remains separate.
 
 ## Checks performed this run
-- Re-read `IMPLEMENTATION_START_HERE.md`, this status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, `GAME_BIBLE.md`, `DECISION_ARCHITECTURE.md`, and the relevant Phase-11 simultaneous-cause freeze before writing.
-- Re-checked `main` at `04d50eb` and the exact current `TransitSliceRunner`, `DeliveryCompletionRunner`, delivery predicates/tests and headless workflow.
-- The connected GitHub workflow-run lookup does not expose push-triggered runs for this commit; no local Godot executable/network checkout is available in the automation runtime.
-- The connected mailbox contains failure notifications for the parent checkpoint `a63afdc` but no failure notification for `04d50eb`; this was treated only as supporting evidence, not as a substitute for the next explicit GitHub Actions result.
-- Per anti-spam rules, all code/test/workflow/status changes in this increment are batched into one Git tree/commit/ref update so exactly one normal push workflow is triggered.
+- Re-read `IMPLEMENTATION_START_HERE.md`, this status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, `GAME_BIBLE.md`, and current planning/app-state/Launch source before writing.
+- Confirmed canonical top-level Retry rule: a failed run is evidence; Retry preserves the same committed inputs unless the player changes them.
+- Confirmed `AppStateMachine` already canonically owns `CAUSAL_REVIEW -> PLANNING`.
+- Inspected current `PlanningSession`, `PlanningValidator`, `LaunchCommitService`, existing planning->Launch test patterns, and the single CI workflow.
+- Runtime cannot directly execute Godot 4.7.1 locally in this automation environment. The new regression is therefore queued to the repository's normal single push workflow.
+- Per anti-spam rules, this increment is batched into one Git tree/commit/ref update so exactly one normal push workflow is triggered.
 
 ## Current blockers
 - No design blocker.
-- Increment-25 Godot 4.7.1 CI is the next runtime gate; if red, the next run must repair only the first concrete failure in execution order.
-- Causal Review evidence currently covers only the existing tiny H01 thermal path and one-organism response ancestry.
-- Targeted Retry is not yet implemented.
+- Increment-26 Godot 4.7.1 CI is the next runtime gate; if red, the next run must repair only the first concrete failure in execution order.
+- Causal Review evidence still covers only the tiny H01 thermal path and one-organism response ancestry.
 - Results/progression application remains intentionally separate and later.
 - Support placement semantics, full multi-cell organism bodies, growth, H02-H06, sleep, contamination, satiety, Brownout and production campaign/species content remain deferred to later phases.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 25. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, implement targeted Retry from `CAUSAL_REVIEW` back to `PLANNING`, preserving the exact prior committed plan as a new editable baseline without mutating the authoritative completed run.**
+**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 26. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, wire the tiny vertical slice into one scene-level playable contract flow from planning through Launch, transit, Causal Review and targeted Retry without adding new gameplay.**
 
 Next run:
-1. inspect the Increment-25 Actions job and confirm all prior suites plus `causal_review_evidence_test_runner.gd` execute;
-2. if red, repair only the first concrete failure in execution order and leave later failures for following runs;
-3. if green, re-read exact retry/planning authority (`Retry from last launch` and app-state ownership);
-4. add a deterministic retry command/state boundary that returns `CAUSAL_REVIEW -> PLANNING` and seeds the planning session from the prior canonical committed input;
-5. prove the prior completed run remains immutable, unchanged retry starts byte-equivalent, and an edit creates a new planning revision/new Launch identity;
-6. keep Results/progression application separate;
-7. do not mark 12B complete until the complete vertical loop is playable end to end.
+1. inspect Increment-26 Actions result and confirm the new targeted Retry suite executes after all earlier suites;
+2. if red, repair only the first concrete failure in execution order and leave later failures for the following run;
+3. if green, re-read the frozen UX/state authority for the minimal playable vertical loop;
+4. connect existing deterministic services through the current shell so one tiny fixture can traverse planning -> Launch -> transit -> Causal Review -> targeted Retry;
+5. keep Results/progression application separate until its own explicit increment;
+6. do not mark 12B complete until the complete vertical loop is playable end to end.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.
