@@ -42,6 +42,7 @@ func _test_exactly_once_launch_commit() -> void:
 		],
 		"seed": 17,
 	}
+	var contract_definition_checksum: String = "contract-def-checksum-1"
 
 	var illegal: Dictionary = service.request_launch(
 		"token-illegal",
@@ -51,11 +52,27 @@ func _test_exactly_once_launch_commit() -> void:
 		"contract-1",
 		canonical_input,
 		"rules-r1",
-		"content-c1"
+		"content-c1",
+		contract_definition_checksum
 	)
-	_expect_true(not illegal["ok"], "structurally illegal launch rejected")
+	_expect_true(not bool(illegal["ok"]), "structurally illegal launch rejected")
 	_expect_equal(String(illegal["error"]), "structural_illegal", "illegal launch reason")
 	_expect_equal(allocated_run_ids, 0, "illegal launch allocates no run id")
+
+	var missing_contract_checksum: Dictionary = service.request_launch(
+		"token-missing-contract-checksum",
+		"revision-1",
+		true,
+		"profile-1",
+		"contract-1",
+		canonical_input,
+		"rules-r1",
+		"content-c1",
+		""
+	)
+	_expect_true(not bool(missing_contract_checksum["ok"]), "missing contract definition checksum rejected")
+	_expect_equal(String(missing_contract_checksum["error"]), "missing_contract_definition_checksum", "missing contract checksum reason")
+	_expect_equal(allocated_run_ids, 0, "missing contract checksum allocates no run id")
 
 	var committed: Dictionary = service.request_launch(
 		"token-1",
@@ -65,24 +82,34 @@ func _test_exactly_once_launch_commit() -> void:
 		"contract-1",
 		canonical_input,
 		"rules-r1",
-		"content-c1"
+		"content-c1",
+		contract_definition_checksum
 	)
-	_expect_true(committed["ok"], "legal launch commits")
-	_expect_true(not committed["duplicate"], "first launch is not duplicate")
+	_expect_true(bool(committed["ok"]), "legal launch commits")
+	_expect_true(not bool(committed["duplicate"]), "first launch is not duplicate")
 	_expect_equal(String(committed["run_id"]), "run-fixed-1", "allocated run id retained")
 	_expect_equal(allocated_run_ids, 1, "first commit allocates once")
 	_expect_equal(state_machine.current_state(), AppStateMachine.State.TRANSIT_PLAYBACK, "durable commit precedes transit state")
 
 	var loaded: Dictionary = save_store.load(&"session")
-	_expect_true(loaded["ok"], "committed session is durable")
-	if loaded["ok"]:
+	_expect_true(bool(loaded["ok"]), "committed session is durable")
+	if bool(loaded["ok"]):
 		var envelope: SaveEnvelope = loaded["envelope"]
 		var record: Dictionary = envelope.payload["committed_run"]
 		_expect_equal(String(record["run_id"]), "run-fixed-1", "durable run id")
 		_expect_equal(String(record["planning_revision_id"]), "revision-1", "durable planning revision")
 		_expect_equal(String(record["lifecycle_state"]), "COMMITTED", "durable lifecycle")
-		var expected_checksum: String = JSON.stringify(canonical_input, "", true, true).sha256_text()
-		_expect_equal(String(record["committed_input_checksum"]), expected_checksum, "committed input checksum")
+		_expect_equal(String(record["expected_contract_definition_checksum"]), contract_definition_checksum, "durable contract definition checksum")
+		_expect_true(int(record["launch_timestamp_unix"]) > 0, "recovery timestamp recorded")
+		var expected_committed_input: Dictionary = canonical_input.duplicate(true)
+		expected_committed_input["contract_id"] = "contract-1"
+		expected_committed_input["rules_version"] = "rules-r1"
+		expected_committed_input["content_version"] = "content-c1"
+		expected_committed_input["generator_version"] = ""
+		expected_committed_input["expected_contract_definition_checksum"] = contract_definition_checksum
+		_expect_equal(record["canonical_committed_input"], expected_committed_input, "canonical committed input includes compatibility identity")
+		var expected_checksum: String = JSON.stringify(expected_committed_input, "", true, true).sha256_text()
+		_expect_equal(String(record["committed_input_checksum"]), expected_checksum, "committed input checksum covers compatibility identity")
 
 	var duplicate: Dictionary = service.request_launch(
 		"token-duplicate-callback",
@@ -92,10 +119,11 @@ func _test_exactly_once_launch_commit() -> void:
 		"contract-1",
 		canonical_input,
 		"rules-r1",
-		"content-c1"
+		"content-c1",
+		contract_definition_checksum
 	)
-	_expect_true(duplicate["ok"], "duplicate callback returns existing commit")
-	_expect_true(duplicate["duplicate"], "duplicate callback identified")
+	_expect_true(bool(duplicate["ok"]), "duplicate callback returns existing commit")
+	_expect_true(bool(duplicate["duplicate"]), "duplicate callback identified")
 	_expect_equal(String(duplicate["run_id"]), "run-fixed-1", "duplicate returns same run id")
 	_expect_equal(allocated_run_ids, 1, "duplicate allocates no second run id")
 
@@ -107,9 +135,10 @@ func _test_exactly_once_launch_commit() -> void:
 		"contract-1",
 		canonical_input,
 		"rules-r1",
-		"content-c1"
+		"content-c1",
+		contract_definition_checksum
 	)
-	_expect_true(not wrong_revision["ok"], "new revision cannot launch from transit")
+	_expect_true(not bool(wrong_revision["ok"]), "new revision cannot launch from transit")
 	_expect_equal(String(wrong_revision["error"]), "invalid_state", "transit launch rejected by state owner")
 	_expect_equal(allocated_run_ids, 1, "invalid state allocates no run id")
 

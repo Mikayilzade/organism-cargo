@@ -59,25 +59,35 @@ Repository: `Mikayilzade/organism-cargo`
 - Extended the existing single CI workflow with the Launch commit suite; no additional workflow was created, preserving the anti-spam rule.
 - No transit mechanic, gameplay content, campaign rule, or UX behavior was invented or simplified.
 
+### Increment 12
+- Tightened the durable Launch record against the exact Phase-11 persistence minimum instead of broadening into transit before the 12A runtime gate is proven.
+- `LaunchCommitService` now requires a non-empty expected contract-definition checksum, persists it explicitly, and records a recovery-only Unix launch timestamp.
+- Canonical committed input now includes contract identity plus rules/content/generator compatibility versions and the expected contract-definition checksum before SHA-256 is computed, so the durable checksum covers the compatibility identity required for deterministic reconstruction rather than only the caller's layout payload.
+- Extended the Launch regression suite to reject missing contract-definition identity and to verify the complete canonical committed-input/checksum boundary and recovery timestamp.
+- Explicit `bool(...)` conversion was added at dictionary-to-typed-test boundaries to avoid strict-warning Variant ambiguity under the Godot 4.7.1 CI policy.
+- No gameplay rule, content, transit behavior, or UX flow changed.
+
 ## Checks performed
 - Re-read `IMPLEMENTATION_START_HERE.md`, this live status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and the exact Launch/persistence authority in `PHASE11_TECH_PERSISTENCE.md` before implementation.
-- Re-checked current `main` at Increment 10 and the existing state-machine, atomic-save, save-envelope, checksum, composition-test, and workflow boundaries before writing.
-- The available GitHub connector does not expose push-triggered workflow runs by commit SHA through its current run-list wrapper, so Increment-10 success was not falsely inferred and 12A remains open pending direct execution evidence.
-- This run batches all meaningful source/test/workflow/status changes into one tree and one checkpoint commit/ref update.
+- Re-checked current `main` at Increment 11 plus the committed Launch service/test boundary.
+- Confirmed the repository-side connector still exposes no push-triggered Actions status contexts for the Increment-11 commit, so no green run was inferred and 12A remains open.
+- Compared Increment-11 durable record fields to the canonical `CommittedRunRecord` minimum and repaired two concrete omissions: expected contract-definition checksum and recovery-only launch timestamp; also widened committed-input checksum coverage to compatibility identity.
+- The existing single workflow already executes `tests/unit/launch_commit_test_runner.gd`, so this checkpoint needs no extra workflow and will produce only one normal CI run.
+- This run batches source, regression, and status changes into one tree and one checkpoint commit/ref update.
 
 ## Current blockers
 - No design blocker.
-- 12A is still awaiting observable Godot 4.7.1 evidence that project parse, persistent-shell smoke boot, and all deterministic suites are green.
+- 12A is still awaiting observable Godot 4.7.1 evidence that project parse, persistent-shell smoke boot, and every deterministic suite including the tightened Launch suite are green.
 - Production core content remains intentionally absent at this stage; the shell's safe `FATAL_CONTENT_ERROR` path remains correct until deliberately tiny canonical vertical-slice content is introduced.
 
 ## NEXT ACTION
-**Continue Phase 12A — inspect the single Godot Headless Tests run produced by Increment 11 and repair only the first concrete failure if any; if every step is green, record the evidence, mark 12A COMPLETE, and begin Phase 12B from the durable Launch boundary now in place.**
+**Continue Phase 12A — inspect the single Godot Headless Tests run produced by Increment 12 and repair only its first concrete failure if any; if every step is green, record the evidence, mark 12A COMPLETE, and begin Phase 12B from the now canon-complete durable Launch boundary.**
 
 Next run:
-1. inspect the newest single Actions run for the Increment-11 checkpoint;
+1. inspect the newest single Actions run for the Increment-12 checkpoint;
 2. if any step fails, repair the first concrete parser/type/API/test blocker as one coherent batch and leave remaining failures to the following run;
 3. if project import, persistent-shell smoke boot, bootstrap, boundary, storage/content, composition, and exactly-once Launch suites are all green, mark `12A Technical bootstrap: COMPLETE` with concrete run evidence;
-4. only then set `12B Vertical slice: IN PROGRESS` and implement the smallest canonical editable PlanningSession -> validation -> LaunchConfirm ownership path around the already durable Launch service;
+4. only then set `12B Vertical slice: IN PROGRESS` and implement the smallest canonical editable PlanningSession -> validation -> LaunchConfirm ownership path around the durable Launch service;
 5. do not populate broad launch content, simulate transit early, redesign frozen gameplay, or bypass fatal-content validation for convenience.
 
 Do not mark 12A complete until the project boots coherently, deterministic tests execute successfully under Godot 4.7.1, and the frozen domain model has a stable composition root.

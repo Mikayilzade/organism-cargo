@@ -21,6 +21,7 @@ func request_launch(
 		canonical_input: Dictionary,
 		rules_version: String,
 		content_version: String,
+		expected_contract_definition_checksum: String,
 		generator_version: String = ""
 ) -> Dictionary:
 	var existing: Dictionary = _existing_committed_run(planning_revision_id)
@@ -41,8 +42,15 @@ func request_launch(
 		return _failure("missing_contract_id")
 	if rules_version.strip_edges().is_empty() or content_version.strip_edges().is_empty():
 		return _failure("missing_compatibility_version")
+	if expected_contract_definition_checksum.strip_edges().is_empty():
+		return _failure("missing_contract_definition_checksum")
 
 	var committed_input: Dictionary = canonical_input.duplicate(true)
+	committed_input["contract_id"] = contract_id
+	committed_input["rules_version"] = rules_version
+	committed_input["content_version"] = content_version
+	committed_input["generator_version"] = generator_version
+	committed_input["expected_contract_definition_checksum"] = expected_contract_definition_checksum
 	var committed_input_serialized: String = JSON.stringify(committed_input, "", true, true)
 	var committed_input_checksum: String = committed_input_serialized.sha256_text()
 	var run_id: String = _allocate_run_id()
@@ -60,6 +68,8 @@ func request_launch(
 		"rules_version": rules_version,
 		"content_version": content_version,
 		"generator_version": generator_version,
+		"expected_contract_definition_checksum": expected_contract_definition_checksum,
+		"launch_timestamp_unix": int(Time.get_unix_time_from_system()),
 		"lifecycle_state": "COMMITTED",
 	}
 	var write_result: Dictionary = _save_store.write(&"session", {"committed_run": record})
