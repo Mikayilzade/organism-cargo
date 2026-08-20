@@ -28,7 +28,9 @@ func apply_h03_phase_c(
 		var target_cells_value: Variant = hazard.get("target_cells", [])
 		if not target_cells_value is Array:
 			return _failure("invalid_h03_target_cells:%s" % hazard_id)
-		var target_cells: Array = target_cells_value.duplicate()
+		var target_cells: Array = []
+		for raw_target_cell: Variant in target_cells_value:
+			target_cells.append(raw_target_cell)
 		target_cells.sort_custom(func(left: Variant, right: Variant) -> bool:
 			return String(left) < String(right)
 		)

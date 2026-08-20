@@ -1,6 +1,6 @@
 # IMPLEMENTATION STATUS
 
-Last updated: 2026-08-20
+Last updated: 2026-08-21
 Repository: `Mikayilzade/organism-cargo`
 
 ## Master state
@@ -43,16 +43,21 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Kept organism contamination intake/load, resistance, `CONTAMINATED` thresholds/hysteresis, feeding and unrelated support/hazard systems intentionally out of this increment.
 - Extended the existing contamination headless suite with production-transit acceptance cases proving H03 source -> S02 mitigation -> Phase-D transfer order and Brownout same-tick disabling of S02.
 
+### Increment 54 — focused Godot 4.7.1 parse repair for contamination integration
+- Started from latest `main` checkpoint `04c5eda7300d78a5f3e6ba0ce4b1f2591d99698e` and inspected its observable `organism-cargo/godot-headless` failure before changing code.
+- The first concrete failure is a warnings-as-errors parse error in `src/sim/contamination_environment_kernel.gd`: `target_cells_value` is statically `Variant`, so calling `duplicate()` directly on it is rejected even after the runtime `Array` guard.
+- Repaired only that concrete compatibility failure: copy validated `target_cells_value` elements into a typed `Array` before deterministic sorting. This preserves the authored target list, avoids mutating source content, and does not alter H03/S02/Phase-D gameplay semantics.
+- No contamination organism intake, resistance, hysteresis, feeding, support behavior, hazard behavior or ordering rule was added or redesigned in this increment.
+
 ## Checks performed this run
-- Required authority chain re-read before implementation.
-- Latest `main` queried first; Increment 52 checkpoint `819380804d6ef326ce97fa0edf855087ed6a3d46` confirmed `organism-cargo/godot-headless = success`, workflow run `32403312921`.
-- Canonical mechanical contract re-checked: Phase A finalizes Brownout before same-tick support effects; Phase C adds hazard contributions and support mitigation; Phase D propagates from a common source snapshot, vents/decays, clamps and publishes exposure; S02 removes local contamination but never directly erases organism contamination load.
-- Existing standalone H03/S02 kernels were reused rather than re-implementing their rules inside transit composition.
-- Static compatibility audit performed against current typed GDScript and existing headless-test patterns.
-- Local Godot execution is unavailable in this environment. This run therefore produces exactly one checkpoint and relies on the repository's Godot 4.7.1 headless workflow as the executable gate.
+- Re-read the mandatory implementation handoff, live status, autonomy rules, design status and final freeze first; re-checked the top-level Game Bible authority for deterministic simulation and Brownout/support ordering.
+- Queried latest `main` first: checkpoint `04c5eda7300d78a5f3e6ba0ce4b1f2591d99698e` reports `organism-cargo/godot-headless = failure`, workflow run `32409649752`.
+- Inspected the failing job and full Godot 4.7.1 log. Import/project parsing reached the new contamination scripts, and the first actionable error is exactly `contamination_environment_kernel.gd:31` (`duplicate()` unavailable on inferred `Variant`). Downstream delivery/Causal Review failures are compile fallout from that same parse failure, so they were not independently patched.
+- Performed a narrow static audit of the replacement: validated Variant remains guarded as `Array`; copy order is preserved until the existing deterministic sort; source content is not mutated.
+- Local Godot execution is unavailable in this environment. Exactly one checkpoint is produced; GitHub Actions is the executable validation gate for this repair.
 
 ## Current blockers
-- Increment 53 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first concrete parser/type/test failure.
+- Increment 54 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
 - Organism contamination intake/load application, resistance, `CONTAMINATED` hysteresis and thresholds remain intentionally unimplemented.
 - S06 Monitor Beacon has Phase-A eligibility authority but its information-only behavior remains unimplemented.
 - S03 Baffle, S04 Nest Pad and S05 Feed Cartridge transit behavior remains unimplemented and intentionally fails closed.
@@ -61,7 +66,7 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 53. If failure, repair only the first concrete failure. If success, implement the next exact contamination organism boundary: Phase-E exposure sampling into deterministic Phase-F contamination-load intake with authored resistance, then Phase-G `CONTAMINATED` enter/exit hysteresis, preserving the environment field as separate authority.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 54. If failure, repair only the first concrete failure. If success, implement the next exact contamination organism boundary: Phase-E exposure sampling into deterministic Phase-F contamination-load intake with authored resistance, then Phase-G `CONTAMINATED` enter/exit hysteresis, preserving the environment field as separate authority.**
 
 Next run:
 1. query latest `main` and its `organism-cargo/godot-headless` status first;
