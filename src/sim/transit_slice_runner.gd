@@ -2,6 +2,7 @@ class_name TransitSliceRunner
 extends RefCounted
 
 const ThermalResponseKernelScript := preload("res://src/sim/thermal_response_kernel.gd")
+const PhaseBGrowthResolverScript := preload("res://src/sim/phase_b_growth_resolver.gd")
 const PHASE_ORDER_CSV := "A,B,C,D,E,F,G,H,I"
 
 func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dictionary = {}) -> Dictionary:
@@ -27,16 +28,38 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 	var thermal_enabled: bool = bool(prepared["thermal_enabled"])
 	var thermal_rules: Dictionary = prepared["thermal_rules"]
 	var organism_state: Array = prepared["organisms"]
+	var growth_requests_by_tick: Dictionary = prepared["growth_requests_by_tick"]
 	var thermal_kernel: ThermalResponseKernel = ThermalResponseKernelScript.new()
+	var growth_resolver: PhaseBGrowthResolver = PhaseBGrowthResolverScript.new()
 
 	var phase_trace: PackedStringArray = PackedStringArray()
 	var tick_checksums: PackedStringArray = PackedStringArray()
 	var end_tick_snapshots: Array = []
+	var growth_events: Array = []
 	for tick: int in range(1, total_ticks + 1):
 		phase_trace.append("%d:A" % tick)
 		var active_hazards: PackedStringArray = _phase_a_route_input(tick, route_events)
 
 		phase_trace.append("%d:B" % tick)
+		var tick_growth_events: Array = []
+		var tick_growth_requests: Array = _growth_requests_for_tick(growth_requests_by_tick, tick)
+		if not tick_growth_requests.is_empty():
+			var growth_result: Dictionary = growth_resolver.resolve_tick(
+				organism_state,
+				cell_order,
+				tick_growth_requests,
+				String(committed_input.get("retry_boundary", ""))
+			)
+			if not bool(growth_result["ok"]):
+				return {"ok": false, "error": "phase_b:%s" % String(growth_result["error"])}
+			organism_state = growth_result["organisms"]
+			tick_growth_events = growth_result["growth_events"]
+			for raw_growth_event: Variant in tick_growth_events:
+				if raw_growth_event is Dictionary:
+					var growth_event: Dictionary = raw_growth_event
+					var event_with_tick: Dictionary = growth_event.duplicate(true)
+					event_with_tick["tick"] = tick
+					growth_events.append(event_with_tick)
 
 		phase_trace.append("%d:C" % tick)
 		var generated_environment: Dictionary = _phase_c_generate_channels(
@@ -82,9 +105,12 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 			"tick": tick,
 			"active_hazards": active_hazards,
 			"heat_by_cell": _heat_snapshot(environment_state, cell_order),
+			"growth_events": tick_growth_events.duplicate(true),
 		}
 		if thermal_enabled:
 			snapshot["organisms"] = organism_tick_snapshot
+		if not organism_state.is_empty():
+			snapshot["organism_runtime"] = organism_state.duplicate(true)
 		end_tick_snapshots.append(snapshot)
 		var serialized_tick: String = _serialize_tick(
 			committed_run,
@@ -103,6 +129,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		"tick_checksums": tick_checksums,
 		"phase_trace": phase_trace,
 		"end_tick_snapshots": end_tick_snapshots,
+		"growth_events": growth_events,
 		"final_tick": total_ticks,
 		"completed": true,
 	}
@@ -119,6 +146,7 @@ func _prepare_definitions(committed_input: Dictionary, total_ticks: int, simulat
 			"thermal_enabled": false,
 			"thermal_rules": {},
 			"organisms": [],
+			"growth_requests_by_tick": {},
 		}
 	if not simulation_defs.has("route_profile") or not simulation_defs["route_profile"] is Dictionary:
 		return _definition_failure("missing_route_profile")
@@ -173,19 +201,27 @@ func _prepare_definitions(committed_input: Dictionary, total_ticks: int, simulat
 	for cell_key: String in cell_order:
 		heat[cell_key] = 0
 
+	var growth_requests_by_tick: Dictionary = {}
+	var growth_requests_value: Variant = simulation_defs.get("growth_requests_by_tick", {})
+	if not growth_requests_value is Dictionary:
+		return _definition_failure("invalid_growth_requests_by_tick")
+	growth_requests_by_tick = growth_requests_value
+
 	var thermal_rules_value: Variant = simulation_defs.get("thermal_rules", null)
 	var organism_definitions_value: Variant = simulation_defs.get("organism_definitions", null)
-	var thermal_enabled: bool = thermal_rules_value != null or organism_definitions_value != null
+	var thermal_enabled: bool = thermal_rules_value != null
+	var organisms_required: bool = organism_definitions_value != null or not growth_requests_by_tick.is_empty()
 	var thermal_rules: Dictionary = {}
 	var organisms: Array = []
 	if thermal_enabled:
 		if not thermal_rules_value is Dictionary:
 			return _definition_failure("missing_thermal_rules")
+		var thermal_rules_dictionary: Dictionary = thermal_rules_value
+		thermal_rules = thermal_rules_dictionary
+	if organisms_required:
 		if not organism_definitions_value is Dictionary:
 			return _definition_failure("missing_organism_definitions")
-		var thermal_rules_dictionary: Dictionary = thermal_rules_value
 		var organism_definitions: Dictionary = organism_definitions_value
-		thermal_rules = thermal_rules_dictionary
 		var organism_result: Dictionary = _prepare_organisms(
 			committed_input,
 			organism_definitions,
@@ -205,6 +241,7 @@ func _prepare_definitions(committed_input: Dictionary, total_ticks: int, simulat
 		"thermal_enabled": thermal_enabled,
 		"thermal_rules": thermal_rules,
 		"organisms": organisms,
+		"growth_requests_by_tick": growth_requests_by_tick,
 	}
 
 func _prepare_organisms(
@@ -235,9 +272,33 @@ func _prepare_organisms(
 		var definition: Dictionary = organism_definitions[instance_id]
 		if not definition.has("stress_profile") or not definition["stress_profile"] is Dictionary:
 			return {"ok": false, "error": "missing_stress_profile:%s" % instance_id, "organisms": []}
+		var orientation: int = int(placement.get("orientation", 0))
+		var occupied_cells: Array = [cell_key]
+		var body_stage: String = String(definition.get("initial_body_stage", ""))
+		var body_stages_value: Variant = definition.get("body_stages", {})
+		if not body_stages_value is Dictionary:
+			return {"ok": false, "error": "invalid_body_stages:%s" % instance_id, "organisms": []}
+		var body_stages: Dictionary = body_stages_value
+		if not body_stage.is_empty() or not body_stages.is_empty():
+			if body_stage.is_empty() or body_stages.is_empty():
+				return {"ok": false, "error": "incomplete_body_stage_definition:%s" % instance_id, "organisms": []}
+			var stage_cells_result: Dictionary = _stage_cells(anchor, orientation, body_stages, body_stage)
+			if not bool(stage_cells_result["ok"]):
+				return {"ok": false, "error": "%s:%s" % [String(stage_cells_result["error"]), instance_id], "organisms": []}
+			var stage_cells: PackedStringArray = stage_cells_result["cells"]
+			for stage_cell: String in stage_cells:
+				if not valid_cells.has(stage_cell):
+					return {"ok": false, "error": "organism_footprint_not_usable:%s" % instance_id, "organisms": []}
+			occupied_cells = Array(stage_cells)
 		organisms.append({
 			"instance_id": instance_id,
-			"occupied_cells": [cell_key],
+			"anchor": anchor.duplicate(true),
+			"orientation": orientation,
+			"occupied_cells": occupied_cells,
+			"body_stage": body_stage,
+			"body_stages": body_stages.duplicate(true),
+			"growth_episode_state": {},
+			"growth_blocked": false,
 			"stress": int(definition.get("initial_stress", 0)),
 			"primary_state": String(definition.get("initial_state", "CALM")),
 			"stress_profile": definition["stress_profile"],
@@ -246,6 +307,37 @@ func _prepare_organisms(
 		return String(left["instance_id"]) < String(right["instance_id"])
 	)
 	return {"ok": true, "error": "", "organisms": organisms}
+
+func _stage_cells(anchor: Array, orientation: int, body_stages: Dictionary, stage: String) -> Dictionary:
+	if not body_stages.has(stage) or not body_stages[stage] is Dictionary:
+		return {"ok": false, "error": "missing_body_stage", "cells": PackedStringArray()}
+	var stage_definition: Dictionary = body_stages[stage]
+	var footprints_value: Variant = stage_definition.get("footprints", {})
+	if not footprints_value is Dictionary:
+		return {"ok": false, "error": "missing_stage_footprints", "cells": PackedStringArray()}
+	var footprints: Dictionary = footprints_value
+	var orientation_key: String = str(orientation)
+	if not footprints.has(orientation_key) or not footprints[orientation_key] is Array:
+		return {"ok": false, "error": "missing_stage_orientation", "cells": PackedStringArray()}
+	var offsets: Array = footprints[orientation_key]
+	var cells: PackedStringArray = PackedStringArray()
+	for raw_offset: Variant in offsets:
+		if not raw_offset is Array:
+			return {"ok": false, "error": "invalid_stage_footprint", "cells": PackedStringArray()}
+		var offset: Array = raw_offset
+		if offset.size() != 2:
+			return {"ok": false, "error": "invalid_stage_footprint", "cells": PackedStringArray()}
+		cells.append(_cell_key(int(anchor[0]) + int(offset[0]), int(anchor[1]) + int(offset[1])))
+	cells.sort()
+	return {"ok": true, "error": "", "cells": cells}
+
+func _growth_requests_for_tick(growth_requests_by_tick: Dictionary, tick: int) -> Array:
+	var direct_key: String = str(tick)
+	var value: Variant = growth_requests_by_tick.get(direct_key, growth_requests_by_tick.get(tick, []))
+	if not value is Array:
+		return []
+	var requests: Array = value
+	return requests.duplicate(true)
 
 func _merge_organism_response(previous: Array, response: Array) -> Dictionary:
 	var previous_by_id: Dictionary = {}
@@ -406,10 +498,19 @@ func _serialize_tick(
 		parts.append("heat=%s:%d" % [cell_key, int(heat.get(cell_key, 0))])
 	for raw_organism: Variant in organisms:
 		var organism: Dictionary = raw_organism
-		parts.append("organism=%s:%d:%s" % [
+		var occupied: PackedStringArray = PackedStringArray()
+		var occupied_value: Variant = organism.get("occupied_cells", [])
+		if occupied_value is Array or occupied_value is PackedStringArray:
+			for raw_cell: Variant in occupied_value:
+				occupied.append(String(raw_cell))
+			occupied.sort()
+		parts.append("organism=%s:%d:%s:%s:%s:%s" % [
 			String(organism["instance_id"]),
 			int(organism["stress"]),
 			String(organism["primary_state"]),
+			String(organism.get("body_stage", "")),
+			",".join(occupied),
+			str(bool(organism.get("growth_blocked", false))),
 		])
 	return "|".join(parts)
 
@@ -427,4 +528,5 @@ func _definition_failure(error: String) -> Dictionary:
 		"thermal_enabled": false,
 		"thermal_rules": {},
 		"organisms": [],
+		"growth_requests_by_tick": {},
 	}

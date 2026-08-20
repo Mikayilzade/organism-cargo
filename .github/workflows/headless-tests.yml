@@ -155,6 +155,12 @@ jobs:
           set -euo pipefail
           /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/blocked_growth_episode_test_runner.gd
 
+      - name: Phase-B growth legality integration contract test
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/phase_b_growth_test_runner.gd
+
       - name: Publish observable main-commit test status
         if: always() && github.event_name == 'push'
         shell: bash
