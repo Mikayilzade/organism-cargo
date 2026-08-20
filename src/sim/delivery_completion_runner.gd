@@ -1,7 +1,7 @@
 class_name DeliveryCompletionRunner
 extends RefCounted
 
-const TransitSliceRunnerScript := preload("res://src/sim/transit_slice_runner.gd")
+const TransitPowerIntegratedRunnerScript := preload("res://src/sim/transit_power_integrated_runner.gd")
 const DeliveryPredicateEvaluatorScript := preload("res://src/sim/delivery_predicate_evaluator.gd")
 
 func simulate_and_complete(
@@ -10,7 +10,7 @@ func simulate_and_complete(
 		simulation_defs: Dictionary,
 		mandatory_predicates: Array
 ) -> Dictionary:
-	var transit_runner: TransitSliceRunner = TransitSliceRunnerScript.new()
+	var transit_runner: TransitPowerIntegratedRunner = TransitPowerIntegratedRunnerScript.new()
 	var transit_result: Dictionary = transit_runner.simulate(committed_run, total_ticks, simulation_defs)
 	if not bool(transit_result.get("ok", false)):
 		return transit_result
