@@ -55,7 +55,8 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		var raw_snapshot: Variant = snapshots[index]
 		if not raw_snapshot is Dictionary:
 			return _failure("invalid_end_tick_snapshot")
-		var snapshot: Dictionary = raw_snapshot.duplicate(true)
+		var raw_snapshot_dictionary: Dictionary = raw_snapshot
+		var snapshot: Dictionary = raw_snapshot_dictionary.duplicate(true)
 		var tick: int = int(snapshot.get("tick", index + 1))
 		var runtime_value: Variant = snapshot.get("organism_runtime", [])
 		var contamination_value: Variant = snapshot.get("contamination_by_cell", {})
