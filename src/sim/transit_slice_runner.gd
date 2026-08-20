@@ -237,16 +237,19 @@ func _prepare_definitions(committed_input: Dictionary, total_ticks: int, simulat
 	var growth_requests_value: Variant = simulation_defs.get("growth_requests_by_tick", {})
 	if not growth_requests_value is Dictionary:
 		return _definition_failure("invalid_growth_requests_by_tick")
-	var growth_requests_by_tick: Dictionary = growth_requests_value.duplicate(true)
+	var growth_requests_dictionary: Dictionary = growth_requests_value
+	var growth_requests_by_tick: Dictionary = growth_requests_dictionary.duplicate(true)
 
 	var t08_definitions_value: Variant = simulation_defs.get("t08_trigger_definitions", [])
 	if not t08_definitions_value is Array:
 		return _definition_failure("invalid_t08_trigger_definitions")
-	var t08_trigger_definitions: Array = t08_definitions_value.duplicate(true)
+	var t08_definitions_array: Array = t08_definitions_value
+	var t08_trigger_definitions: Array = t08_definitions_array.duplicate(true)
 	var t08_qualification_value: Variant = simulation_defs.get("t08_qualification_by_tick", {})
 	if not t08_qualification_value is Dictionary:
 		return _definition_failure("invalid_t08_qualification_by_tick")
-	var t08_qualification_by_tick: Dictionary = t08_qualification_value.duplicate(true)
+	var t08_qualification_dictionary: Dictionary = t08_qualification_value
+	var t08_qualification_by_tick: Dictionary = t08_qualification_dictionary.duplicate(true)
 
 	var thermal_rules_value: Variant = simulation_defs.get("thermal_rules", null)
 	var organism_definitions_value: Variant = simulation_defs.get("organism_definitions", null)
