@@ -33,32 +33,40 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Increment 52: deterministic H03 contamination field + Phase-D propagation primitive with common-source-snapshot transfer, venting/clamping, persistent residue and orthogonal-only edges. Checkpoint `819380804d6ef326ce97fa0edf855087ed6a3d46` observed green via `organism-cargo/godot-headless`, workflow run `32403312921`.
 
 ### Increment 53 — production H03 -> S02 -> Phase-D contamination integration
-- Re-read `IMPLEMENTATION_START_HERE.md`, live status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, `GAME_BIBLE.md`, `MECHANICS.md`, and the current production transit composition before acting.
-- Confirmed Increment 52 green before making changes.
 - Wired `ContaminationEnvironmentKernel` and `S02FilterKernel` into `TransitPowerIntegratedRunner` without changing frozen gameplay ordering.
-- Production Phase C now starts from the persistent contamination field, applies active H03 authored source contributions, then applies only Phase-A-authorized S02 local removal. Brownout-disabled S02 therefore has zero same-tick mitigation authority.
-- Production Phase D now propagates/vents/clamps contamination from the common post-Phase-C snapshot while preserving the already-integrated thermal channel independently.
-- H03/H04 are stripped only from the legacy base-slice definition pass that cannot parse those families; their authority remains in the integrated runner and full route profile.
-- Added deterministic `phase_c_environment_events`, `contamination_by_cell` end-tick snapshots, and contamination/support evidence to tick checksum material.
-- Kept organism contamination intake/load, resistance, `CONTAMINATED` thresholds/hysteresis, feeding and unrelated support/hazard systems intentionally out of this increment.
-- Extended the existing contamination headless suite with production-transit acceptance cases proving H03 source -> S02 mitigation -> Phase-D transfer order and Brownout same-tick disabling of S02.
+- Production Phase C starts from persistent contamination, applies active H03 contributions, then only Phase-A-authorized S02 removal; Phase D propagates/vents/clamps from the common post-Phase-C snapshot.
+- Added deterministic contamination environment/support evidence and checksum material.
+- Kept organism contamination intake/load, resistance and `CONTAMINATED` hysteresis intentionally out of that increment.
 
-### Increment 54 — focused Godot 4.7.1 parse repair for contamination integration
-- Started from latest `main` checkpoint `04c5eda7300d78a5f3e6ba0ce4b1f2591d99698e` and inspected its observable `organism-cargo/godot-headless` failure before changing code.
-- The first concrete failure is a warnings-as-errors parse error in `src/sim/contamination_environment_kernel.gd`: `target_cells_value` is statically `Variant`, so calling `duplicate()` directly on it is rejected even after the runtime `Array` guard.
-- Repaired only that concrete compatibility failure: copy validated `target_cells_value` elements into a typed `Array` before deterministic sorting. This preserves the authored target list, avoids mutating source content, and does not alter H03/S02/Phase-D gameplay semantics.
-- No contamination organism intake, resistance, hysteresis, feeding, support behavior, hazard behavior or ordering rule was added or redesigned in this increment.
+### Increment 54 — focused Godot 4.7.1 parse repair
+- Repaired the concrete warnings-as-errors parse failure in `contamination_environment_kernel.gd` caused by calling `duplicate()` on a Variant after runtime Array validation.
+- Checkpoint `8145928b09e86af83412d269474b25fadadcd1dc` was subsequently observed **GREEN** via `organism-cargo/godot-headless`, workflow run `32414212677`.
+
+### Increment 55 — deterministic organism contamination response kernel
+- Started only after confirming Increment 54 green under Godot 4.7.1.
+- Added `src/sim/contamination_response_kernel.gd` as a deterministic, presentation-independent Phase-E/F/G primitive without yet changing production transit composition.
+- Phase E samples the maximum contamination value across each organism's occupied cells from a supplied published environment snapshot. Sampling is stable by `instance_id` and never mutates the environment field.
+- Phase F applies authored fixed-point intake resistance using the existing `FIXED_SCALE = 1000` non-negative floor multiplication. Resistance therefore changes organism intake only, never environmental contamination.
+- Phase G applies explicit `CONTAMINATED` enter/exit hysteresis: a clear organism enters at `load >= contaminated_enter`; an already contaminated organism remains contaminated at `load >= contaminated_exit` and exits only below the exit threshold.
+- Added stable E -> F -> G causal event IDs/parent links so later production integration can preserve first-cause ancestry without inventing a second event model.
+- Added `tests/unit/contamination_response_kernel_test_runner.gd` covering multi-cell exposure sampling, no environment mutation, Resistant/Standard/Vulnerable fixed-point intake, hysteresis boundaries, causal parentage and deterministic replay.
+- Extended the headless workflow by one test step only; this manual run still produces one coherent main checkpoint to preserve the anti-spam policy.
+- Production `TransitPowerIntegratedRunner` integration is intentionally the exact next recoverable increment rather than being mixed into this kernel/test checkpoint.
+- Feeding, sleep, T05/T06/T09/T10, S03-S06 behavior and unrelated hazards remain outside this increment.
 
 ## Checks performed this run
-- Re-read the mandatory implementation handoff, live status, autonomy rules, design status and final freeze first; re-checked the top-level Game Bible authority for deterministic simulation and Brownout/support ordering.
-- Queried latest `main` first: checkpoint `04c5eda7300d78a5f3e6ba0ce4b1f2591d99698e` reports `organism-cargo/godot-headless = failure`, workflow run `32409649752`.
-- Inspected the failing job and full Godot 4.7.1 log. Import/project parsing reached the new contamination scripts, and the first actionable error is exactly `contamination_environment_kernel.gd:31` (`duplicate()` unavailable on inferred `Variant`). Downstream delivery/Causal Review failures are compile fallout from that same parse failure, so they were not independently patched.
-- Performed a narrow static audit of the replacement: validated Variant remains guarded as `Array`; copy order is preserved until the existing deterministic sort; source content is not mutated.
-- Local Godot execution is unavailable in this environment. Exactly one checkpoint is produced; GitHub Actions is the executable validation gate for this repair.
+- Re-read the required implementation handoff/status/freeze chain and exact contamination authority in `MECHANICS.md` and `CONTENT_ARCHITECTURE.md` before implementation.
+- Confirmed the previous main checkpoint `8145928b09e86af83412d269474b25fadadcd1dc` reports `organism-cargo/godot-headless = success` before broadening Phase 12C.
+- Re-checked canonical contamination profiles: Resistant x0.5 / enter 11 / exit 5; Standard x1.0 / enter 8 / exit 4; Vulnerable x1.5 / enter 7 / exit 3.
+- Reused the existing fixed-point floor primitive rather than introducing a second numeric policy.
+- Performed a static compatibility pass for warnings-as-errors hazards around Variant/Array typing, deterministic collection ordering and full-runtime duplication.
+- Local Godot execution is unavailable in this environment. Exactly one main checkpoint is produced; GitHub Actions is the executable Godot 4.7.1 validation gate for Increment 55.
 
 ## Current blockers
-- Increment 54 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
-- Organism contamination intake/load application, resistance, `CONTAMINATED` hysteresis and thresholds remain intentionally unimplemented.
+- Increment 55 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
+- The new contamination response kernel is not yet wired into `TransitPowerIntegratedRunner`; production E/F/G integration is the immediate next increment.
+- T05 Spore Shedder organism Phase-C contamination source behavior remains unimplemented.
+- T06 Filter Feeder and T09 Symbiotic Buffer contamination interactions remain unimplemented.
 - S06 Monitor Beacon has Phase-A eligibility authority but its information-only behavior remains unimplemented.
 - S03 Baffle, S04 Nest Pad and S05 Feed Cartridge transit behavior remains unimplemented and intentionally fails closed.
 - Simultaneous multi-growth conflict semantics remain unimplemented until a canonical conflict rule is identified; runtime fails closed instead of inventing a winner.
@@ -66,14 +74,14 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 54. If failure, repair only the first concrete failure. If success, implement the next exact contamination organism boundary: Phase-E exposure sampling into deterministic Phase-F contamination-load intake with authored resistance, then Phase-G `CONTAMINATED` enter/exit hysteresis, preserving the environment field as separate authority.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 55. If failure, repair only the first concrete failure. If success, wire `ContaminationResponseKernel` into `TransitPowerIntegratedRunner` at the exact Phase-E -> Phase-F -> Phase-G boundaries, preserving the environment field as separate authority.**
 
 Next run:
 1. query latest `main` and its `organism-cargo/godot-headless` status first;
 2. if failure, inspect the linked job/log and checkpoint one focused repair only;
-3. if success, re-read exact contamination-load/resistance/hysteresis authority before coding;
-4. implement only the minimum Phase-E/F/G contamination organism path with deterministic ordering and causal/checksum evidence;
-5. add acceptance tests for exposure sampling, resistance-modified intake, no mutation of the environment field, threshold enter/exit hysteresis and deterministic replay;
-6. keep feeding, sleep, S03-S06 behavior and unrelated hazards out of that increment.
+3. if success, initialize organism contamination runtime from authored `organism_definitions` only when the contamination channel and organism runtime are present;
+4. integrate Phase-E sampling, Phase-F load intake and Phase-G hysteresis into production tick order with deterministic snapshots/checksum/causal evidence;
+5. add production acceptance tests proving resistance changes intake but not the environment field, threshold hysteresis, causal parentage and deterministic replay;
+6. keep T05/T06/T09/T10, feeding, sleep, S03-S06 behavior and unrelated hazards out of that increment.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.

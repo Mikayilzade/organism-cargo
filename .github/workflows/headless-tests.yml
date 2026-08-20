@@ -191,6 +191,12 @@ jobs:
           set -euo pipefail
           /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/contamination_environment_kernel_test_runner.gd
 
+      - name: Phase-E/F/G organism contamination response contract test
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/contamination_response_kernel_test_runner.gd
+
       - name: Publish observable main-commit test status
         if: always() && github.event_name == 'push'
         shell: bash
