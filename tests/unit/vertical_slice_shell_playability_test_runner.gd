@@ -41,7 +41,7 @@ func _run() -> void:
 	_expect(bool(control.activate_primary_action().get("ok", false)), "Transit resolves into Causal Review")
 	_expect(flow.current_state() == AppStateMachine.State.CAUSAL_REVIEW, "shell reaches Causal Review")
 
-	var review_snapshot: Dictionary = flow.review_snapshot()
+	var review_snapshot: Dictionary = flow.last_review()
 	_expect(bool(review_snapshot.get("ok", false)), "Causal Review evidence is available through shell-owned flow")
 	_expect(bool(control.activate_primary_action().get("ok", false)), "targeted Retry returns from Causal Review")
 	_expect(flow.current_state() == AppStateMachine.State.PLANNING, "targeted Retry returns to Planning")
