@@ -74,16 +74,20 @@ Increments 1-13 established the runnable Godot project, deterministic/fixed-poin
 - Added the deterministic replay contract as the final Godot 4.7.1 headless workflow step.
 - This increment adds only exit-gate evidence; it does not add Results/progression, broaden content, or change frozen gameplay.
 
+### Increment 35 — deterministic replay Godot-typing hardening
+- Replaced direct assignment from `Dictionary.get()` Variant into a typed `PackedStringArray` with explicit `PackedStringArray(...)` construction in the shell replay contract.
+- This is a compatibility-only change for the warnings-as-errors Godot 4.7.1 test boundary; authoritative input, transit behavior, checksum semantics and replay expectations are unchanged.
+
 ## Checks performed this run
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and the current-subsystem persistence authority `PHASE11_TECH_PERSISTENCE.md` before acting.
-- Re-read the persistent shell, `VerticalSliceFlowCoordinator`, `VerticalSliceControl`, delivery completion checksum builder, Causal Review checksum builder, current shell playability test and headless workflow.
-- Confirmed main at checkpoint start was `92ef66ec9fb810b7f18cb55b3e3bf2f8310cd090` (`12B: verify persistent shell VS01 playability`).
-- Queried the available connected GitHub run/status surfaces for Increment 33; they expose no push-run/status context for that commit, so this run does not fabricate a green/red result.
-- Added one deterministic shell-level replay/checksum contract and one workflow step in the same repository tree checkpoint, preserving the anti-spam one-push rule.
-- Actual Godot 4.7.1 execution of Increment 34 is the next runtime gate; if red, repair only the first concrete failure.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and `PHASE11_TECH_PERSISTENCE.md` before acting.
+- Confirmed main at checkpoint start was `8bd66b5790a5edf598db91d965fb188d1bbac972` (`12B: prove persistent shell deterministic replay`).
+- Re-queried connected GitHub workflow/status surfaces for Increment 34. The available connector still exposes no push workflow run and no combined status contexts for this SHA, so no green/red claim was fabricated.
+- Reviewed the committed replay runner against the current warnings-as-errors Godot boundary and narrowed one Variant-to-`PackedStringArray` assignment explicitly without changing gameplay or persistence semantics.
+- Local clean-checkout Godot execution was attempted, but this runtime cannot resolve `github.com`, so it cannot substitute for the repository's GitHub Actions runtime gate.
+- Batched the compatibility repair and this status update into one tree checkpoint to preserve the anti-spam one-push rule.
 
 ## Current blockers
-- Increment-34 Godot 4.7.1 CI is pending as the next runtime gate.
+- The Increment-35 Godot 4.7.1 CI run is the next runtime gate.
 - 12B cannot be marked complete until the persistent-shell playability and deterministic replay/checksum contracts are observed green under actual Godot 4.7.1 execution.
 - The 12B player-facing slice remains deliberately tiny: two VS01 organisms, fixed orientation 0, no supports, one deterministic transit tick and no Results/progression.
 - Full rotate/remove/undo/support workflows remain frozen-scope work for later phases rather than hidden stubs in this tiny slice.
@@ -91,10 +95,10 @@ Increments 1-13 established the runnable Godot project, deterministic/fixed-poin
 - Full growth/support/hazard families and production roster/campaign remain deferred.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 34. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, record the 12B exit-gate evidence, mark Phase 12B COMPLETE, and begin the first narrow Phase 12C core-systems increment strictly from the canonical authority chain.**
+**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 35. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, record the 12B exit-gate evidence, mark Phase 12B COMPLETE, and begin the first narrow Phase 12C core-systems increment strictly from the canonical authority chain.**
 
 Next run:
-1. inspect Increment-34 CI first;
+1. inspect Increment-35 CI first;
 2. if red, repair only the first concrete failure and preserve one-checkpoint anti-spam behavior;
 3. if green, verify both the persistent-shell playability contract and deterministic replay/checksum contract passed in the same actual Godot 4.7.1 run;
 4. only then mark 12B COMPLETE;

@@ -96,7 +96,7 @@ func _run_lifecycle(label: String) -> Dictionary:
 		return {"ok": false}
 	var completed: Dictionary = flow.last_completed_result()
 	var review: Dictionary = flow.last_review()
-	var tick_checksums: PackedStringArray = completed.get("tick_checksums", PackedStringArray())
+	var tick_checksums := PackedStringArray(completed.get("tick_checksums", PackedStringArray()))
 	var result: Dictionary = {
 		"ok": true,
 		"canonical_input": canonical_input,
