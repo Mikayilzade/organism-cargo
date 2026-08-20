@@ -58,36 +58,41 @@ Increments 14-39 established the complete tiny-content vertical slice: planning 
 - Actual S01/S02/S06 effect kernels were deliberately not invented; S03/S04/S05 remain fail-closed.
 
 ### Increment 48 — repair Increment-47 Godot 4.7.1 compile boundary
-- Inspected failed checkpoint `6bd45fe77f5ee5fae98ad4303d8171c467a59aba`, workflow run `32374926914`.
-- Import reached Godot 4.7.1; earlier contract suites remained green until `DeliveryCompletionRunner` loaded the new integrated transit script.
-- The concrete compile failures were isolated to `src/sim/transit_power_integrated_runner.gd`: non-constant `PackedStringArray(...)` constructor used in a constant, block-scoped `event`/`hazard` identifiers referenced outside their guard blocks, and `.duplicate()` calls on values still statically inferred as `Variant` under warnings-as-errors.
-- Repaired only this compatibility layer: replaced the constant with a literal constant array, normalized route/hazard loops so typed dictionaries stay in scope, and introduced concrete typed locals before duplicate operations.
-- No Brownout rule, H04 behavior, support effect, route rule, content value, or gameplay parameter changed.
-- No S01 effect implementation was started because the current NEXT ACTION required repairing the first concrete failed checkpoint before architectural expansion.
+- Repaired `TransitPowerIntegratedRunner` compatibility issues from failed checkpoint `6bd45fe77f5ee5fae98ad4303d8171c467a59aba` without changing Brownout or gameplay semantics.
+- Checkpoint `723064f8b1a26494a80b22199d3fccf5c22b3f3c` was observed green via `organism-cargo/godot-headless`, workflow run `32380446193`.
+
+### Increment 49 — exact S01 Cooler Phase-C effect primitive
+- Re-read canonical mechanical/content authority for S01 before coding. Canon fixes S01 as a powered utility fixture with **local heat removal up to capacity**, Phase C as the support environmental-output phase, and Phase-A Brownout as same-tick eligibility authority.
+- Added `S01CoolerKernel`, a deterministic data-driven Phase-C primitive. It consumes only S01 instances present in `same_tick_effect_eligible_support_ids`, reads authored `heat_removal_capacity`, removes at most that amount from the support anchor cell, never drives heat below zero, and emits deterministic causal records.
+- Multiple eligible Coolers resolve in stable `instance_id` order so capacity consumption/event ordering is reproducible while additive authoritative heat remains independent of committed support array order.
+- Added headless contract coverage proving exact local capacity removal, zero same-tick mitigation when Phase A does not authorize the Cooler, and deterministic multi-Cooler ordering/clamping.
+- The kernel is intentionally **not yet applied after Phase D or after organism response** merely to appear integrated; doing so would violate the frozen A-I order. The next increment must wire this primitive into the existing transit Phase-C boundary before Phase-D propagation and Phase-E exposure.
 
 ## Checks performed this run
 - Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` before acting.
-- Queried latest `main` first: checkpoint `6bd45fe77f5ee5fae98ad4303d8171c467a59aba` had `organism-cargo/godot-headless = failure`, workflow run `32374926914`.
-- Read the failing Actions job/log and confirmed the first blocker was compile/type compatibility in `TransitPowerIntegratedRunner`, not a gameplay/spec contradiction.
-- Re-read the existing `PhaseAPowerResolver` interface to keep the repair aligned with its concrete result shapes.
-- Runtime local GitHub/Godot execution is unavailable in this environment; this run therefore batches the focused repair and status update into exactly one checkpoint commit/push, and the resulting main CI is the verification gate.
+- Re-read `GAME_BIBLE.md`, `PHASE11_FREEZE.md`, `MECHANICS.md`, and `CONTENT_ARCHITECTURE.md` for S01/Phase-C/Brownout authority.
+- Queried latest `main`: checkpoint `723064f8b1a26494a80b22199d3fccf5c22b3f3c` had `organism-cargo/godot-headless = success`, workflow run `32380446193`.
+- Confirmed the previous Increment-48 compile blocker is closed before expanding S01 behavior.
+- Added `tests/unit/s01_cooler_kernel_test_runner.gd` to the existing Godot 4.7.1 headless workflow.
+- Local Godot execution is unavailable in this environment; this run therefore makes one checkpoint only, and main CI is the verification gate for the new kernel/test compile boundary.
 
 ## Current blockers
-- Increment 48 must be observed under Godot 4.7.1 on `main`; if it still fails, inspect the first remaining concrete parser/type/API/test failure and repair only that next.
-- S01 Cooler, S02 Filter, and S06 Monitor Beacon have deterministic Phase-A eligibility authority but actual Phase-C/E effect kernels are still unimplemented.
+- Increment 49 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first concrete parser/type/test failure.
+- S01 effect is exact at the kernel boundary but is not yet wired into `TransitSliceRunner` Phase C before propagation/exposure; applying it later would be mechanically incorrect.
+- S02 Filter and S06 Monitor Beacon have Phase-A eligibility authority but their actual effect kernels remain unimplemented.
 - S03 Baffle, S04 Nest Pad, and S05 Feed Cartridge transit behavior remains unimplemented and intentionally fails closed.
 - Simultaneous multi-growth conflict semantics remain unimplemented until a canonical conflict rule is identified; runtime fails closed instead of inventing a winner.
 - Contamination, feeding, sleep gating, remaining hazards, finite reactive triggers, and simultaneous multi-parent ancestry remain Phase 12C scope.
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 48. If failure, repair only the first concrete failure. If success, implement and integrate the first exact powered-support effect kernel, S01 Cooler, using the Phase-A `same_tick_effect_eligible_support_ids` authority so a Brownout-disabled Cooler cannot mitigate heat in the same tick.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 49. If failure, repair only the first concrete failure. If success, integrate `S01CoolerKernel` into the authoritative transit Phase-C boundary before Phase-D heat propagation and Phase-E organism exposure, using only Phase-A `same_tick_effect_eligible_support_ids`.**
 
 Next run:
 1. query latest `main` and its `organism-cargo/godot-headless` status first;
 2. if failure, inspect the linked job/log and checkpoint one focused repair only;
-3. if success, re-read exact S01 local heat-removal/capacity and Phase-C ownership from canonical mechanics/content authority before coding;
-4. implement S01 as a deterministic capacity-limited heat effect without broadening S02/S06 or changing Brownout semantics;
-5. add transit-level tests proving an S01 powered in Phase A can apply only its exact canonical effect and an S01 disabled by H04 has zero same-tick mitigation authority.
+3. if success, modify the transit Phase-C composition so S01 receives the generated pre-propagation heat field, committed support anchors/definitions, and the current tick's Phase-A eligibility set;
+4. add transit-level tests proving an authorized Cooler changes same-tick propagated heat/organism exposure while a Brownout-disabled Cooler has zero same-tick mitigation;
+5. keep S02/S06 out of this increment and preserve all existing H01/growth/T08 behavior and checksum determinism.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.
