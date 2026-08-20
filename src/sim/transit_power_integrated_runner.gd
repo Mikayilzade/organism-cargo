@@ -7,6 +7,10 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 	if not bool(base_result.get("ok", false)):
 		return base_result
 
+	var contamination_rules_value: Variant = simulation_defs.get("contamination_rules", null)
+	if not contamination_rules_value is Dictionary:
+		return base_result
+
 	var snapshots_value: Variant = base_result.get("end_tick_snapshots", [])
 	if not snapshots_value is Array:
 		return _failure("invalid_end_tick_snapshots")

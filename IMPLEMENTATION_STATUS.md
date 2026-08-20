@@ -41,21 +41,28 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 
 ### Increment 57 — focused Godot 4.7.1 parser repair
 - Inspected workflow run `32419971986` before changing code.
-- The first concrete failure is `src/sim/transit_power_integrated_runner.gd:58`: `raw_snapshot` is statically `Variant`, so `raw_snapshot.duplicate(true)` is rejected even after the runtime Dictionary guard.
+- The first concrete failure was `src/sim/transit_power_integrated_runner.gd:58`: `raw_snapshot` was statically `Variant`, so `raw_snapshot.duplicate(true)` was rejected even after the runtime Dictionary guard.
 - Repaired only that failure by assigning the validated value to a typed `Dictionary` first, then duplicating the typed dictionary.
-- No gameplay ordering, contamination arithmetic, resistance, hysteresis, support behavior, hazard behavior, or other Phase-12C mechanic was changed.
-- Downstream delivery/Causal Review failures in the same CI log are compile fallout from this parser failure and were not patched independently.
+- Checkpoint `a74c68c7d9c20c12dbf2ca998001f70fbcebd050` parsed successfully under Godot 4.7.1 but exposed the next concrete regression in the delivery completion suite.
+
+### Increment 58 — scope contamination response to active contamination authority
+- Inspected workflow run `32424461298` before changing code.
+- Project import and all suites through the deterministic transit slice passed. The first failing suite was `delivery_completion_test_runner.gd`.
+- Root cause: the base integrated runner always serializes a zero-filled `contamination_by_cell` snapshot even when no contamination subsystem is authored. The new wrapper interpreted that structurally non-empty zero map as an active contamination channel, then required contamination profiles from ordinary thermal-only organism definitions. This caused transit completion to fail before Phase I.
+- Repaired only that integration-boundary regression: organism contamination response now activates only when `simulation_defs.contamination_rules` is an authored Dictionary. Without contamination authority, the wrapper returns the already-valid base transit result unchanged.
+- This does not change contamination arithmetic, environment persistence, resistance, hysteresis, event ordering, support/hazard behavior, or any frozen gameplay rule. It restores isolation between ordinary thermal transit and the optional contamination subsystem.
 
 ## Checks performed this run
 - Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` first.
-- Latest `main` at start: `80eb5ca8ec1d96574c1de2a97cbd4fe5ec01464b`.
-- Observed `organism-cargo/godot-headless = failure`, workflow run `32419971986`.
-- Inspected the failing job/log; project import and early suites pass until scripts depending on `TransitPowerIntegratedRunner` compile, with the first actionable error exactly at line 58.
-- Performed a narrow static type audit of the repair: runtime guard remains, source snapshot is not mutated, and only the validated Dictionary copy is duplicated.
+- Latest `main` at start: `a74c68c7d9c20c12dbf2ca998001f70fbcebd050`.
+- Observed `organism-cargo/godot-headless = failure`, workflow run `32424461298`.
+- Inspected the failing job/log. Project import and tests through `transit_slice_test_runner.gd` pass; the first concrete regression is delivery completion failing because thermal-only content is incorrectly routed into contamination profile preparation.
+- Inspected `DeliveryCompletionRunner`, its thermal-only fixture definitions, and both the wrapper and base integrated transit snapshot logic to identify the authority-boundary mismatch.
+- Performed a narrow static audit: contamination-enabled fixtures continue through the response kernel because they author `contamination_rules`; non-contamination fixtures bypass the wrapper and retain the base transit result.
 - Local Godot execution is unavailable in this environment. Exactly one coherent checkpoint is produced; GitHub Actions remains the executable Godot 4.7.1 validation gate.
 
 ## Current blockers
-- Increment 57 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
+- Increment 58 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
 - T05 Spore Shedder organism Phase-C contamination source behavior remains unimplemented.
 - T06 Filter Feeder and T09 Symbiotic Buffer contamination interactions remain unimplemented.
 - S06 Monitor Beacon has Phase-A eligibility authority but its information-only behavior remains unimplemented.
@@ -65,7 +72,7 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 57. If failure, repair only the first concrete failure. If success, implement the next smallest canonical contamination interaction, preferring T05 Spore Shedder Phase-C organism source behavior.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 58. If failure, repair only the first concrete failure. If success, implement the next smallest canonical contamination interaction, preferring T05 Spore Shedder Phase-C organism source behavior.**
 
 Next run:
 1. query latest `main` and `organism-cargo/godot-headless` first;
