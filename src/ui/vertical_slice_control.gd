@@ -315,7 +315,7 @@ func _render_planning_status() -> void:
 	_planning_status_label.text = "Structural validation: BLOCKED — %s" % ", ".join(reasons)
 
 func _apply_current_plan() -> Dictionary:
-	planning_revision_sequence += 1
+	_planning_revision_sequence += 1
 	var canonical_input: Dictionary = {
 		"route_id": String(_context.get("planning_route_id", "route-slice")),
 		"manifest_instance_ids": _manifest_instance_ids(),
@@ -324,7 +324,7 @@ func _apply_current_plan() -> Dictionary:
 		"seed": int(_context.get("planning_seed", 101)),
 	}
 	return _flow.apply_plan_from_content(
-		"ui-plan-%d" % planning_revision_sequence,
+		"ui-plan-%d" % _planning_revision_sequence,
 		canonical_input,
 		_planning_contract_payload,
 		_planning_hold_payload,
