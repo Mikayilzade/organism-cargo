@@ -78,31 +78,37 @@ Increments 1-13 established the runnable Godot project, deterministic/fixed-poin
 - Replaced direct assignment from `Dictionary.get()` Variant into a typed `PackedStringArray` with explicit `PackedStringArray(...)` construction in the shell replay contract.
 - This is a compatibility-only change for the warnings-as-errors Godot 4.7.1 test boundary; authoritative input, transit behavior, checksum semantics and replay expectations are unchanged.
 
+### Increment 36 — observable CI status bridge
+- Preserved the existing Godot 4.7.1 contract suite and added a push-only final status publication step to the headless workflow.
+- The workflow now grants only the additional `statuses: write` permission needed to publish `organism-cargo/godot-headless` on the exact tested main commit.
+- The status step runs with `always()` and records success/failure plus the exact workflow-run target URL, so future autonomous runs can inspect the actual Godot result through the connected commit-status surface instead of inferring green from missing failure email.
+- No gameplay, simulation, persistence, content, UX or test expectation changed.
+
 ## Checks performed this run
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and `PHASE11_TECH_PERSISTENCE.md` before acting.
-- Confirmed main at checkpoint start was `8bd66b5790a5edf598db91d965fb188d1bbac972` (`12B: prove persistent shell deterministic replay`).
-- Re-queried connected GitHub workflow/status surfaces for Increment 34. The available connector still exposes no push workflow run and no combined status contexts for this SHA, so no green/red claim was fabricated.
-- Reviewed the committed replay runner against the current warnings-as-errors Godot boundary and narrowed one Variant-to-`PackedStringArray` assignment explicitly without changing gameplay or persistence semantics.
-- Local clean-checkout Godot execution was attempted, but this runtime cannot resolve `github.com`, so it cannot substitute for the repository's GitHub Actions runtime gate.
-- Batched the compatibility repair and this status update into one tree checkpoint to preserve the anti-spam one-push rule.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` before acting.
+- Confirmed `main` at checkpoint start was `0e0e819e3b53dd3840ee0359b10d415d8b1044f0` (`12B: harden deterministic replay typing`).
+- Queried the connected commit-status surface for Increment 35; it still exposed no status contexts, so no green/red claim was fabricated.
+- Checked recent GitHub failure notifications: earlier red runs were observable, but there was no failure notification for Increment 35; this was treated only as indirect evidence, not sufficient to close the 12B exit gate.
+- Re-read the full current headless workflow and confirmed both required 12B exit-gate tests are present as executable Godot 4.7.1 steps: persistent-shell VS01 playability and persistent-shell deterministic replay.
+- Added a minimal CI observability bridge rather than broadening gameplay while the exit gate remains unobservable.
+- Batched the workflow change and status update into one tree checkpoint to preserve the anti-spam one-push rule.
 
 ## Current blockers
-- The Increment-35 Godot 4.7.1 CI run is the next runtime gate.
-- 12B cannot be marked complete until the persistent-shell playability and deterministic replay/checksum contracts are observed green under actual Godot 4.7.1 execution.
-- The 12B player-facing slice remains deliberately tiny: two VS01 organisms, fixed orientation 0, no supports, one deterministic transit tick and no Results/progression.
+- The Increment-36 Godot 4.7.1 CI run is now the single runtime gate.
+- 12B remains IN PROGRESS until `organism-cargo/godot-headless` on the checkpoint commit is observed `success` and therefore proves the complete workflow, including persistent-shell playability and deterministic replay/checksum contracts, ran green in the same job.
+- If that observable status is `failure`, the target URL supplies the exact run to inspect and only the first concrete failure should be repaired next.
 - Full rotate/remove/undo/support workflows remain frozen-scope work for later phases rather than hidden stubs in this tiny slice.
 - Full controller/keyboard remapping, Deck layout and accessibility acceptance remain Phase 12E.
 - Full growth/support/hazard families and production roster/campaign remain deferred.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 35. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, record the 12B exit-gate evidence, mark Phase 12B COMPLETE, and begin the first narrow Phase 12C core-systems increment strictly from the canonical authority chain.**
+**Continue Phase 12B — inspect the connected commit status `organism-cargo/godot-headless` on the Increment-36 checkpoint. If failure, inspect its exact target run, repair only the first concrete parser/type/API/test failure and checkpoint once. If success, record the 12B exit-gate evidence, mark Phase 12B COMPLETE, then begin the smallest Phase 12C core-systems increment only after reading the exact canonical authority files for that subsystem.**
 
 Next run:
-1. inspect Increment-35 CI first;
-2. if red, repair only the first concrete failure and preserve one-checkpoint anti-spam behavior;
-3. if green, verify both the persistent-shell playability contract and deterministic replay/checksum contract passed in the same actual Godot 4.7.1 run;
-4. only then mark 12B COMPLETE;
-5. choose the smallest Phase 12C subsystem from the frozen canonical rules and read its exact authority files before implementation;
-6. do not broaden content, Results/progression, accessibility or platform scope merely to create work.
+1. query the latest main commit and `organism-cargo/godot-headless` status first;
+2. if failure, follow its target run and repair only the first concrete failure, preserving one-checkpoint anti-spam behavior;
+3. if success, verify the workflow definition still contains both persistent-shell exit-gate steps and mark 12B COMPLETE;
+4. choose the smallest Phase 12C subsystem from frozen canon and read its exact authority chain before implementation;
+5. do not broaden content, Results/progression, accessibility or platform scope merely to create work.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.
