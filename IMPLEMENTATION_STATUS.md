@@ -9,8 +9,8 @@ Repository: `Mikayilzade/organism-cargo`
 - Autonomous implementation handoff: **YES**
 - Implementation started: **YES**
 - 12A Technical bootstrap: **COMPLETE**
-- 12B Vertical slice: **IN PROGRESS**
-- 12C Core systems: **NO**
+- 12B Vertical slice: **COMPLETE**
+- 12C Core systems: **IN PROGRESS**
 - 12D Content population: **NO**
 - 12E UX/accessibility/controller/Deck: **NO**
 - 12F Adversarial QA: **NO**
@@ -21,7 +21,7 @@ Repository: `Mikayilzade/organism-cargo`
 ## Phase 12A summary
 Increments 1-13 established the runnable Godot project, deterministic/fixed-point simulation foundation, content loading/registry, atomic save recovery, semantic input catalog, app-state composition, headless CI, persistent shell smoke boot, and persistence-backed exactly-once Launch semantics.
 
-## Phase 12B summary through Increment 37
+## Phase 12B summary through Increment 39
 - Increments 14-16: planning validation/session, file-backed structural resolution, and planning -> durable exactly-once Launch.
 - Increments 17-20: deterministic H01 transit slice with frozen A-I ordering, H01 heat, thermal propagation, stress and primary-state hysteresis.
 - Increment 21: Phase-I delivery completion and Causal Review handoff.
@@ -36,49 +36,51 @@ Increments 1-13 established the runnable Godot project, deterministic/fixed-poin
 - Increments 34-35: deterministic replay evidence plus typing hardening.
 - Increment 36: observable `organism-cargo/godot-headless` main-commit status bridge.
 - Increment 37: repaired the player-facing planning control parser failure caused by the undeclared `planning_revision_sequence` identifier.
+- Increment 38: repaired persistent-shell Causal Review accessor mismatch (`review_snapshot()` -> canonical `last_review()`).
+- Increment 39: repaired deterministic replay canonical-input typing under warnings-as-errors.
 
-### Increment 38 — repair persistent-shell Causal Review accessor mismatch
-- Inspected `organism-cargo/godot-headless` on Increment 37 and followed exact workflow run `32328496029`.
-- Godot 4.7.1 completed project import/parse and every contract through the player-facing control and planning-editor tests successfully.
-- The first concrete failure moved to `tests/unit/vertical_slice_shell_playability_test_runner.gd`: it called non-existent `VerticalSliceFlowCoordinator.review_snapshot()`.
-- Confirmed the coordinator's canonical public read accessor for the already-built Causal Review evidence is `last_review()`; no gameplay or review semantics changed.
-- Updated only that test call from `flow.review_snapshot()` to `flow.last_review()`.
-- No speculative follow-on CI fixes were bundled; the deterministic replay contract remains the next unexecuted late-12B gate until this checkpoint runs.
+### Phase 12B exit-gate verification
+- Main checkpoint `678f6291af3ac95d547a8f5678894a60ec976257` reported `organism-cargo/godot-headless = success` via workflow run `32335920878`.
+- Godot 4.7.1 completed project import/parse and the entire existing contract suite successfully.
+- The four late vertical-slice gates all passed in that same job: player-facing control, player-built planning editor, persistent-shell VS01 playability, and persistent-shell deterministic replay.
+- The complete tiny-content contract loop is therefore playable and the same committed input reproduces the same authoritative result; Phase 12B exit gate is satisfied.
 
-### Increment 39 — repair deterministic replay canonical-input typing
-- Inspected `organism-cargo/godot-headless` on Increment 38 and followed exact workflow run `32331815734`.
-- Godot 4.7.1 passed project import, production-content boot, persistent-shell boot, all bootstrap/content/persistence/composition/Launch/planning/transit/delivery/thermal/Causal Review/Retry suites, player-facing control, planning editor, and persistent-shell VS01 playability.
-- The first concrete failure moved to `tests/unit/vertical_slice_shell_determinism_test_runner.gd:69`: `planning.get("canonical_input", {})` remains `Variant`, so calling `duplicate(true)` directly is rejected under warnings-as-errors.
-- Repaired only that boundary by validating the returned value is a `Dictionary`, assigning it to a typed `Dictionary` source, and then duplicating it.
-- Added an explicit failure path if canonical input is unexpectedly absent/non-dictionary; no replay semantics, gameplay rule, checksum rule, or launch identity behavior changed.
-- No speculative later CI fixes were bundled.
+## Phase 12C increments
+
+### Increment 40 — canonical blocked-growth episode kernel
+- Began Phase 12C with the frozen Phase-B `GROWTH_BLOCKED` semantics rather than broadening content or UX scope.
+- Added `src/sim/blocked_growth_episode_resolver.gd`, a deterministic episode-state boundary for growth attempts.
+- A first illegal attempt begins one episode and emits exactly one entry consequence / causal root.
+- Repeated attempts with the same canonical obstruction/legality/orientation/body/trigger/retry signature keep `GROWTH_BLOCKED` visible but do not repeat the consequence.
+- A relevant condition change creates a new episode; legal growth clears the active blocked condition without erasing monotonic episode identity.
+- Canonical signatures sort cell/occupancy inputs so dictionary/collection insertion order cannot invent a new episode.
+- Added `tests/unit/blocked_growth_episode_test_runner.gd` covering first entry, unchanged blockage, insertion-order determinism, occupancy change, successful clearance, retry-boundary change, orientation change, and one causal root per episode.
+- Added the new contract runner to the Godot headless workflow.
 
 ## Checks performed this run
 - Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` before acting.
-- Confirmed latest `main` at checkpoint start was `0c983dd36b5afb3a4f6cefa67ba00984b4f4f899` (`12B: repair shell Causal Review accessor`).
-- Queried `organism-cargo/godot-headless`; it reported `failure` and linked exact run `32331815734`.
-- Inspected the full job step list and log.
-- Verified the persistent-shell VS01 playability contract now passes.
-- Verified the only first concrete failure is the deterministic replay runner parse error at canonical-input duplication; all earlier late-12B gates pass in the same Godot 4.7.1 job.
-- Applied one narrow typed-boundary repair and preserved the anti-spam single-checkpoint policy.
-- Local Godot execution is unavailable in this runtime; the new checkpoint CI is the authoritative runtime verification gate.
+- Confirmed latest `main` was `678f6291af3ac95d547a8f5678894a60ec976257` (`12B: repair deterministic replay canonical input typing`).
+- Queried `organism-cargo/godot-headless`; it reported `success` and linked exact run `32335920878`.
+- Verified every step in that Godot 4.7.1 run passed, including all four late 12B exit-gate contracts.
+- Read the highest-authority blocked-growth override in `PHASE11_FINAL_FREEZE.md`, the top-level invariant in `GAME_BIBLE.md`, and the exact Phase-B/growth episode semantics in `MECHANICS.md` before implementing Increment 40.
+- Preserved the anti-spam policy by batching the Phase-12C kernel, tests, workflow registration and status update into one checkpoint commit.
+- Local Godot execution is unavailable in this runtime; the Increment-40 main CI run is the authoritative runtime verification gate.
 
 ## Current blockers
-- The Increment-39 Godot 4.7.1 CI run is now the runtime gate.
-- 12B remains IN PROGRESS until `organism-cargo/godot-headless` on this checkpoint is observed `success` and the deterministic replay/checksum step passes in the same job.
-- If the status is `failure`, inspect its exact target run and repair only the first concrete parser/type/API/test failure next.
-- Full rotate/remove/undo/support workflows remain frozen-scope work for later phases rather than hidden stubs in this tiny slice.
-- Full controller/keyboard remapping, Deck layout and accessibility acceptance remain Phase 12E.
-- Full growth/support/hazard families and production roster/campaign remain deferred.
+- Increment 40 has not yet been observed under Godot 4.7.1 on `main`; its CI result is the immediate runtime gate.
+- If the checkpoint fails, inspect the exact linked job/log and repair only the first concrete parser/type/API/test failure next.
+- Full growth-trigger qualification/body-stage integration into `TransitSliceRunner` remains subsequent Phase 12C work after this isolated episode kernel is green.
+- Brownout/support authority, contamination, feeding, sleep gating, remaining hazards, finite reactive triggers and simultaneous multi-parent ancestry remain Phase 12C scope.
+- Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect `organism-cargo/godot-headless` on the Increment-39 checkpoint. If failure, follow the exact target run, repair only the first concrete failure and checkpoint once. If success, verify the player-facing control, planning editor, persistent-shell playability and deterministic replay steps all passed in that same Godot 4.7.1 job, mark Phase 12B COMPLETE, then begin the smallest Phase 12C core-systems increment only after reading its exact canonical authority files.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on the Increment-40 checkpoint. If failure, follow the exact target run and repair only the first concrete failure. If success, integrate the green blocked-growth episode resolver into Phase-B transit growth resolution using canonical body-stage/footprint legality data, with deterministic regression coverage for unchanged obstruction and relevant-condition reset.**
 
 Next run:
 1. query latest `main` and its `organism-cargo/godot-headless` status first;
-2. if failure, inspect the linked job/log and repair only the first concrete failure;
-3. if success, verify all four late 12B exit-gate steps completed successfully before marking 12B COMPLETE;
-4. choose the smallest Phase 12C subsystem strictly from frozen canon and read its exact authority chain before implementation;
-5. do not broaden content, Results/progression, accessibility or platform scope merely to create work.
+2. if failure, inspect the linked job/log and checkpoint one focused repair only;
+3. if success, read the exact body-plan/growth-trigger data authority needed for integration before editing `TransitSliceRunner`;
+4. keep growth resolution in Phase B and do not add auto-push, auto-rotation or alternate-space search;
+5. preserve one blocked-growth causal root per unchanged episode and deterministic resume/replay behavior.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.
