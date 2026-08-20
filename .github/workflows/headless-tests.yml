@@ -161,6 +161,12 @@ jobs:
           set -euo pipefail
           /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/phase_b_growth_test_runner.gd
 
+      - name: T08 qualifying-duration and Phase-B queue contract test
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/t08_growth_qualifier_test_runner.gd
+
       - name: Publish observable main-commit test status
         if: always() && github.event_name == 'push'
         shell: bash

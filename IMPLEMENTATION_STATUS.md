@@ -75,31 +75,42 @@ Increments 1-13 established the runnable Godot project, deterministic/fixed-poin
 - Full T08 qualifying-duration accumulation is intentionally not added here; `growth_requests_by_tick` represents already-qualified Phase-B requests only.
 - Added `tests/unit/phase_b_growth_test_runner.gd` covering legal footprint installation, one causal root for unchanged blockage, relevant trigger-condition reset, direct TransitSliceRunner Phase-B invocation, and deterministic blocked-growth replay; wired the runner into headless CI.
 
+### Increment 43 — T08 qualifying-duration queue boundary
+- Observed Increment 42 green on main: `organism-cargo/godot-headless = success` for checkpoint `affadb0525068032e533d511aeef44b08946908e`, workflow run `32349211401`.
+- Re-read the exact frozen authority: T08 queues the next declared footprint stage only after its qualifying condition has held for the declared `n` ticks; Phase G owns threshold/transition queueing and Phase B owns next-tick footprint mutation.
+- Added `src/sim/t08_growth_qualifier.gd`, a deterministic trait-local qualification accumulator that accepts already-evaluated condition truth rather than inventing trigger semantics.
+- The qualifier counts consecutive qualifying ticks, resets on dequalification, emits exactly one request per uninterrupted qualifying window, and schedules that request for `tick + 1` so Phase B remains the sole body-stage/footprint mutation owner.
+- Requalification advances a deterministic trigger-condition epoch so a later blocked attempt can be distinguished from an unchanged blocked-growth episode without adding a gameplay effect.
+- Definition ordering is canonicalized by instance/trigger ID; material parent IDs are deduplicated/sorted before queue emission.
+- Added `tests/unit/t08_growth_qualifier_test_runner.gd` covering exact duration, next-tick queue timing, no repeated queue in one uninterrupted window, dequalification reset/requalification identity, insertion-order determinism, Phase-B composition, and invalid-duration fail-closed behavior.
+- Added the new contract runner to the headless workflow.
+- This increment deliberately does not yet wire the qualifier into `TransitSliceRunner`; it establishes and tests the canonical Phase-G -> next-tick Phase-B boundary first so transit integration can be one focused follow-up increment.
+
 ## Checks performed this run
 - Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` before acting.
-- Confirmed latest `main` checkpoint was `4e23d1a9f7e9ba54b23a33086b1daea1983d1dd4` (`12C: repair blocked-growth contract typing`).
-- Queried `organism-cargo/godot-headless`; it reported `success` and linked workflow run `32344071389`.
-- Re-read `MECHANICS.md` for exact A-I ordering, body-stage footprint rules, T08 qualification, no-auto-movement growth legality, and blocked-growth episode semantics; re-read `CONTENT_ARCHITECTURE.md` lifecycle examples.
-- Kept simultaneous growth conflict unresolved rather than inventing gameplay semantics.
-- Batched the complete code/test/status increment into one checkpoint tree/commit to preserve the anti-spam rule.
+- Queried latest `main` and confirmed Increment 42 checkpoint `affadb0525068032e533d511aeef44b08946908e` is green through `organism-cargo/godot-headless`, workflow run `32349211401`.
+- Re-read `MECHANICS.md`, `PHASE11_FREEZE.md`, and `DECISION_ARCHITECTURE.md` for exact A-I phase ownership, T08 `n`-tick qualification, next-tick transition queueing, no-auto-movement growth legality, and blocked-growth episode semantics.
+- Kept condition evaluation abstract and already-resolved; no new heat/feed/contamination trigger rule was invented.
+- Kept Phase B as sole footprint mutation authority and did not invent simultaneous multi-growth conflict priority.
+- Batched source, tests, workflow and status into one checkpoint commit to preserve the anti-spam rule.
 - Local Godot execution is unavailable in this runtime; the single checkpoint push from this run is the authoritative Godot 4.7.1 validation gate.
 
 ## Current blockers
-- Increment 42 has not yet been observed under Godot 4.7.1 on `main`; its CI result is the immediate runtime gate.
+- Increment 43 has not yet been observed under Godot 4.7.1 on `main`; its CI result is the immediate runtime gate.
 - If this checkpoint fails, inspect the exact linked job/log and repair only the first concrete parser/type/API/test failure next.
-- Full T08 qualifying-duration accumulation/trigger ownership remains subsequent Phase 12C work; this increment intentionally accepts already-qualified requests.
+- The T08 qualifier is not yet integrated into `TransitSliceRunner`; current transit still consumes externally supplied already-qualified `growth_requests_by_tick`.
 - Simultaneous multi-growth conflict semantics remain unimplemented until a canonical conflict rule is identified; the runtime fails closed instead of choosing a winner.
 - Brownout/support authority, contamination, feeding, sleep gating, remaining hazards, finite reactive triggers and simultaneous multi-parent ancestry remain Phase 12C scope.
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 42. If failure, follow the exact target run and repair only the first concrete failure. If success, implement canonical T08 qualifying-duration accumulation that queues already-declared next-stage growth for Phase B without changing footprint legality or blocked-episode semantics.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 43. If failure, repair only the first concrete failure. If success, integrate `T08GrowthQualifier` into `TransitSliceRunner` at Phase G so queued requests become next-tick Phase-B growth attempts and qualification state participates in deterministic replay/checksums.**
 
 Next run:
 1. query latest `main` and its `organism-cargo/godot-headless` status first;
 2. if failure, inspect the linked job/log and checkpoint one focused repair only;
-3. if success, read the exact T08 trigger-duration and transition-queue authority before editing;
-4. preserve Phase B ownership of footprint mutation and one blocked-growth root per unchanged episode;
-5. do not invent simultaneous growth conflict priority, auto-movement, or alternate-space search.
+3. if success, wire already-evaluated per-tick T08 condition truth into Phase G and merge generated requests with the next tick's Phase-B queue;
+4. include qualification accumulator state in authoritative replay/checksum evidence;
+5. preserve one queue per uninterrupted qualifying window, Phase-B-only footprint mutation, blocked-growth episode semantics, and fail-closed simultaneous growth conflict handling.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.
