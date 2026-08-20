@@ -9,6 +9,8 @@ func _init() -> void:
 	_test_relevant_trigger_change_starts_new_episode()
 	_test_transit_runner_invokes_growth_in_phase_b()
 	_test_transit_blocked_growth_replay_is_stable()
+	_test_transit_t08_qualification_queues_next_tick_growth()
+	_test_transit_t08_qualification_state_is_checksum_authoritative()
 	print("phase_b_growth_test_runner: PASS")
 	quit(0)
 
@@ -90,6 +92,48 @@ func _test_transit_blocked_growth_replay_is_stable() -> void:
 	_assert_equal(events.size(), 1, "same obstruction across two ticks creates one blocked-growth root")
 	_assert_equal(first["tick_checksums"], second["tick_checksums"], "blocked-growth body/condition state participates in deterministic tick replay")
 
+func _test_transit_t08_qualification_queues_next_tick_growth() -> void:
+	var runner: TransitSliceRunner = TransitSliceRunnerScript.new()
+	var result: Dictionary = runner.simulate(
+		_run_record(_committed_input(false)),
+		3,
+		_t08_simulation_defs({"1": {"grower": true}, "2": {"grower": true}, "3": {"grower": true}}, 3, 2)
+	)
+	_assert_true(bool(result["ok"]), "TransitSliceRunner evaluates T08 qualification inside Phase G")
+	var snapshots: Array = result["end_tick_snapshots"]
+	var tick_two: Dictionary = snapshots[1]
+	var queued: Array = tick_two["t08_queued_growth_requests"]
+	_assert_equal(queued.size(), 1, "exact T08 duration queues one next-tick request during Phase G")
+	var queued_request: Dictionary = queued[0]
+	_assert_equal(int(queued_request["apply_tick"]), 3, "Phase G schedules the qualified transition for next-tick Phase B")
+	var tick_three: Dictionary = snapshots[2]
+	var runtime: Array = tick_three["organism_runtime"]
+	var grower: Dictionary = _organism_by_id(runtime, "grower")
+	_assert_equal(String(grower["body_stage"]), "MATURE", "queued T08 request mutates the footprint only in the following Phase B")
+	_assert_equal(grower["occupied_cells"], ["0,0", "1,0"], "next-tick Phase B installs the declared mature footprint")
+
+func _test_transit_t08_qualification_state_is_checksum_authoritative() -> void:
+	var runner: TransitSliceRunner = TransitSliceRunnerScript.new()
+	var uninterrupted: Dictionary = runner.simulate(
+		_run_record(_committed_input(false)),
+		2,
+		_t08_simulation_defs({"1": {"grower": true}, "2": {"grower": true}}, 2, 3)
+	)
+	var interrupted: Dictionary = runner.simulate(
+		_run_record(_committed_input(false)),
+		2,
+		_t08_simulation_defs({"1": {"grower": true}, "2": {"grower": false}}, 2, 3)
+	)
+	_assert_true(bool(uninterrupted["ok"]) and bool(interrupted["ok"]), "T08 checksum variants execute")
+	var uninterrupted_checksums: PackedStringArray = uninterrupted["tick_checksums"]
+	var interrupted_checksums: PackedStringArray = interrupted["tick_checksums"]
+	_assert_true(uninterrupted_checksums[1] != interrupted_checksums[1], "qualification accumulator state participates in authoritative tick checksums")
+	var uninterrupted_snapshots: Array = uninterrupted["end_tick_snapshots"]
+	var interrupted_snapshots: Array = interrupted["end_tick_snapshots"]
+	var uninterrupted_tick_two: Dictionary = uninterrupted_snapshots[1]
+	var interrupted_tick_two: Dictionary = interrupted_snapshots[1]
+	_assert_true(uninterrupted_tick_two["t08_qualification_state"] != interrupted_tick_two["t08_qualification_state"], "end-of-tick replay evidence exposes T08 qualification state")
+
 func _run_record(committed_input: Dictionary) -> Dictionary:
 	return {
 		"run_id": "growth-run",
@@ -126,6 +170,23 @@ func _simulation_defs(with_blocker: bool) -> Dictionary:
 			"1": [_request("grower", "qualified")],
 			"2": [_request("grower", "qualified")],
 		},
+	}
+
+func _t08_simulation_defs(qualification_by_tick: Dictionary, tick_count: int, required_ticks: int) -> Dictionary:
+	return {
+		"route_profile": {"id": "route-growth", "tick_count": tick_count, "events": []},
+		"hold_definition": {"dimensions": [2, 1], "blocked_cells": []},
+		"hazards_by_id": {},
+		"organism_definitions": {"grower": _runtime_definition(true)},
+		"growth_requests_by_tick": {},
+		"t08_trigger_definitions": [{
+			"instance_id": "grower",
+			"trigger_id": "heat-growth",
+			"required_qualifying_ticks": required_ticks,
+			"next_body_stage": "MATURE",
+			"material_parent_ids": ["condition:grower"],
+		}],
+		"t08_qualification_by_tick": qualification_by_tick,
 	}
 
 func _runtime_definition(can_grow: bool) -> Dictionary:

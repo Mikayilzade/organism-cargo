@@ -3,6 +3,7 @@ extends RefCounted
 
 const ThermalResponseKernelScript := preload("res://src/sim/thermal_response_kernel.gd")
 const PhaseBGrowthResolverScript := preload("res://src/sim/phase_b_growth_resolver.gd")
+const T08GrowthQualifierScript := preload("res://src/sim/t08_growth_qualifier.gd")
 const PHASE_ORDER_CSV := "A,B,C,D,E,F,G,H,I"
 
 func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dictionary = {}) -> Dictionary:
@@ -29,8 +30,12 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 	var thermal_rules: Dictionary = prepared["thermal_rules"]
 	var organism_state: Array = prepared["organisms"]
 	var growth_requests_by_tick: Dictionary = prepared["growth_requests_by_tick"]
+	var t08_trigger_definitions: Array = prepared["t08_trigger_definitions"]
+	var t08_qualification_by_tick: Dictionary = prepared["t08_qualification_by_tick"]
+	var t08_qualification_state: Dictionary = {}
 	var thermal_kernel: ThermalResponseKernel = ThermalResponseKernelScript.new()
 	var growth_resolver: PhaseBGrowthResolver = PhaseBGrowthResolverScript.new()
+	var t08_qualifier: T08GrowthQualifier = T08GrowthQualifierScript.new()
 
 	var phase_trace: PackedStringArray = PackedStringArray()
 	var tick_checksums: PackedStringArray = PackedStringArray()
@@ -98,6 +103,28 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 			organism_state = merged["organisms"]
 		phase_trace.append("%d:F" % tick)
 		phase_trace.append("%d:G" % tick)
+		var tick_t08_queued_requests: Array = []
+		if not t08_trigger_definitions.is_empty():
+			var qualification_result: Dictionary = _t08_qualification_for_tick(t08_qualification_by_tick, tick)
+			if not bool(qualification_result["ok"]):
+				return {"ok": false, "error": "phase_g:%s" % String(qualification_result["error"])}
+			var qualifier_result: Dictionary = t08_qualifier.evaluate_tick(
+				tick,
+				t08_trigger_definitions,
+				qualification_result["qualification"],
+				t08_qualification_state
+			)
+			if not bool(qualifier_result["ok"]):
+				return {"ok": false, "error": "phase_g:%s" % String(qualifier_result["error"])}
+			t08_qualification_state = qualifier_result["state"]
+			tick_t08_queued_requests = qualifier_result["queued_requests"]
+			var append_result: Dictionary = _append_qualified_growth_requests(
+				growth_requests_by_tick,
+				tick_t08_queued_requests,
+				tick
+			)
+			if not bool(append_result["ok"]):
+				return {"ok": false, "error": "phase_g:%s" % String(append_result["error"])}
 		phase_trace.append("%d:H" % tick)
 		phase_trace.append("%d:I" % tick)
 
@@ -106,6 +133,8 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 			"active_hazards": active_hazards,
 			"heat_by_cell": _heat_snapshot(environment_state, cell_order),
 			"growth_events": tick_growth_events.duplicate(true),
+			"t08_qualification_state": t08_qualification_state.duplicate(true),
+			"t08_queued_growth_requests": tick_t08_queued_requests.duplicate(true),
 		}
 		if thermal_enabled:
 			snapshot["organisms"] = organism_tick_snapshot
@@ -120,7 +149,8 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 			active_hazards,
 			environment_state,
 			cell_order,
-			organism_state
+			organism_state,
+			t08_qualification_state
 		)
 		tick_checksums.append(serialized_tick.sha256_text())
 
@@ -130,6 +160,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		"phase_trace": phase_trace,
 		"end_tick_snapshots": end_tick_snapshots,
 		"growth_events": growth_events,
+		"t08_qualification_state": t08_qualification_state.duplicate(true),
 		"final_tick": total_ticks,
 		"completed": true,
 	}
@@ -147,6 +178,8 @@ func _prepare_definitions(committed_input: Dictionary, total_ticks: int, simulat
 			"thermal_rules": {},
 			"organisms": [],
 			"growth_requests_by_tick": {},
+			"t08_trigger_definitions": [],
+			"t08_qualification_by_tick": {},
 		}
 	if not simulation_defs.has("route_profile") or not simulation_defs["route_profile"] is Dictionary:
 		return _definition_failure("missing_route_profile")
@@ -201,16 +234,24 @@ func _prepare_definitions(committed_input: Dictionary, total_ticks: int, simulat
 	for cell_key: String in cell_order:
 		heat[cell_key] = 0
 
-	var growth_requests_by_tick: Dictionary = {}
 	var growth_requests_value: Variant = simulation_defs.get("growth_requests_by_tick", {})
 	if not growth_requests_value is Dictionary:
 		return _definition_failure("invalid_growth_requests_by_tick")
-	growth_requests_by_tick = growth_requests_value
+	var growth_requests_by_tick: Dictionary = growth_requests_value.duplicate(true)
+
+	var t08_definitions_value: Variant = simulation_defs.get("t08_trigger_definitions", [])
+	if not t08_definitions_value is Array:
+		return _definition_failure("invalid_t08_trigger_definitions")
+	var t08_trigger_definitions: Array = t08_definitions_value.duplicate(true)
+	var t08_qualification_value: Variant = simulation_defs.get("t08_qualification_by_tick", {})
+	if not t08_qualification_value is Dictionary:
+		return _definition_failure("invalid_t08_qualification_by_tick")
+	var t08_qualification_by_tick: Dictionary = t08_qualification_value.duplicate(true)
 
 	var thermal_rules_value: Variant = simulation_defs.get("thermal_rules", null)
 	var organism_definitions_value: Variant = simulation_defs.get("organism_definitions", null)
 	var thermal_enabled: bool = thermal_rules_value != null
-	var organisms_required: bool = organism_definitions_value != null or not growth_requests_by_tick.is_empty()
+	var organisms_required: bool = organism_definitions_value != null or not growth_requests_by_tick.is_empty() or not t08_trigger_definitions.is_empty()
 	var thermal_rules: Dictionary = {}
 	var organisms: Array = []
 	if thermal_enabled:
@@ -242,6 +283,8 @@ func _prepare_definitions(committed_input: Dictionary, total_ticks: int, simulat
 		"thermal_rules": thermal_rules,
 		"organisms": organisms,
 		"growth_requests_by_tick": growth_requests_by_tick,
+		"t08_trigger_definitions": t08_trigger_definitions,
+		"t08_qualification_by_tick": t08_qualification_by_tick,
 	}
 
 func _prepare_organisms(
@@ -338,6 +381,32 @@ func _growth_requests_for_tick(growth_requests_by_tick: Dictionary, tick: int) -
 		return []
 	var requests: Array = value
 	return requests.duplicate(true)
+
+func _t08_qualification_for_tick(qualification_by_tick: Dictionary, tick: int) -> Dictionary:
+	var direct_key: String = str(tick)
+	var value: Variant = qualification_by_tick.get(direct_key, qualification_by_tick.get(tick, {}))
+	if not value is Dictionary:
+		return {"ok": false, "error": "invalid_t08_qualification_tick:%d" % tick, "qualification": {}}
+	var qualification: Dictionary = value
+	return {"ok": true, "error": "", "qualification": qualification.duplicate(true)}
+
+func _append_qualified_growth_requests(growth_requests_by_tick: Dictionary, requests: Array, current_tick: int) -> Dictionary:
+	for raw_request: Variant in requests:
+		if not raw_request is Dictionary:
+			return {"ok": false, "error": "invalid_t08_growth_request"}
+		var request: Dictionary = raw_request
+		var apply_tick: int = int(request.get("apply_tick", 0))
+		if apply_tick <= current_tick:
+			return {"ok": false, "error": "invalid_t08_apply_tick"}
+		var key: String = str(apply_tick)
+		var existing_value: Variant = growth_requests_by_tick.get(key, [])
+		if not existing_value is Array:
+			return {"ok": false, "error": "invalid_growth_requests_by_tick:%s" % key}
+		var existing: Array = existing_value
+		var next_requests: Array = existing.duplicate(true)
+		next_requests.append(request.duplicate(true))
+		growth_requests_by_tick[key] = next_requests
+	return {"ok": true, "error": ""}
 
 func _merge_organism_response(previous: Array, response: Array) -> Dictionary:
 	var previous_by_id: Dictionary = {}
@@ -481,7 +550,8 @@ func _serialize_tick(
 		active_hazards: PackedStringArray,
 		environment_state: Dictionary,
 		cell_order: PackedStringArray,
-		organisms: Array
+		organisms: Array,
+		t08_qualification_state: Dictionary
 ) -> String:
 	var parts: PackedStringArray = PackedStringArray()
 	parts.append("rules=" + String(committed_run.get("rules_version", "")))
@@ -512,6 +582,22 @@ func _serialize_tick(
 			",".join(occupied),
 			str(bool(organism.get("growth_blocked", false))),
 		])
+	var t08_ids: Array = t08_qualification_state.keys()
+	t08_ids.sort()
+	for raw_instance_id: Variant in t08_ids:
+		var instance_id: String = String(raw_instance_id)
+		var state_value: Variant = t08_qualification_state.get(instance_id, {})
+		if state_value is Dictionary:
+			var state: Dictionary = state_value
+			parts.append("t08=%s:%s:%s:%d:%d:%s:%s" % [
+				instance_id,
+				String(state.get("trigger_id", "")),
+				String(state.get("next_body_stage", "")),
+				int(state.get("consecutive_ticks", 0)),
+				int(state.get("qualification_epoch", 0)),
+				str(bool(state.get("qualifying_active", false))),
+				str(bool(state.get("queued_in_active_window", false))),
+			])
 	return "|".join(parts)
 
 func _cell_key(x: int, y: int) -> String:
@@ -529,4 +615,6 @@ func _definition_failure(error: String) -> Dictionary:
 		"thermal_rules": {},
 		"organisms": [],
 		"growth_requests_by_tick": {},
+		"t08_trigger_definitions": [],
+		"t08_qualification_by_tick": {},
 	}
