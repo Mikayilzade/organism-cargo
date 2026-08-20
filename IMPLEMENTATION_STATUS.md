@@ -63,30 +63,40 @@ Increments 14-39 established the complete tiny-content vertical slice: planning 
 - Repaired only this compatibility boundary by assigning each guarded `Variant` to its concrete `Dictionary`/`Array` local before deep duplication.
 - No T08 qualification rule, growth timing, blocked-growth behavior, checksum semantics, content, or gameplay parameter changed.
 
+### Increment 46 — deterministic Phase-A Brownout power authority boundary
+- Observed Increment 45 green on `main`: checkpoint `2d79423e18086d7390c9d731624a01c5e2c666fa`, workflow run `32363820902`.
+- Re-read the frozen Brownout/support authority chain: Brownout is finalized in Phase A; temporary deficit allocates powered supports in player-declared unique priority order; current supports are fully powered or off; a support disabled in A has no same-tick Phase-C/E mitigation authority.
+- Added `src/sim/phase_a_power_resolver.gd` as the smallest complete deterministic ownership boundary for temporary available power and Brownout allocation.
+- Resolver validates stable support instance identity, positive powered draw, complete/unique priority under deficit, deterministic whole-support allocation, powered/off transitions, and fails closed on undeclared degraded-operation semantics.
+- Resolver exposes the exact powered support set as same-tick effect eligibility, so later Phase-C/E integration cannot accidentally grant authority to a support disabled in A.
+- Added stable authority payload/checksum evidence over available/used power and the support powered/off set.
+- Added `tests/unit/phase_a_power_resolver_test_runner.gd` covering input-order determinism, player-priority allocation, full on/off behavior, same-tick effect exclusion, causal transition events, fail-closed malformed priority, and checksum divergence when priority changes.
+- Added the new contract runner to GitHub Actions.
+
 ## Checks performed this run
 - Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` before acting.
-- Queried latest `main` and its observable `organism-cargo/godot-headless` status.
-- Inspected workflow run `32359155076`, job `headless-tests`, and the full Godot 4.7.1 log.
-- Confirmed pre-failure bootstrap/content/persistence/planning suites remained green and isolated the first concrete failure to the three `Variant.duplicate(true)` calls in `TransitSliceRunner`.
-- Applied one focused typing repair only; no architectural expansion was attempted while CI was red.
-- Batched source and status into one Git tree/commit checkpoint; no burst of small pushes is used.
-- Local Godot execution is unavailable in this runtime; the single checkpoint push from this run is the authoritative Godot 4.7.1 validation gate.
+- Observed latest `main` checkpoint `2d79423e18086d7390c9d731624a01c5e2c666fa` with `organism-cargo/godot-headless = success` from workflow run `32363820902`.
+- Re-read exact support/Brownout authority in `GAME_BIBLE.md`, `PHASE11_FREEZE.md`, `MECHANICS.md`, and `DECISION_ARCHITECTURE.md`; no design amendment was required.
+- Verified the new boundary preserves player-declared unique priority, whole-support on/off allocation, Phase-A same-tick authority, deterministic transition ordering, and authoritative checksum evidence.
+- Local Godot is unavailable in this runtime, so the new runner was added to the existing Godot 4.7.1 headless workflow and this single checkpoint push is the runtime validation gate.
+- Batched all source/test/workflow/status changes into one Git tree/commit checkpoint; no burst of small pushes is used.
 
 ## Current blockers
-- Increment 45 has not yet been observed under Godot 4.7.1 on `main`; its CI result is the immediate runtime gate.
+- Increment 46 has not yet been observed under Godot 4.7.1 on `main`; its CI result is the immediate runtime gate.
 - If this checkpoint fails, inspect the exact linked job/log and repair only the first concrete parser/type/API/test failure next.
+- `TransitSliceRunner` still rejects non-empty committed supports; Phase-A power authority is intentionally isolated first and must be integrated before powered support effects are implemented.
 - Simultaneous multi-growth conflict semantics remain unimplemented until a canonical conflict rule is identified; runtime fails closed instead of inventing a winner.
-- Brownout/support authority, contamination, feeding, sleep gating, remaining hazards, finite reactive triggers, and simultaneous multi-parent ancestry remain Phase 12C scope.
+- Contamination, feeding, sleep gating, remaining hazards, finite reactive triggers, and simultaneous multi-parent ancestry remain Phase 12C scope.
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 45. If failure, repair only the first concrete failure. If success, re-read the exact support-power/Brownout canon and implement the smallest complete deterministic Phase-A ownership boundary required by the frozen authority chain.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 46. If failure, repair only the first concrete failure. If success, integrate `PhaseAPowerResolver` into Transit Phase A for committed powered supports and H04 temporary power capacity, preserving the exact no-same-tick-Phase-C/E-authority invariant without yet inventing unsupported mitigation behavior.**
 
 Next run:
 1. query latest `main` and its `organism-cargo/godot-headless` status first;
 2. if failure, inspect the linked job/log and checkpoint one focused repair only;
-3. if success, re-read `PHASE11_FINAL_FREEZE.md` plus the exact Brownout/support authority in `GAME_BIBLE.md`, `PHASE11_FREEZE.md`, `MECHANICS.md`, `DECISION_ARCHITECTURE.md`, and any more-specific canonical support file required by that chain;
-4. preserve Phase-A same-tick authority: a powered support disabled in A has no same-tick Phase-C/E mitigation, preserve deterministic support priority, and do not redesign gameplay;
-5. add focused deterministic acceptance coverage and include authoritative state/checksum evidence.
+3. if success, re-read the exact H04/powered-support data authority needed for integration and remove the blanket `slice_supports_not_implemented` rejection only for the supported canonical subset;
+4. integrate Phase-A powered/off state and its checksum/snapshot evidence while leaving actual S01/S02/S06 Phase-C/E effects fail-closed until their exact effect kernels are implemented;
+5. add transit-level acceptance coverage proving H04 priority changes powered state deterministically and disabled supports cannot appear in same-tick effect eligibility.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.
