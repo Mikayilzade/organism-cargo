@@ -4,7 +4,7 @@ extends RefCounted
 const TransitSliceRunnerScript := preload("res://src/sim/transit_slice_runner.gd")
 const PhaseAPowerResolverScript := preload("res://src/sim/phase_a_power_resolver.gd")
 
-const POWERED_SUPPORT_FAMILIES: PackedStringArray = PackedStringArray(["S01", "S02", "S06"])
+const POWERED_SUPPORT_FAMILIES := ["S01", "S02", "S06"]
 
 func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dictionary = {}) -> Dictionary:
 	if not committed_run.has("canonical_committed_input") or not committed_run["canonical_committed_input"] is Dictionary:
@@ -52,13 +52,15 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 			return {"ok": false, "error": "phase_a:%s" % String(resolved["error"])}
 
 		var tick_events: Array = []
-		for raw_event: Variant in resolved["events"]:
-			if raw_event is Dictionary:
-				var event: Dictionary = raw_event
-				var with_tick: Dictionary = event.duplicate(true)
-				with_tick["tick"] = tick
-				tick_events.append(with_tick)
-				all_power_events.append(with_tick)
+		var resolved_events: Array = resolved["events"]
+		for raw_event: Variant in resolved_events:
+			if not raw_event is Dictionary:
+				continue
+			var power_event: Dictionary = raw_event
+			var with_tick: Dictionary = power_event.duplicate(true)
+			with_tick["tick"] = tick
+			tick_events.append(with_tick)
+			all_power_events.append(with_tick)
 
 		var snapshot_value: Variant = snapshots[tick - 1]
 		if not snapshot_value is Dictionary:
@@ -71,7 +73,8 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		snapshots[tick - 1] = snapshot
 
 		checksums[tick - 1] = (String(checksums[tick - 1]) + "|active=" + ",".join(active_hazards) + "|" + String(resolved["authority_payload"])).sha256_text()
-		previous_powered_by_id = resolved["powered_by_id"].duplicate(true)
+		var powered_by_id: Dictionary = resolved["powered_by_id"]
+		previous_powered_by_id = powered_by_id.duplicate(true)
 
 	result["end_tick_snapshots"] = snapshots
 	result["tick_checksums"] = checksums
@@ -153,19 +156,21 @@ func _defs_without_h04(simulation_defs: Dictionary) -> Dictionary:
 	if route_value is Dictionary:
 		var route_profile: Dictionary = route_value
 		var retained_events: Array = []
-		for raw_event: Variant in route_profile.get("events", []):
-			if raw_event is Dictionary:
-				var event: Dictionary = raw_event
-				var hazard_id: String = String(event.get("hazard_id", ""))
-				var hazards_value: Variant = simulation_defs.get("hazards_by_id", {})
-				if hazards_value is Dictionary:
-					var hazards: Dictionary = hazards_value
-					var hazard_value: Variant = hazards.get(hazard_id, {})
-					if hazard_value is Dictionary:
-						var hazard: Dictionary = hazard_value
-						if String(hazard.get("family", "")) == "H04":
-							continue
-			retained_events.append(event.duplicate(true))
+		var route_events: Array = route_profile.get("events", [])
+		for raw_event: Variant in route_events:
+			if not raw_event is Dictionary:
+				continue
+			var route_event: Dictionary = raw_event
+			var hazard_id: String = String(route_event.get("hazard_id", ""))
+			var hazards_value_for_event: Variant = simulation_defs.get("hazards_by_id", {})
+			if hazards_value_for_event is Dictionary:
+				var hazards_for_event: Dictionary = hazards_value_for_event
+				var hazard_value_for_event: Variant = hazards_for_event.get(hazard_id, {})
+				if hazard_value_for_event is Dictionary:
+					var hazard_for_event: Dictionary = hazard_value_for_event
+					if String(hazard_for_event.get("family", "")) == "H04":
+						continue
+			retained_events.append(route_event.duplicate(true))
 		route_profile["events"] = retained_events
 		stripped["route_profile"] = route_profile
 
@@ -176,25 +181,27 @@ func _defs_without_h04(simulation_defs: Dictionary) -> Dictionary:
 		for raw_id: Variant in hazards.keys():
 			var hazard_id: String = String(raw_id)
 			var hazard_value: Variant = hazards[raw_id]
-			if hazard_value is Dictionary:
-				var hazard: Dictionary = hazard_value
-				if String(hazard.get("family", "")) == "H04":
-					continue
-			retained_hazards[hazard_id] = hazard.duplicate(true)
+			if not hazard_value is Dictionary:
+				continue
+			var hazard_definition: Dictionary = hazard_value
+			if String(hazard_definition.get("family", "")) == "H04":
+				continue
+			retained_hazards[hazard_id] = hazard_definition.duplicate(true)
 		stripped["hazards_by_id"] = retained_hazards
 	stripped.erase("support_definitions_by_id")
 	return stripped
 
 func _active_route_hazards(tick: int, route_profile: Dictionary) -> PackedStringArray:
 	var active_events: Array = []
-	for raw_event: Variant in route_profile.get("events", []):
+	var route_events: Array = route_profile.get("events", [])
+	for raw_event: Variant in route_events:
 		if not raw_event is Dictionary:
 			continue
-		var event: Dictionary = raw_event
-		var start_tick: int = int(event.get("tick", 0))
-		var duration_ticks: int = int(event.get("duration_ticks", 0))
+		var route_event: Dictionary = raw_event
+		var start_tick: int = int(route_event.get("tick", 0))
+		var duration_ticks: int = int(route_event.get("duration_ticks", 0))
 		if tick >= start_tick and tick < start_tick + duration_ticks:
-			active_events.append(event)
+			active_events.append(route_event)
 	active_events.sort_custom(func(left: Dictionary, right: Dictionary) -> bool:
 		var left_order: int = int(left.get("authored_order", 0))
 		var right_order: int = int(right.get("authored_order", 0))
@@ -203,8 +210,8 @@ func _active_route_hazards(tick: int, route_profile: Dictionary) -> PackedString
 		return String(left.get("hazard_id", "")) < String(right.get("hazard_id", ""))
 	)
 	var ids: PackedStringArray = PackedStringArray()
-	for event: Dictionary in active_events:
-		ids.append(String(event.get("hazard_id", "")))
+	for route_event: Dictionary in active_events:
+		ids.append(String(route_event.get("hazard_id", "")))
 	return ids
 
 func _available_power_for_tick(base_capacity: int, active_hazards: PackedStringArray, hazards_by_id: Dictionary) -> Dictionary:
@@ -224,15 +231,18 @@ func _available_power_for_tick(base_capacity: int, active_hazards: PackedStringA
 	return {"ok": true, "error": "", "available_power": maxi(0, base_capacity - reduction)}
 
 func _power_snapshot(resolved: Dictionary) -> Dictionary:
+	var powered_support_ids: PackedStringArray = resolved["powered_support_ids"]
+	var disabled_support_ids: PackedStringArray = resolved["disabled_support_ids"]
+	var powered_by_id: Dictionary = resolved["powered_by_id"]
 	return {
 		"available_power": int(resolved["available_power"]),
 		"used_power": int(resolved["used_power"]),
 		"remaining_power": int(resolved["remaining_power"]),
 		"total_installed_demand": int(resolved["total_installed_demand"]),
 		"brownout_active": bool(resolved["brownout_active"]),
-		"powered_support_ids": resolved["powered_support_ids"].duplicate(),
-		"disabled_support_ids": resolved["disabled_support_ids"].duplicate(),
-		"powered_by_id": resolved["powered_by_id"].duplicate(true),
+		"powered_support_ids": powered_support_ids.duplicate(),
+		"disabled_support_ids": disabled_support_ids.duplicate(),
+		"powered_by_id": powered_by_id.duplicate(true),
 		"authority_checksum": String(resolved["authority_checksum"]),
 	}
 
