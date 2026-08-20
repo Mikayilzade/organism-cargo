@@ -66,7 +66,14 @@ func _run_lifecycle(label: String) -> Dictionary:
 		failures += 1
 		_dispose_shell(shell)
 		return {"ok": false}
-	var canonical_input: Dictionary = planning.get("canonical_input", {}).duplicate(true)
+	var canonical_input_value: Variant = planning.get("canonical_input", {})
+	if not canonical_input_value is Dictionary:
+		push_error("FAIL: %s canonical input missing" % label)
+		failures += 1
+		_dispose_shell(shell)
+		return {"ok": false}
+	var canonical_input_source: Dictionary = canonical_input_value
+	var canonical_input: Dictionary = canonical_input_source.duplicate(true)
 
 	var confirm: Dictionary = control.activate_primary_action()
 	if not bool(confirm.get("ok", false)):

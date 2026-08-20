@@ -45,26 +45,34 @@ Increments 1-13 established the runnable Godot project, deterministic/fixed-poin
 - Updated only that test call from `flow.review_snapshot()` to `flow.last_review()`.
 - No speculative follow-on CI fixes were bundled; the deterministic replay contract remains the next unexecuted late-12B gate until this checkpoint runs.
 
+### Increment 39 — repair deterministic replay canonical-input typing
+- Inspected `organism-cargo/godot-headless` on Increment 38 and followed exact workflow run `32331815734`.
+- Godot 4.7.1 passed project import, production-content boot, persistent-shell boot, all bootstrap/content/persistence/composition/Launch/planning/transit/delivery/thermal/Causal Review/Retry suites, player-facing control, planning editor, and persistent-shell VS01 playability.
+- The first concrete failure moved to `tests/unit/vertical_slice_shell_determinism_test_runner.gd:69`: `planning.get("canonical_input", {})` remains `Variant`, so calling `duplicate(true)` directly is rejected under warnings-as-errors.
+- Repaired only that boundary by validating the returned value is a `Dictionary`, assigning it to a typed `Dictionary` source, and then duplicating it.
+- Added an explicit failure path if canonical input is unexpectedly absent/non-dictionary; no replay semantics, gameplay rule, checksum rule, or launch identity behavior changed.
+- No speculative later CI fixes were bundled.
+
 ## Checks performed this run
 - Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` before acting.
-- Re-read the current UX authority for the affected shell/review boundary: `PHASE11_UX_ACCESSIBILITY.md` and `UX_ARCHITECTURE.md`.
-- Confirmed latest `main` at checkpoint start was `f085933a7da1f761cb5559c0abb0d25b292a99f1` (`12B: repair player-facing planning control parser failure`).
-- Queried `organism-cargo/godot-headless`; it reported `failure` and linked exact run `32328496029`.
-- Inspected the job steps and full log. Production content boot, persistent shell smoke boot, bootstrap, persistence/content, composition, Launch, planning, transit, delivery, thermal, Causal Review, targeted Retry, shell flow, player-facing control and planning-editor suites all passed.
-- The persistent-shell playability runner then failed at parse time because `review_snapshot()` is absent on the statically inferred `VerticalSliceFlowCoordinator` type; deterministic replay was skipped after that failure.
-- Inspected `src/app/vertical_slice_flow_coordinator.gd` and verified `last_review()` is the existing public accessor returning the immutable duplicate of the latest review evidence.
-- Batched the single compatibility repair and this status update into one checkpoint to preserve the anti-spam one-push rule.
+- Confirmed latest `main` at checkpoint start was `0c983dd36b5afb3a4f6cefa67ba00984b4f4f899` (`12B: repair shell Causal Review accessor`).
+- Queried `organism-cargo/godot-headless`; it reported `failure` and linked exact run `32331815734`.
+- Inspected the full job step list and log.
+- Verified the persistent-shell VS01 playability contract now passes.
+- Verified the only first concrete failure is the deterministic replay runner parse error at canonical-input duplication; all earlier late-12B gates pass in the same Godot 4.7.1 job.
+- Applied one narrow typed-boundary repair and preserved the anti-spam single-checkpoint policy.
+- Local Godot execution is unavailable in this runtime; the new checkpoint CI is the authoritative runtime verification gate.
 
 ## Current blockers
-- The Increment-38 Godot 4.7.1 CI run is now the runtime gate.
-- 12B remains IN PROGRESS until `organism-cargo/godot-headless` on this checkpoint is observed `success` and the same job proves player-facing control, planning editor, persistent-shell VS01 playability, and deterministic replay/checksum contracts all pass.
+- The Increment-39 Godot 4.7.1 CI run is now the runtime gate.
+- 12B remains IN PROGRESS until `organism-cargo/godot-headless` on this checkpoint is observed `success` and the deterministic replay/checksum step passes in the same job.
 - If the status is `failure`, inspect its exact target run and repair only the first concrete parser/type/API/test failure next.
 - Full rotate/remove/undo/support workflows remain frozen-scope work for later phases rather than hidden stubs in this tiny slice.
 - Full controller/keyboard remapping, Deck layout and accessibility acceptance remain Phase 12E.
 - Full growth/support/hazard families and production roster/campaign remain deferred.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect `organism-cargo/godot-headless` on the Increment-38 checkpoint. If failure, follow the exact target run, repair only the first concrete failure and checkpoint once. If success, verify the player-facing control, planning editor, persistent-shell playability and deterministic replay steps all passed in that same Godot 4.7.1 job, mark Phase 12B COMPLETE, then begin the smallest Phase 12C core-systems increment only after reading its exact canonical authority files.**
+**Continue Phase 12B — inspect `organism-cargo/godot-headless` on the Increment-39 checkpoint. If failure, follow the exact target run, repair only the first concrete failure and checkpoint once. If success, verify the player-facing control, planning editor, persistent-shell playability and deterministic replay steps all passed in that same Godot 4.7.1 job, mark Phase 12B COMPLETE, then begin the smallest Phase 12C core-systems increment only after reading its exact canonical authority files.**
 
 Next run:
 1. query latest `main` and its `organism-cargo/godot-headless` status first;
