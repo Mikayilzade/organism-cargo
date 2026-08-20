@@ -68,31 +68,37 @@ Increments 1-13 established the runnable Godot project, deterministic/fixed-poin
 - Added the shell playability contract as the final vertical-slice step in the existing Godot 4.7.1 headless workflow.
 - No Results/progression, roster expansion, support workflow, or gameplay redesign was introduced.
 
+### Increment 34 — persistent-shell deterministic replay evidence
+- Added `vertical_slice_shell_determinism_test_runner.gd` to run the production persistent-shell VS01 lifecycle twice from clean session storage using equivalent player-built manifest/cell input.
+- The contract compares canonical player input, persisted committed-input checksum, the authoritative tick-checksum sequence, completion checksum and Causal Review checksum across isolated launches while requiring distinct run IDs.
+- Added the deterministic replay contract as the final Godot 4.7.1 headless workflow step.
+- This increment adds only exit-gate evidence; it does not add Results/progression, broaden content, or change frozen gameplay.
+
 ## Checks performed this run
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and `PHASE11_UX_ACCESSIBILITY.md` before acting.
-- Re-read the current persistent shell, player-facing control, project main-scene configuration, production planning-editor test, workflow, and latest main checkpoint.
-- Confirmed main at run start was `18d549b39f3b9b81402b97e25c7f515a3ad08dd6` (`12B: add player-built VS01 planning editor`).
-- Inspected the available combined status for Increment 32; the connected GitHub status interface exposes no push status contexts, so this run does not invent a green/red claim for that checkpoint.
-- Added one shell-owned end-to-end headless contract and one workflow step, batched with this status update into a single checkpoint to preserve the anti-spam rule.
-- Actual Godot 4.7.1 execution of Increment 33 is the next runtime gate; if red, repair only the first concrete failure.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and the current-subsystem persistence authority `PHASE11_TECH_PERSISTENCE.md` before acting.
+- Re-read the persistent shell, `VerticalSliceFlowCoordinator`, `VerticalSliceControl`, delivery completion checksum builder, Causal Review checksum builder, current shell playability test and headless workflow.
+- Confirmed main at checkpoint start was `92ef66ec9fb810b7f18cb55b3e3bf2f8310cd090` (`12B: verify persistent shell VS01 playability`).
+- Queried the available connected GitHub run/status surfaces for Increment 33; they expose no push-run/status context for that commit, so this run does not fabricate a green/red result.
+- Added one deterministic shell-level replay/checksum contract and one workflow step in the same repository tree checkpoint, preserving the anti-spam one-push rule.
+- Actual Godot 4.7.1 execution of Increment 34 is the next runtime gate; if red, repair only the first concrete failure.
 
 ## Current blockers
-- Increment-33 Godot 4.7.1 CI is pending as the next runtime gate.
-- The 12B player-facing slice is still deliberately tiny: two VS01 organisms, fixed orientation 0, no supports, one deterministic transit tick and no Results/progression.
+- Increment-34 Godot 4.7.1 CI is pending as the next runtime gate.
+- 12B cannot be marked complete until the persistent-shell playability and deterministic replay/checksum contracts are observed green under actual Godot 4.7.1 execution.
+- The 12B player-facing slice remains deliberately tiny: two VS01 organisms, fixed orientation 0, no supports, one deterministic transit tick and no Results/progression.
 - Full rotate/remove/undo/support workflows remain frozen-scope work for later phases rather than hidden stubs in this tiny slice.
 - Full controller/keyboard remapping, Deck layout and accessibility acceptance remain Phase 12E.
 - Full growth/support/hazard families and production roster/campaign remain deferred.
 
 ## NEXT ACTION
-**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 33. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, use the now-proven persistent-shell lifecycle to close the remaining 12B exit-gate evidence: verify same committed player-built input reproduces the same authoritative transit/review result across two isolated runs, then add the smallest deterministic shell-level replay/checksum contract required by that evidence.**
+**Continue Phase 12B — inspect the single Godot Headless Tests run created by Increment 34. If red, repair only the first concrete parser/type/API/test failure and checkpoint once. If green, record the 12B exit-gate evidence, mark Phase 12B COMPLETE, and begin the first narrow Phase 12C core-systems increment strictly from the canonical authority chain.**
 
 Next run:
-1. inspect Increment-33 CI first;
+1. inspect Increment-34 CI first;
 2. if red, repair only the first concrete failure and preserve one-checkpoint anti-spam behavior;
-3. if green, run two isolated shell-owned VS01 lifecycles from equivalent player-built input and compare authoritative run/transit/review identity rather than presentation text;
-4. add only the smallest replay/checksum integration contract needed to prove deterministic reproduction at the shell boundary;
-5. keep structural validation canonical, Launch two-step and Retry targeted;
-6. do not add Results/progression or broaden content beyond the deliberately tiny vertical slice;
-7. do not mark 12B complete until the persistent-shell tiny contract satisfies the vertical-slice exit gate under actual Godot 4.7.1 execution.
+3. if green, verify both the persistent-shell playability contract and deterministic replay/checksum contract passed in the same actual Godot 4.7.1 run;
+4. only then mark 12B COMPLETE;
+5. choose the smallest Phase 12C subsystem from the frozen canonical rules and read its exact authority files before implementation;
+6. do not broaden content, Results/progression, accessibility or platform scope merely to create work.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.

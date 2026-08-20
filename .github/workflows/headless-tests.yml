@@ -141,3 +141,9 @@ jobs:
         run: |
           set -euo pipefail
           /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/vertical_slice_shell_playability_test_runner.gd
+
+      - name: Persistent shell deterministic replay contract test
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/vertical_slice_shell_determinism_test_runner.gd
