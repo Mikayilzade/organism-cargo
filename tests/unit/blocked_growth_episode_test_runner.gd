@@ -18,7 +18,8 @@ func _init() -> void:
 	_assert_true(bool(unchanged["ok"]), "unchanged blocked attempt resolves")
 	_assert_false(bool(unchanged["entry_consequence_fired"]), "unchanged obstruction does not repeat consequence")
 	_assert_equal(int(unchanged["episode_index"]), 1, "unchanged obstruction stays in same episode")
-	_assert_true(unchanged["causal_event"].is_empty(), "unchanged obstruction does not create another causal root")
+	var unchanged_causal_event := unchanged["causal_event"] as Dictionary
+	_assert_true(unchanged_causal_event.is_empty(), "unchanged obstruction does not create another causal root")
 	state = unchanged["state"]
 
 	var reordered: Dictionary = _blocked_attempt("cargo-02", "", "planning-retry-0")

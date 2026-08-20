@@ -57,24 +57,31 @@ Increments 1-13 established the runnable Godot project, deterministic/fixed-poin
 - Added `tests/unit/blocked_growth_episode_test_runner.gd` covering first entry, unchanged blockage, insertion-order determinism, occupancy change, successful clearance, retry-boundary change, orientation change, and one causal root per episode.
 - Added the new contract runner to the Godot headless workflow.
 
+### Increment 41 — blocked-growth test typing repair
+- Inspected the exact failed Godot 4.7.1 run for Increment 40 (`32339705921`).
+- Project import/parse and every pre-existing 12A/12B contract passed; the only first concrete failure was `tests/unit/blocked_growth_episode_test_runner.gd:21`.
+- Under warnings-as-errors, `unchanged["causal_event"]` remained inferred as `Variant`, so calling `is_empty()` directly was rejected.
+- Repaired only that test boundary by casting the causal-event value to `Dictionary` before calling `is_empty()`.
+- No blocked-growth semantics, gameplay rule, resolver behavior, workflow structure, or test expectation changed.
+
 ## Checks performed this run
 - Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` before acting.
-- Confirmed latest `main` was `678f6291af3ac95d547a8f5678894a60ec976257` (`12B: repair deterministic replay canonical input typing`).
-- Queried `organism-cargo/godot-headless`; it reported `success` and linked exact run `32335920878`.
-- Verified every step in that Godot 4.7.1 run passed, including all four late 12B exit-gate contracts.
-- Read the highest-authority blocked-growth override in `PHASE11_FINAL_FREEZE.md`, the top-level invariant in `GAME_BIBLE.md`, and the exact Phase-B/growth episode semantics in `MECHANICS.md` before implementing Increment 40.
-- Preserved the anti-spam policy by batching the Phase-12C kernel, tests, workflow registration and status update into one checkpoint commit.
-- Local Godot execution is unavailable in this runtime; the Increment-40 main CI run is the authoritative runtime verification gate.
+- Confirmed latest `main` was `acc48557f80ca7c4e23aafc011b2a12cfd3320c3` (`12C: add blocked-growth episode semantics kernel`).
+- Queried `organism-cargo/godot-headless`; it reported `failure` and linked exact run `32339705921`.
+- Inspected the job and full Godot log. Every earlier contract passed; the blocked-growth runner was the first and only failing step.
+- Applied one narrow warnings-as-errors typing repair only, consistent with the anti-spam policy.
+- Batched the code/test-state repair and this status update into one checkpoint commit.
+- Local Godot execution is unavailable in this runtime; the new main CI run is the authoritative runtime verification gate.
 
 ## Current blockers
-- Increment 40 has not yet been observed under Godot 4.7.1 on `main`; its CI result is the immediate runtime gate.
-- If the checkpoint fails, inspect the exact linked job/log and repair only the first concrete parser/type/API/test failure next.
-- Full growth-trigger qualification/body-stage integration into `TransitSliceRunner` remains subsequent Phase 12C work after this isolated episode kernel is green.
+- Increment 41 has not yet been observed under Godot 4.7.1 on `main`; its CI result is the immediate runtime gate.
+- If this checkpoint fails, inspect the exact linked job/log and repair only the first concrete parser/type/API/test failure next.
+- Full growth-trigger qualification/body-stage integration into `TransitSliceRunner` remains subsequent Phase 12C work after the isolated blocked-growth episode kernel is green.
 - Brownout/support authority, contamination, feeding, sleep gating, remaining hazards, finite reactive triggers and simultaneous multi-parent ancestry remain Phase 12C scope.
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on the Increment-40 checkpoint. If failure, follow the exact target run and repair only the first concrete failure. If success, integrate the green blocked-growth episode resolver into Phase-B transit growth resolution using canonical body-stage/footprint legality data, with deterministic regression coverage for unchanged obstruction and relevant-condition reset.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on the Increment-41 checkpoint. If failure, follow the exact target run and repair only the first concrete failure. If success, integrate the green blocked-growth episode resolver into Phase-B transit growth resolution using canonical body-stage/footprint legality data, with deterministic regression coverage for unchanged obstruction and relevant-condition reset.**
 
 Next run:
 1. query latest `main` and its `organism-cargo/godot-headless` status first;
