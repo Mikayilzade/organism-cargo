@@ -38,44 +38,48 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Increments 65-67: deterministic T09 Symbiotic Buffer primitive plus production contamination-intake integration; checkpoint `78e1ceb467dc2cf5c6fdce45ca12687e33f5c6c7` observed green.
 - Increments 68-69: deterministic T07 feeding primitive plus corrected conserved-allocation acceptance expectation; checkpoint `cd51b79aaacb5a701b57b0e343f5882ee15a6807` observed green.
 - Increments 70-72: production T07 wrapper plus two focused coexistence-fixture repairs; checkpoint `a486d8ed2416cef1cf655d3aa923099dbca2a10b` observed green via `organism-cargo/godot-headless`, workflow run `32482176212`.
+- Increment 73: shared T06 + T07 Phase-E/F resource composition from one pre-F organism snapshot, one final satiety clamp and multi-root shared satiety evidence; checkpoint `e62db4c3c97c851beebecf89459451fb154f772c` observed green via `organism-cargo/godot-headless`, workflow run `32487315622`.
 
-### Increment 73 — shared T06 + T07 Phase-E/F resource composition
-- Started only after confirming Increment 72 green under Godot 4.7.1.
-- Re-read the mandatory recovery/freeze chain and exact simultaneous-effect/feeding authority in `MECHANICS.md`.
-- Added `src/sim/transit_shared_resource_runner.gd` between the existing green base transit runner and contamination-response wrapper. The original T06 base implementation remains unchanged as a regression reference.
-- T06 Filter Feeder and T07 feeding now both resolve Phase-E allocations from the same authoritative pre-F organism snapshot. Neither trait can consume satiety headroom created/removed by the other trait's same-tick Phase-F commit.
-- T06 still owns conserved contamination consumption; T07 still owns conserved food allocation. Their additive satiety gains are aggregated deterministically by organism and clamped exactly once in Phase F.
-- Added one authoritative `SHARED_SATIETY_COMMIT` causal event per affected organism with all material Phase-E parent event IDs and deterministic contributor-trait evidence. The requested versus applied delta is explicit when the common final clamp truncates combined gain.
-- Shared satiety evidence, T07 allocations/events and resulting organism runtime are checksum-visible. Deterministic ordering is by stable IDs/parent sorting rather than authored trait-array order.
-- Simplified `transit_power_integrated_runner.gd` back to a thin composition entrypoint; T07 no longer runs as a post-pass after T06.
-- Extended the existing T07 production acceptance case so coexistence uses initial satiety 5/7, one T07 food unit and two T06 contamination units on the same tick. Both allocations must succeed from the common pre-F headroom, while the summed +3 request clamps once to +2 applied and preserves both causal roots.
-- T10, sleep transitions, S03-S06 behavior and unrelated hazards remain outside this increment.
+### Increment 74 — S06 Monitor Beacon information-only runtime contract
+- Started only after confirming Increment 73 green under Godot 4.7.1.
+- Re-read the mandatory recovery/freeze chain plus `MECHANICS.md`, `DECISION_ARCHITECTURE.md`, `CONTENT_ARCHITECTURE.md`, `TECHNICAL_SPEC.md` and `UX_ARCHITECTURE.md` for the exact Monitor Beacon boundary.
+- Added `src/sim/s06_monitor_beacon_kernel.gd` as an information-only deterministic support kernel. It supports exactly the two frozen information roles without mitigation: one contract-declared bounded fact or exact single-cell telemetry from an already-published authoritative channel snapshot.
+- A bounded fact is revealed at most once per run, only on the first tick where its owning S06 instance is Phase-A same-tick eligible. Brownout-disabled Monitor Beacon therefore produces no same-tick information event.
+- Local telemetry samples only one declared cell/channel per powered tick and never mutates heat, contamination, stress-field or organism/support runtime state.
+- Enforced one information contract per Monitor instance so S06 cannot become a multi-fact oracle. Bounded fact values are restricted to deterministic scalar bool/int/string data; the kernel computes no success verdict, layout recommendation, probability or inferred solution.
+- Added `src/sim/transit_monitor_integrated_runner.gd` above the existing contamination/shared-resource composition. It records S06 information events and one-time fact disclosure state in end-tick evidence/checksums while leaving the underlying mechanical snapshot untouched.
+- `transit_power_integrated_runner.gd` remains a thin public composition entrypoint and now points at the Monitor wrapper.
+- Added `tests/unit/s06_monitor_beacon_kernel_test_runner.gd` covering Brownout gating, once-only fact disclosure, exact local telemetry/no mutation, one-contract enforcement, production integration and deterministic replay/checksum evidence.
+- Added one headless CI step for the S06 contract suite. No presentation/UI, discovery progression, solver behavior or content population was pulled into Phase 12C.
 
 ## Checks performed this run
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` first.
-- Re-read `MECHANICS.md` simultaneous-effect authority: additive effects combine commutatively before final clamp; finite resources use deterministic allocation; all same-tick threshold decisions use the common post-F snapshot; multiple material causes must preserve all parents.
-- Queried latest `main`: checkpoint `a486d8ed2416cef1cf655d3aa923099dbca2a10b` reports `organism-cargo/godot-headless = success`, workflow run `32482176212`.
-- Inspected current `T06FilterFeederKernel`, `T07FeedingKernel`, production base runner, contamination-response wrapper and T07 acceptance suite before changing composition.
-- Performed a static compatibility pass around runtime identity, satiety-max agreement, deterministic sorting, checksum serialization and preservation of the existing contamination-response wrapper.
-- Local Godot execution is unavailable in this environment. Exactly one checkpoint is produced; GitHub Actions is the executable Godot 4.7.1 validation gate for Increment 73.
+- Read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md` and `PHASE11_FINAL_FREEZE.md` first.
+- Queried latest `main` checkpoint `e62db4c3c97c851beebecf89459451fb154f772c` and confirmed `organism-cargo/godot-headless = success`, workflow run `32487315622`.
+- Re-read canonical S06 authority: information support only; one contract-declared bounded fact or exact local telemetry; no direct mitigation; no success verdict/layout recommendation; discovery Bronze conservatively solvable without it.
+- Reused existing Phase-A same-tick power eligibility instead of inventing separate Monitor power rules.
+- Performed a static compatibility pass around Variant/Array/Dictionary narrowing, stable revelation ordering, scalar checksum serialization, wrapper inheritance and non-mutation of base snapshots.
+- Local Godot execution is unavailable in this environment. Exactly one main checkpoint is produced; GitHub Actions is the executable Godot 4.7.1 validation gate for Increment 74.
 
 ## Current blockers
-- Increment 73 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
-- S06 Monitor Beacon information-only behavior remains unimplemented.
-- S03 Baffle, S04 Nest Pad and S05 Feed Cartridge transit behavior remains unimplemented and intentionally fails closed.
-- Simultaneous multi-growth conflict semantics remain unimplemented until a canonical conflict rule is identified; runtime fails closed instead of inventing a winner.
-- Sleep runtime transitions, remaining hazards, finite T10 reactive triggers and simultaneous multi-parent ancestry outside covered paths remain Phase 12C scope.
-- Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
+- Increment 74 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
+- S03 Baffle transit behavior remains unimplemented and depends on stress/direct-relation transmission authority.
+- S04 Nest Pad and authoritative sleep/recovery transitions remain unimplemented.
+- S05 Feed Cartridge finite conserved reserve/support behavior remains unimplemented.
+- Stress-field production/propagation and H02 Vibration Burst stress/wake behavior remain unimplemented.
+- H05 Vent Cycle and H06 Zone Isolation remain unimplemented.
+- Simultaneous multi-growth conflict semantics remain unimplemented until the canonical conflict rule can be applied without inventing a winner.
+- Finite T10 reactive triggers and simultaneous multi-parent ancestry outside already-covered paths remain Phase 12C scope.
+- Production roster/campaign remains Phase 12D; full accessibility/controller/Deck and player-facing Monitor presentation remain Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 73. If failure, repair only the first concrete failure. If success, implement the next smallest frozen core-system gap with canonical acceptance coverage; prefer S06 Monitor Beacon only if its information-only runtime contract can be added without pulling UX/solver behavior into Phase 12C, otherwise take the next independently testable support/hazard transition boundary.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 74. If failure, repair only the first concrete failure. If success, implement the next independent environmental core boundary: deterministic stress-field state plus H02 Vibration Burst stress-field contribution/Phase-D publication, keeping explicit wake requests and sleep transitions separate unless the exact frozen ordering requires them in the same minimal increment.**
 
 Next run:
 1. query latest `main` and its `organism-cargo/godot-headless` result first;
 2. if failure, inspect the linked job/log and checkpoint one focused repair only;
-3. if success, re-read the exact canonical authority for the selected next subsystem before coding;
-4. implement one substantial recoverable core-system increment with deterministic evidence/checksum coverage;
-5. keep presentation/UX-only work out of Phase 12C unless the frozen mechanic explicitly requires authoritative state;
+3. if success, re-read exact stress-field/H02 authority before coding;
+4. implement common-source-snapshot stress-field generation/propagation/decay with deterministic evidence/checksum coverage and H02 authored input;
+5. do not invent presentation, solver logic or sleep semantics while implementing the field primitive;
 6. do not mark Phase 12C or the project complete until their exit gates are actually satisfied.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.
