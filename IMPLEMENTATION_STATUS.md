@@ -32,54 +32,49 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Increment 52: H03 contamination field and deterministic Phase-D propagation; checkpoint `819380804d6ef326ce97fa0edf855087ed6a3d46` observed green.
 - Increment 53: production H03 -> S02 -> Phase-D contamination integration with deterministic environment/support evidence and checksum material.
 - Increment 54: Godot 4.7.1 Variant/Array parse repair; checkpoint `8145928b09e86af83412d269474b25fadadcd1dc` observed green, workflow run `32414212677`.
-- Increment 55: deterministic organism contamination response kernel for Phase E sampling, Phase F resistance-modified load intake and Phase G `CONTAMINATED` enter/exit hysteresis, with causal E -> F -> G event links and deterministic unit coverage. Checkpoint `ef74eac7a57b7028a52c30662fb13550bdccf2b4` observed green via `organism-cargo/godot-headless`, workflow run `32417932824`.
+- Increment 55: deterministic organism contamination response kernel for Phase E sampling, Phase F resistance-modified load intake and Phase G `CONTAMINATED` enter/exit hysteresis; checkpoint `ef74eac7a57b7028a52c30662fb13550bdccf2b4` observed green, workflow run `32417932824`.
+- Increment 56: production organism contamination response integration.
+- Increment 57: focused Godot 4.7.1 parser repair.
+- Increment 58: scoped organism contamination response to authored contamination authority so thermal-only content bypasses contamination-profile preparation. Checkpoint `098ee4b586a895d01dd5f63b5bf46692b7e14bee` observed green via `organism-cargo/godot-headless`, workflow run `32429106209`.
 
-### Increment 56 — production organism contamination response integration
-- Added production integration of `ContaminationResponseKernel` over the existing green transit implementation.
-- Persisted contamination load and `CONTAMINATED` state across ticks, preserved environment authority, added deterministic response evidence and checksum material, and extended acceptance coverage.
-- Checkpoint `80eb5ca8ec1d96574c1de2a97cbd4fe5ec01464b` reached Godot 4.7.1 CI but failed on one warnings-as-errors parser issue before the new acceptance suite could execute.
-
-### Increment 57 — focused Godot 4.7.1 parser repair
-- Inspected workflow run `32419971986` before changing code.
-- The first concrete failure was `src/sim/transit_power_integrated_runner.gd:58`: `raw_snapshot` was statically `Variant`, so `raw_snapshot.duplicate(true)` was rejected even after the runtime Dictionary guard.
-- Repaired only that failure by assigning the validated value to a typed `Dictionary` first, then duplicating the typed dictionary.
-- Checkpoint `a74c68c7d9c20c12dbf2ca998001f70fbcebd050` parsed successfully under Godot 4.7.1 but exposed the next concrete regression in the delivery completion suite.
-
-### Increment 58 — scope contamination response to active contamination authority
-- Inspected workflow run `32424461298` before changing code.
-- Project import and all suites through the deterministic transit slice passed. The first failing suite was `delivery_completion_test_runner.gd`.
-- Root cause: the base integrated runner always serializes a zero-filled `contamination_by_cell` snapshot even when no contamination subsystem is authored. The new wrapper interpreted that structurally non-empty zero map as an active contamination channel, then required contamination profiles from ordinary thermal-only organism definitions. This caused transit completion to fail before Phase I.
-- Repaired only that integration-boundary regression: organism contamination response now activates only when `simulation_defs.contamination_rules` is an authored Dictionary. Without contamination authority, the wrapper returns the already-valid base transit result unchanged.
-- This does not change contamination arithmetic, environment persistence, resistance, hysteresis, event ordering, support/hazard behavior, or any frozen gameplay rule. It restores isolation between ordinary thermal transit and the optional contamination subsystem.
+### Increment 59 — exact T05 Spore Shedder Phase-C primitive
+- Re-read the implementation handoff/status/freeze chain and the exact Phase-C/T05/sleep-gating authority before coding.
+- Confirmed Increment 58 green under Godot 4.7.1 before broadening Phase 12C.
+- Added `src/sim/t05_spore_shedder_kernel.gd` as a deterministic Phase-C organism contamination-source primitive.
+- T05 output is data-defined per organism instance, stable-sorted by `instance_id`, and adds the authored weak/standard/strong continuous magnitude (`2/3/4`) to every currently occupied source cell. This makes footprint expansion automatically expand the emission footprint without bespoke species logic.
+- Added optional authored primary-state and body-stage gates. Ordinary state gates accept only `CALM`, `AGITATED`, or `PANICKED`.
+- Enforced the frozen sleep rule explicitly: `ASLEEP` does not suppress passive spores merely because a mood-state gate exists; sleep suppresses T05 only when `sleep_gated = true`.
+- The kernel copies the published Phase-C input field rather than mutating it, emits stable per-source-cell causal records, rejects duplicate/missing instance identities, rejects out-of-band continuous source magnitudes, and fails closed if an occupied source cell is absent from the contamination field.
+- Added executable T05 contract coverage to the existing always-run bootstrap headless suite for per-cell emission, state gating, explicit sleep gating, immutable input, stable source order and causal-event count.
+- Production transit integration is intentionally not yet added in this increment. Direct integration must occur inside the authoritative Phase-C path rather than by post-processing end-tick snapshots, because same-tick state/stage semantics must remain exact.
 
 ## Checks performed this run
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` first.
-- Latest `main` at start: `a74c68c7d9c20c12dbf2ca998001f70fbcebd050`.
-- Observed `organism-cargo/godot-headless = failure`, workflow run `32424461298`.
-- Inspected the failing job/log. Project import and tests through `transit_slice_test_runner.gd` pass; the first concrete regression is delivery completion failing because thermal-only content is incorrectly routed into contamination profile preparation.
-- Inspected `DeliveryCompletionRunner`, its thermal-only fixture definitions, and both the wrapper and base integrated transit snapshot logic to identify the authority-boundary mismatch.
-- Performed a narrow static audit: contamination-enabled fixtures continue through the response kernel because they author `contamination_rules`; non-contamination fixtures bypass the wrapper and retain the base transit result.
-- Local Godot execution is unavailable in this environment. Exactly one coherent checkpoint is produced; GitHub Actions remains the executable Godot 4.7.1 validation gate.
+- Read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, `MECHANICS.md`, `CONTENT_ARCHITECTURE.md`, and `TECHNICAL_SPEC.md`.
+- Latest `main` at start: `098ee4b586a895d01dd5f63b5bf46692b7e14bee`.
+- Confirmed `organism-cargo/godot-headless = success`, workflow run `32429106209`.
+- Canon re-confirmed: Phase C computes active organism/support outputs before environmental propagation; T05 is a state/stage-gated contamination source; sleep changes a passive spore output only when that trait explicitly declares sleep gating; continuous organism source bands are weak 2 / standard 3 / strong 4.
+- Performed a static warnings-as-errors audit around Variant -> Dictionary/Array conversions, stable sorting, duplicate detection and PackedStringArray typing.
+- Local Godot execution is unavailable in this environment. Exactly one coherent main checkpoint is produced; GitHub Actions is the executable Godot 4.7.1 validation gate.
 
 ## Current blockers
-- Increment 58 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
-- T05 Spore Shedder organism Phase-C contamination source behavior remains unimplemented.
+- Increment 59 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
+- T05 is not yet wired into the production Phase-C transit path.
 - T06 Filter Feeder and T09 Symbiotic Buffer contamination interactions remain unimplemented.
 - S06 Monitor Beacon has Phase-A eligibility authority but its information-only behavior remains unimplemented.
 - S03 Baffle, S04 Nest Pad and S05 Feed Cartridge transit behavior remains unimplemented and intentionally fails closed.
 - Simultaneous multi-growth conflict semantics remain unimplemented until a canonical conflict rule is identified; runtime fails closed instead of inventing a winner.
-- Feeding, sleep gating, remaining hazards, finite reactive triggers and simultaneous multi-parent ancestry remain Phase 12C scope.
+- Feeding, sleep gating/runtime transitions, remaining hazards, finite reactive triggers and simultaneous multi-parent ancestry remain Phase 12C scope.
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 58. If failure, repair only the first concrete failure. If success, implement the next smallest canonical contamination interaction, preferring T05 Spore Shedder Phase-C organism source behavior.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 59. If failure, repair only the first concrete failure. If success, wire `T05SporeShedderKernel` directly into the authoritative Phase-C production transit path before H03/S02 and Phase-D propagation, preserving same-tick state/stage/sleep authority and checksum/causal evidence.**
 
 Next run:
 1. query latest `main` and `organism-cargo/godot-headless` first;
-2. if failure, inspect the linked job/log and make one focused repair checkpoint only;
-3. if success, re-read exact T05 trigger/state/stage/sleep-gating authority and source magnitude rules before coding;
-4. implement deterministic T05 Phase-C organism contamination source output with stable source-cell evidence and production integration;
-5. add acceptance tests for state/stage gating, persistence into the environment field, ordering relative to H03/S02 and deterministic replay;
-6. keep T06/T09/T10, feeding, sleep implementation, S03-S06 behavior and unrelated hazards out of that increment.
+2. if failure, inspect the linked job/log and checkpoint one focused repair only;
+3. if success, integrate T05 from current Phase-B organism runtime into Phase C without reconstructing source state from end-tick snapshots;
+4. preserve deterministic additive ordering with H03 and S02, and include T05 source evidence in snapshots/checksum material;
+5. add production acceptance tests for state/stage/sleep gates, footprint-driven source expansion, H03 + T05 + S02 ordering and deterministic replay;
+6. keep T06/T09/T10, feeding, sleep-transition implementation, S03-S06 behavior and unrelated hazards out of that increment.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.

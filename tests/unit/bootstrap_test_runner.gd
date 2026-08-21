@@ -3,6 +3,7 @@ extends SceneTree
 const FixedMathScript := preload("res://src/sim/fixed_math.gd")
 const ChecksumScript := preload("res://src/sim/checksum/canonical_checksum.gd")
 const SimulationInputScript := preload("res://src/sim/model/simulation_input.gd")
+const T05SporeShedderKernelScript := preload("res://src/sim/t05_spore_shedder_kernel.gd")
 
 var failures: int = 0
 
@@ -10,6 +11,7 @@ func _initialize() -> void:
 	_test_fixed_math()
 	_test_canonical_checksum()
 	_test_simulation_input()
+	_test_t05_spore_shedder_phase_c_contract()
 	if failures == 0:
 		print("BOOTSTRAP TESTS PASS")
 		quit(0)
@@ -43,3 +45,75 @@ func _test_simulation_input() -> void:
 	_expect_equal(input.contract_id, &"C01", "input contract id")
 	_expect_equal(input.route_profile_id, &"route_intro", "input route id")
 	_expect_equal(input.seed, 42, "input seed")
+
+func _test_t05_spore_shedder_phase_c_contract() -> void:
+	var kernel: T05SporeShedderKernel = T05SporeShedderKernelScript.new()
+	var field: Dictionary = {"0,0": 1, "1,0": 0}
+	var before: Dictionary = field.duplicate(true)
+	var definition: Dictionary = {
+		"instance_id": "spore-a",
+		"output_amount": 3,
+		"active_primary_states": ["PANICKED"],
+		"active_body_stages": [],
+		"sleep_gated": false,
+	}
+	var panicked: Dictionary = kernel.apply_phase_c(
+		1,
+		field,
+		[{
+			"instance_id": "spore-a",
+			"occupied_cells": ["1,0", "0,0"],
+			"primary_state": "PANICKED",
+			"body_stage": "MATURE",
+		}],
+		[definition]
+	)
+	_expect_equal(bool(panicked.get("ok", false)), true, "T05 active source succeeds")
+	if not bool(panicked.get("ok", false)):
+		return
+	_expect_equal(panicked["contamination_by_cell"], {"0,0": 4, "1,0": 3}, "T05 emits from every occupied source cell")
+	_expect_equal(field, before, "T05 input environment remains immutable")
+	var events: Array = panicked["events"]
+	_expect_equal(events.size(), 2, "T05 emits one causal record per source cell")
+	_expect_equal(String(events[0]["cell_key"]), "0,0", "T05 source order is stable")
+
+	var calm: Dictionary = kernel.apply_phase_c(
+		1,
+		{"0,0": 0},
+		[{
+			"instance_id": "spore-a",
+			"occupied_cells": ["0,0"],
+			"primary_state": "CALM",
+			"body_stage": "MATURE",
+		}],
+		[definition]
+	)
+	_expect_equal(int(calm.get("contamination_by_cell", {}).get("0,0", -1)), 0, "T05 state gate suppresses nonmatching state")
+
+	var asleep_not_gated: Dictionary = kernel.apply_phase_c(
+		1,
+		{"0,0": 0},
+		[{
+			"instance_id": "spore-a",
+			"occupied_cells": ["0,0"],
+			"primary_state": "ASLEEP",
+			"body_stage": "MATURE",
+		}],
+		[definition]
+	)
+	_expect_equal(int(asleep_not_gated.get("contamination_by_cell", {}).get("0,0", -1)), 3, "sleep does not suppress T05 without explicit sleep gating")
+
+	var sleep_gated_definition: Dictionary = definition.duplicate(true)
+	sleep_gated_definition["sleep_gated"] = true
+	var asleep_gated: Dictionary = kernel.apply_phase_c(
+		1,
+		{"0,0": 0},
+		[{
+			"instance_id": "spore-a",
+			"occupied_cells": ["0,0"],
+			"primary_state": "ASLEEP",
+			"body_stage": "MATURE",
+		}],
+		[sleep_gated_definition]
+	)
+	_expect_equal(int(asleep_gated.get("contamination_by_cell", {}).get("0,0", -1)), 0, "explicit sleep gate suppresses T05")
