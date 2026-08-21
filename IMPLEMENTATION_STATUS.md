@@ -27,32 +27,31 @@ Increments 40-75 established and iteratively verified blocked growth/T08, Browno
 - Added kernel acceptance coverage; checkpoint `6498c79a9207f8468b7b4a67e748b9bd80ac0d36` was subsequently observed green via `organism-cargo/godot-headless`, workflow run `32503408125`.
 
 ### Increment 77 — production H02 stress-field Phase-C/Phase-D integration
-- Started only after confirming Increment 76 green under Godot 4.7.1.
-- Added `src/sim/transit_stress_field_integrated_runner.gd` above the existing Monitor/contamination/shared-resource production chain.
-- The wrapper isolates H02 from the older base parser that does not own H02, while preserving all other route hazards and systems unchanged for the underlying authoritative transit run.
-- Reconstructs the full authored route hazard set per tick, initializes the stress-field channel over the canonical usable-cell order, applies H02 source contributions at the Phase-C boundary and propagates/decays/clamps them at the Phase-D boundary.
-- Publishes deterministic `stress_field_by_cell` and `stress_field_source_events` in end-tick snapshots, restores full authored `active_hazards` evidence, and folds field/event authority into each tick checksum.
-- Preserves heat/contamination/feeding/monitor outputs from the existing production chain without cross-channel mutation.
-- Repointed the public `transit_power_integrated_runner.gd` compatibility entry to the new stress-field-integrated runner so existing callers gain H02 field authority without API changes.
-- Extended the existing stress-field headless test runner with production acceptance cases covering two-tick carry/decay, exact authored active-hazard evidence, coexistence with H01 heat, checksum visibility and deterministic replay.
-- Kept organism internal-stress intake, H02 wake requests, sleep transitions and S03-S05 intentionally outside this increment.
+- Added `src/sim/transit_stress_field_integrated_runner.gd` above the existing production chain.
+- H02 is isolated from the older base parser, then reconstructed at exact Phase-C/Phase-D authority with deterministic `stress_field_by_cell`, source events, full authored active-hazard evidence and checksum material.
+- Repointed the public transit compatibility entry to this wrapper and added production acceptance tests for carry/decay, H01 coexistence, checksum visibility and deterministic replay.
+- Organism internal-stress intake, wake requests, sleep and S03-S05 remained out of scope.
 
 ### Increment 78 — focused Godot 4.7.1 inheritance parse repair
-- Started from Increment 77 checkpoint `539f40d44167c54e99f44d2407c246454c3aec4a` after observing `organism-cargo/godot-headless = failure`, workflow run `32508277352`.
-- Inspected the failing headless job before changing code. Project import and the first dependent runtime test report that `res://src/sim/transit_stress_field_integrated_runner.gd` cannot be resolved as a class; downstream delivery failures are compile fallout from that unresolved dependency.
-- Traced the inheritance chain `transit_stress_field_integrated_runner.gd -> transit_monitor_integrated_runner.gd -> transit_contamination_integrated_runner.gd -> transit_shared_resource_runner.gd -> transit_power_integrated_runner_base.gd`.
-- The new stress-field runner redeclared `TransitSliceRunnerScript`, but that constant is already defined by the inherited base runner. Removed only the redundant subclass declaration and kept all H02 gameplay/state/checksum behavior unchanged; the existing inherited constant is still used for canonical cell-order construction.
-- No stress intake, wake/sleep, support, hazard, feeding or transition behavior was added in this repair.
+- Observed Increment 77 checkpoint `539f40d44167c54e99f44d2407c246454c3aec4a` failing in workflow run `32508277352`.
+- Removed only the redundant `TransitSliceRunnerScript` subclass declaration from `transit_stress_field_integrated_runner.gd`; the inherited base declaration remains authoritative.
+- No gameplay behavior changed.
+
+### Increment 79 — focused H02 production acceptance-fixture repair
+- Inspected Increment 78 checkpoint `d2a9a4694c292bc30cc14b9ac8934bd238f08baa`; `organism-cargo/godot-headless` failed in workflow run `32513452421` only at the H02 production coexistence/checksum test. All preceding headless steps, including project import, passed.
+- The failure was not a runtime parser or gameplay failure. The comparison fixture used H02 `delta=4` with a fixed Phase-D transfer of `2` over two ticks. After tick 1 the source retained only `1`, so tick 2 correctly failed closed with `stress_field_transfer_exceeds_source` before the test could compare both runs.
+- Repaired only the invalid comparison fixture: the two comparison runs now use authored H02 deltas `6` and `5`. Both remain distinct, both preserve the same independent heat authority, and both retain enough source value for the configured two-tick transfer.
+- Did not change `StressFieldEnvironmentKernel`, propagation semantics, H02 integration, stress intake, wake/sleep, supports or any other gameplay rule.
 
 ## Checks performed this run
 - Re-read `IMPLEMENTATION_START_HERE.md`, live `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` before acting.
-- Queried latest `main`: Increment 77 checkpoint `539f40d44167c54e99f44d2407c246454c3aec4a` reports `organism-cargo/godot-headless = failure`, workflow run `32508277352`.
-- Inspected job `96853282895`; the first concrete failure is class resolution for `transit_stress_field_integrated_runner.gd` before dependent delivery/Causal Review code can compile.
-- Audited the exact inheritance chain and confirmed `TransitSliceRunnerScript` is already defined in `transit_power_integrated_runner_base.gd`; the repair removes only the duplicate inherited member.
-- Local Godot execution remains unavailable in this environment. Exactly one coherent main checkpoint is produced; GitHub Actions remains the executable Godot 4.7.1 validation gate for Increment 78.
+- Queried latest `main` first: checkpoint `d2a9a4694c292bc30cc14b9ac8934bd238f08baa` reports `organism-cargo/godot-headless = failure`, workflow run `32513452421`.
+- Inspected job `96869635555`. Project import and every headless step through S06 passed; only `stress_field_environment_kernel_test_runner.gd` failed.
+- Traced the failing fixture against deterministic Phase-D common-source transfer and confirmed the weaker `delta=4` run becomes structurally invalid on tick 2 because configured outgoing transfer `2` exceeds source snapshot `1`.
+- Per anti-spam policy, this run makes one focused checkpoint only. GitHub Actions remains the executable Godot 4.7.1 validation gate.
 
 ## Current blockers
-- Increment 78 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
+- Increment 79 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
 - Stress-field exposure is not yet converted into organism internal-stress deltas; H02 wake requests remain unimplemented.
 - S03 Baffle transit behavior depends on stress/direct-relation transmission authority.
 - S04 Nest Pad and authoritative sleep/recovery transitions remain unimplemented.
@@ -63,7 +62,7 @@ Increments 40-75 established and iteratively verified blocked growth/T08, Browno
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck and player-facing Monitor presentation remain Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 78. If failure, repair only the first concrete failure. If success, implement the next exact boundary from published Phase-D `stress_field_by_cell` into deterministic Phase-E exposure sampling and Phase-F organism internal-stress intake, followed by existing Phase-G stress hysteresis, while keeping H02 wake/sleep behavior separate unless canon requires the same transition boundary.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 79. If failure, repair only the first concrete failure. If success, implement the next exact boundary from published Phase-D `stress_field_by_cell` into deterministic Phase-E exposure sampling and Phase-F organism internal-stress intake, followed by existing Phase-G stress hysteresis, while keeping H02 wake/sleep behavior separate unless canon requires the same transition boundary.**
 
 Next run:
 1. query latest `main` and `organism-cargo/godot-headless` first;

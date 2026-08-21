@@ -121,8 +121,8 @@ func _test_production_transit_h02_phase_c_d_integration() -> void:
 
 func _test_production_stress_field_coexists_with_heat_and_is_checksum_visible() -> void:
 	var runner: TransitPowerIntegratedRunner = TransitPowerIntegratedRunnerScript.new()
-	var stronger: Dictionary = runner.simulate(_production_record(), 2, _production_defs(5))
-	var weaker: Dictionary = runner.simulate(_production_record(), 2, _production_defs(4))
+	var stronger: Dictionary = runner.simulate(_production_record(), 2, _production_defs(6))
+	var weaker: Dictionary = runner.simulate(_production_record(), 2, _production_defs(5))
 	_expect_true(bool(stronger.get("ok", false)) and bool(weaker.get("ok", false)), "both H02 strengths execute with H01 coexistence")
 	if not bool(stronger.get("ok", false)) or not bool(weaker.get("ok", false)):
 		return
