@@ -1,6 +1,7 @@
 extends SceneTree
 
 const T07FeedingKernelScript := preload("res://src/sim/t07_feeding_kernel.gd")
+const TransitPowerIntegratedRunnerScript := preload("res://src/sim/transit_power_integrated_runner.gd")
 
 var failures: int = 0
 
@@ -10,6 +11,8 @@ func _init() -> void:
 	_test_consumer_intake_cap_and_satiety_headroom()
 	_test_sleep_gate_disables_declared_producer_output_only()
 	_test_definition_order_does_not_change_result()
+	_test_production_t07_phase_e_f_persists_satiety_and_causal_evidence()
+	_test_production_t07_replay_checksum_and_t06_coexistence_fail_closed()
 	if failures == 0:
 		print("t07_feeding_kernel_test_runner: PASS")
 		quit(0)
@@ -115,6 +118,52 @@ func _test_definition_order_does_not_change_result() -> void:
 	_expect_equal(first["allocations"], second["allocations"], "allocation is independent of authored definition array order")
 	_expect_equal(first["events"], second["events"], "causal evidence is deterministic across definition order")
 
+func _test_production_t07_phase_e_f_persists_satiety_and_causal_evidence() -> void:
+	var runner: TransitPowerIntegratedRunner = TransitPowerIntegratedRunnerScript.new()
+	var result: Dictionary = runner.simulate(_production_record(), 2, _production_defs(false))
+	_expect_true(bool(result.get("ok", false)), "production T07 transit resolves")
+	if not bool(result.get("ok", false)):
+		return
+	var snapshots: Array = result["end_tick_snapshots"]
+	_expect_equal(snapshots.size(), 2, "production T07 keeps one snapshot per tick")
+	var tick_one_runtime: Dictionary = _by_id(snapshots[0]["organism_runtime"])
+	var tick_two_runtime: Dictionary = _by_id(snapshots[1]["organism_runtime"])
+	_expect_equal(int(tick_one_runtime["grazer"]["satiety"]), 5, "Phase-F T07 gain commits on tick one")
+	_expect_equal(int(tick_two_runtime["grazer"]["satiety"]), 6, "T07 satiety persists into the next production tick")
+	var tick_one_events: Array = snapshots[0]["t07_events"]
+	_expect_equal(tick_one_events.size(), 2, "production tick records one allocation and one satiety event")
+	_expect_equal(String(tick_one_events[0]["phase"]), "E", "production allocation evidence remains Phase E")
+	_expect_equal(String(tick_one_events[1]["phase"]), "F", "production satiety evidence remains Phase F")
+	var parents: PackedStringArray = tick_one_events[1]["parent_event_ids"]
+	_expect_equal(parents, PackedStringArray([String(tick_one_events[0]["event_id"])]), "production satiety event retains the allocation parent")
+	var allocations: Array = result["t07_allocations"]
+	_expect_equal(allocations.size(), 2, "finite producer output allocates one unit on each tick")
+	_expect_equal(int(allocations[0]["tick"]), 1, "aggregate allocation evidence includes tick identity")
+	var final_runtime: Dictionary = _by_id(result["final_organism_runtime"])
+	_expect_equal(int(final_runtime["grazer"]["satiety"]), 6, "production final runtime carries T07 satiety authority")
+
+func _test_production_t07_replay_checksum_and_t06_coexistence_fail_closed() -> void:
+	var runner: TransitPowerIntegratedRunner = TransitPowerIntegratedRunnerScript.new()
+	var first: Dictionary = runner.simulate(_production_record(), 2, _production_defs(false))
+	var second: Dictionary = runner.simulate(_production_record(), 2, _production_defs(false))
+	_expect_true(bool(first.get("ok", false)) and bool(second.get("ok", false)), "production T07 deterministic replay resolves twice")
+	if bool(first.get("ok", false)) and bool(second.get("ok", false)):
+		_expect_equal(first["tick_checksums"], second["tick_checksums"], "production T07 replay checksums are deterministic")
+		var changed_defs: Dictionary = _production_defs(false)
+		var changed_consumers: Array = changed_defs["t07_consumer_definitions"]
+		var changed_consumer: Dictionary = changed_consumers[0]
+		changed_consumer["benefit_per_unit"] = 2
+		changed_consumers[0] = changed_consumer
+		changed_defs["t07_consumer_definitions"] = changed_consumers
+		var changed: Dictionary = runner.simulate(_production_record(), 2, changed_defs)
+		_expect_true(bool(changed.get("ok", false)), "changed authored T07 benefit still resolves")
+		if bool(changed.get("ok", false)):
+			_expect_true(String(first["tick_checksums"][0]) != String(changed["tick_checksums"][0]), "T07 satiety/evidence is checksum-visible")
+
+	var coexistence: Dictionary = runner.simulate(_production_record(), 2, _production_defs(true))
+	_expect_true(not bool(coexistence.get("ok", false)), "T06 plus T07 currently fails closed instead of using post-F headroom")
+	_expect_equal(String(coexistence.get("error", "")), "t07_t06_shared_phase_f_composition_not_implemented", "cross-trait Phase-E/F composition exposes the explicit recoverable blocker")
+
 func _organisms() -> Array:
 	return [
 		{"instance_id": "moss", "occupied_cells": ["0,0"], "primary_state": "CALM", "body_stage": "MATURE", "satiety": 6},
@@ -157,6 +206,104 @@ func _consumers() -> Array:
 			"sleep_gated": false,
 		},
 	]
+
+func _production_record() -> Dictionary:
+	return {
+		"run_id": "t07-production-run",
+		"rules_version": "rules-r1",
+		"content_version": "t07-production-1",
+		"canonical_committed_input": {
+			"route_id": "route-t07-production",
+			"seed": 73,
+			"placements": [
+				{"instance_id": "moss", "anchor": [0, 0], "orientation": 0},
+				{"instance_id": "grazer", "anchor": [1, 0], "orientation": 0},
+			],
+			"supports": [],
+			"brownout_priority": [],
+		},
+	}
+
+func _production_defs(with_t06: bool) -> Dictionary:
+	var defs: Dictionary = {
+		"route_profile": {
+			"id": "route-t07-production",
+			"tick_count": 2,
+			"events": [],
+		},
+		"hold_definition": {
+			"dimensions": [2, 1],
+			"blocked_cells": [],
+			"power_capacity": 0,
+		},
+		"hazards_by_id": {},
+		"support_definitions_by_id": {},
+		"organism_definitions": {
+			"moss": {
+				"initial_stress": 0,
+				"initial_state": "CALM",
+				"initial_body_stage": "MATURE",
+				"stress_profile": _stress_profile(),
+				"body_stages": {"MATURE": {"footprints": {"0": [[0, 0]]}}},
+			},
+			"grazer": {
+				"initial_stress": 0,
+				"initial_state": "CALM",
+				"initial_body_stage": "JUVENILE",
+				"initial_satiety": 4,
+				"stress_profile": _stress_profile(),
+				"body_stages": {"JUVENILE": {"footprints": {"0": [[0, 0]]}}},
+			},
+		},
+		"t07_producer_definitions": [{
+			"instance_id": "moss",
+			"output_units": 1,
+			"food_tags": ["moss_food"],
+			"active_primary_states": ["CALM", "AGITATED"],
+			"active_body_stages": ["MATURE"],
+			"sleep_gated": true,
+		}],
+		"t07_consumer_definitions": [{
+			"instance_id": "grazer",
+			"range": 1,
+			"intake_cap": 1,
+			"benefit_per_unit": 1,
+			"satiety_max": 7,
+			"accepted_food_tags": ["moss_food"],
+			"active_primary_states": ["CALM", "AGITATED", "PANICKED"],
+			"active_body_stages": ["JUVENILE"],
+			"sleep_gated": false,
+		}],
+	}
+	if with_t06:
+		defs["contamination_rules"] = {
+			"contamination_min": 0,
+			"contamination_max": 20,
+			"transfer_edges": [],
+			"vent_by_cell": {},
+		}
+		defs["t06_definitions"] = [{
+			"instance_id": "grazer",
+			"consume_capacity": 1,
+			"satiety_per_unit": 1,
+			"satiety_max": 7,
+			"active_primary_states": ["CALM", "AGITATED", "PANICKED"],
+			"active_body_stages": ["JUVENILE"],
+			"sleep_gated": false,
+		}]
+	return defs
+
+func _stress_profile() -> Dictionary:
+	return {
+		"heat_safe_max": 99,
+		"stress_per_heat_unit": 1,
+		"stress_min": 0,
+		"stress_max": 20,
+		"agitated_enter": 6,
+		"agitated_exit": 3,
+		"panic_enter": 11,
+		"panic_exit": 7,
+	}
 
 func _by_id(organisms: Array) -> Dictionary:
 	var result: Dictionary = {}
