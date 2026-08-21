@@ -1,1 +1,1 @@
-extends "res://src/sim/transit_monitor_integrated_runner.gd"
+extends "res://src/sim/transit_stress_field_integrated_runner.gd"

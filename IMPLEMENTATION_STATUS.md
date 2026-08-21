@@ -22,25 +22,31 @@ Repository: `Mikayilzade/organism-cargo`
 Increments 40-75 established and iteratively verified blocked growth/T08, Brownout/H04, S01, S02, H03 contamination, organism contamination response, T05, T06, T09, T07 shared resource composition, S06 Monitor Beacon, plus focused Godot 4.7.1 compatibility repairs. Increment 75 checkpoint `029776f5cc11cfab5f24dd36c3220367c9be3da2` was observed green via `organism-cargo/godot-headless`, workflow run `32497758303`.
 
 ### Increment 76 — H02 stress-field environmental primitive
-- Re-read the mandatory implementation handoff/status/freeze chain and the exact `MECHANICS.md` authority for A-I ordering, environmental channels and H02.
-- Confirmed Increment 75 green before broadening Phase 12C.
-- Added `src/sim/stress_field_environment_kernel.gd` as a deterministic environmental primitive for the short-lived `stress field` channel, separate from organism internal `stress`.
-- Phase C accepts active H02 Vibration Burst authored stress-field contributions on explicit cells in stable hazard/cell order and emits causal source records.
-- Phase D propagates only from one common source snapshot, restricts transfer edges to orthogonal cells, applies authored per-cell decay, clamps to explicit bounds and publishes a new field without mutating the source snapshot.
-- Kept explicit H02 wake requests and all sleep transitions intentionally out of this increment; no wake/sleep behavior was invented.
-- Added `tests/unit/stress_field_environment_kernel_test_runner.gd` covering additive H02 source ordering, source immutability, common-source propagation, decay, diagonal rejection and deterministic replay.
-- Added exactly one existing-workflow test step so the new primitive is exercised by the normal Godot 4.7.1 headless gate.
+- Added `src/sim/stress_field_environment_kernel.gd` as the deterministic Phase-C/Phase-D primitive for the short-lived `stress field` environmental channel, separate from organism internal stress.
+- H02 contributions use explicit authored cells, stable hazard/cell ordering, common-source-snapshot orthogonal propagation, authored decay and explicit bounds.
+- Added kernel acceptance coverage; checkpoint `6498c79a9207f8468b7b4a67e748b9bd80ac0d36` was subsequently observed green via `organism-cargo/godot-headless`, workflow run `32503408125`.
+
+### Increment 77 — production H02 stress-field Phase-C/Phase-D integration
+- Started only after confirming Increment 76 green under Godot 4.7.1.
+- Added `src/sim/transit_stress_field_integrated_runner.gd` above the existing Monitor/contamination/shared-resource production chain.
+- The wrapper isolates H02 from the older base parser that does not own H02, while preserving all other route hazards and systems unchanged for the underlying authoritative transit run.
+- Reconstructs the full authored route hazard set per tick, initializes the stress-field channel over the canonical usable-cell order, applies H02 source contributions at the Phase-C boundary and propagates/decays/clamps them at the Phase-D boundary.
+- Publishes deterministic `stress_field_by_cell` and `stress_field_source_events` in end-tick snapshots, restores full authored `active_hazards` evidence, and folds field/event authority into each tick checksum.
+- Preserves heat/contamination/feeding/monitor outputs from the existing production chain without cross-channel mutation.
+- Repointed the public `transit_power_integrated_runner.gd` compatibility entry to the new stress-field-integrated runner so existing callers gain H02 field authority without API changes.
+- Extended the existing stress-field headless test runner with production acceptance cases covering two-tick carry/decay, exact authored active-hazard evidence, coexistence with H01 heat, checksum visibility and deterministic replay.
+- Kept organism internal-stress intake, H02 wake requests, sleep transitions and S03-S05 intentionally outside this increment.
 
 ## Checks performed this run
-- Read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md` and the relevant `MECHANICS.md` sections before implementation.
-- Queried latest `main` first and confirmed checkpoint `029776f5cc11cfab5f24dd36c3220367c9be3da2` reports `organism-cargo/godot-headless = success`.
-- Reused the same common-source-snapshot and orthogonal-transfer invariants already proven for contamination instead of creating a second phase-order policy.
-- Performed a static warnings-as-errors audit around `Variant` narrowing, copied target arrays, deterministic sorting and dictionary immutability.
-- Local Godot execution is unavailable in this environment. Exactly one coherent main checkpoint is produced; GitHub Actions is the executable validation gate for Increment 76.
+- Re-read `IMPLEMENTATION_START_HERE.md`, live `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and exact A-I/environmental-channel authority in `MECHANICS.md` before changing code.
+- Queried latest `main` first and confirmed Increment 76 checkpoint `6498c79a9207f8468b7b4a67e748b9bd80ac0d36` reports `organism-cargo/godot-headless = success`, workflow run `32503408125`.
+- Reused the proven Increment-76 kernel rather than duplicating propagation semantics in the production wrapper.
+- Performed a static warnings-as-errors pass for Variant narrowing, route/hazard copies, stable ordering, snapshot duplication and checksum serialization.
+- Local Godot execution is unavailable in this environment. Exactly one coherent main checkpoint is produced; GitHub Actions remains the executable Godot 4.7.1 validation gate for Increment 77.
 
 ## Current blockers
-- Increment 76 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
-- Production transit does not yet own the stress-field channel or feed it into organism stress intake; H02 wake requests remain separate/unimplemented.
+- Increment 77 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
+- Stress-field exposure is not yet converted into organism internal-stress deltas; H02 wake requests remain unimplemented.
 - S03 Baffle transit behavior depends on stress/direct-relation transmission authority.
 - S04 Nest Pad and authoritative sleep/recovery transitions remain unimplemented.
 - S05 Feed Cartridge finite conserved reserve/support behavior remains unimplemented.
@@ -50,14 +56,14 @@ Increments 40-75 established and iteratively verified blocked growth/T08, Browno
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck and player-facing Monitor presentation remain Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 76. If failure, repair only the first concrete failure. If success, integrate the stress-field channel into production transit at exact Phase C -> Phase D publication boundaries with deterministic snapshot/checksum/causal evidence, while keeping organism internal-stress intake and H02 wake/sleep handling as the next separate boundary unless canon requires them together.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 77. If failure, repair only the first concrete failure. If success, implement the next exact boundary from published Phase-D `stress_field_by_cell` into deterministic Phase-E exposure sampling and Phase-F organism internal-stress intake, followed by existing Phase-G stress hysteresis, while keeping H02 wake/sleep behavior separate unless canon requires the same transition boundary.**
 
 Next run:
 1. query latest `main` and `organism-cargo/godot-headless` first;
 2. if failure, inspect the linked job/log and checkpoint one focused repair only;
-3. if success, wire stress-field initialization, H02 Phase-C contribution and Phase-D propagation into production transit;
-4. expose `stress_field_by_cell` and source events in end-tick evidence/checksum material;
-5. add production acceptance tests for deterministic H02 field behavior and channel coexistence;
-6. keep wake/sleep transitions, S03-S05 and unrelated hazards out unless exact frozen ordering proves inseparable.
+3. if success, re-read exact stress intake/hysteresis and simultaneous-effect authority before coding;
+4. add deterministic Phase-E stress-field exposure sampling and Phase-F internal-stress aggregation without mutating the environment field;
+5. prove CALM/AGITATED/PANICKED hysteresis, channel separation, causal/checksum evidence and deterministic replay in production acceptance tests;
+6. keep wake/sleep transitions, S03-S05 and unrelated hazards out unless frozen ordering proves inseparable.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.
