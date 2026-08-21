@@ -37,30 +37,25 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Increments 62-64: deterministic T06 Filter Feeder primitive, CI semantic coverage and production Phase-E/Phase-F integration; checkpoint `7f94a49659699414afd7098b625c3aecef05471f` observed green.
 - Increments 65-66: deterministic T09 Symbiotic Buffer primitive and focused replay-test typing repair; checkpoint `59810598943c8e39e7292f473f9c929f3ea5f7ce` observed green.
 - Increment 67: production T09 contamination-intake integration; checkpoint `78e1ceb467dc2cf5c6fdce45ca12687e33f5c6c7` observed green via `organism-cargo/godot-headless`, workflow run `32458797664`.
+- Increment 68: deterministic T07 feeding primitive added at checkpoint `81bcb6da9a58493579e41fda4001f4d8f8e9b224`; Godot 4.7.1 parsed the project and all prior suites passed, but the new T07 suite failed one semantic expectation in the range/tag-mismatch case.
 
-### Increment 68 — deterministic T07 feeding primitive
-- Started only after confirming Increment 67 green under Godot 4.7.1.
-- Re-read the mandatory implementation/freeze chain, then the exact canonical satiety, T07, feeding, simultaneous-allocation and launch-roster authority in `MECHANICS.md` and `CONTENT_ARCHITECTURE.md`.
-- Added `src/sim/t07_feeding_kernel.gd` as a deterministic Phase-E/Phase-F feeding primitive without free-roaming, animation-collision authority or hidden global target search.
-- Producer food output is an explicit finite per-tick resource. Consumers are eligible only when authored compatibility tags overlap and Manhattan nearest-footprint distance is within the authored T07 range.
-- Indivisible food units use the documented stable `nearest, then lowest instance_id` selector; repeated units round-robin through the stable candidate order while respecting each consumer's authored intake cap and satiety headroom.
-- Phase E emits one causal allocation/source-cost event per consumed food unit. Phase F commits satiety gain and retains all material allocation parents for that consumer.
-- Source output conservation is explicit: the kernel never allocates more units than the producer emitted. Consumer satiety is clamped to authored maximum and no cannibalism/predation behavior was introduced.
-- Trait activity is data-gated by primary state/body stage and optional explicit sleep gating. Sleep does not suppress feeding unless the T07 data says it does.
-- Added `tests/unit/t07_feeding_kernel_test_runner.gd` covering compatibility, adjacency/range, stable nearest/ID allocation, finite-resource conservation, intake/headroom caps, explicit sleep gating, causal parentage and definition-order deterministic replay.
-- Added the T07 runner to the always-run Godot 4.7.1 headless suite.
-- Production `TransitPowerIntegratedRunner` wiring is intentionally left as the next recoverable increment rather than mixing primitive semantics and composition in one checkpoint.
-- T10, sleep transitions themselves, S03-S06 behavior and unrelated hazards remain outside this increment.
+### Increment 69 — focused T07 acceptance-test semantic repair
+- Started from latest `main` checkpoint `81bcb6da9a58493579e41fda4001f4d8f8e9b224` and inspected its observable `organism-cargo/godot-headless` failure before changing code.
+- The concrete failure was isolated to `tests/unit/t07_feeding_kernel_test_runner.gd`: the range/tag-mismatch case expected one allocation record even though the producer emits two indivisible units and the only eligible consumer has intake capacity/headroom for both.
+- Re-read the canonical feeding authority: compatibility/range gates eligibility, finite resources are conserved, indivisible resources use deterministic stable selection, and per-consumer feed intake caps may be 1, 2 or 3 units/tick.
+- Preserved production `T07FeedingKernel` semantics unchanged. Corrected only the test expectation so both conserved units are allowed to flow to the sole compatible in-range consumer, while explicitly asserting that the incompatible/out-of-range consumer receives neither unit.
+- No production T07 composition, content defaults, sleep transitions, T10 behavior, support behavior or unrelated mechanics were changed in this repair checkpoint.
 
 ## Checks performed this run
 - Required authority/recovery chain read first: `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`.
-- Current subsystem authority re-read: `MECHANICS.md` sections for satiety, T07, simultaneous finite-resource resolution and Feeding; `CONTENT_ARCHITECTURE.md` numeric satiety/range bands and O06/O08 T07 roster semantics.
-- Latest `main` before changes: `78e1ceb467dc2cf5c6fdce45ca12687e33f5c6c7`; confirmed `organism-cargo/godot-headless = success`, workflow run `32458797664`.
-- Static compatibility pass performed for warnings-as-errors-sensitive Variant/Array/Dictionary boundaries, deterministic sorting, source conservation, satiety clamping, explicit sleep gating and causal parent ordering.
-- Local Godot execution is unavailable in this environment. Exactly one checkpoint is produced; GitHub Actions is the executable Godot 4.7.1 validation gate for Increment 68.
+- Re-read current subsystem authority in `MECHANICS.md` for satiety, T07, finite-resource allocation and feeding, plus `CONTENT_ARCHITECTURE.md` for feed intake caps and Manhattan range bands.
+- Latest `main` before changes: `81bcb6da9a58493579e41fda4001f4d8f8e9b224`; `organism-cargo/godot-headless = failure`, workflow run `32463351409`.
+- Inspected the failing job/log. Project import/parse passed, every pre-existing suite passed, and the only failed step was `T07 feeding compatibility range allocation and conservation contract test` with `expected=1 actual=2` at the range/tag-mismatch assertion.
+- The repair changes only acceptance expectations and adds an explicit second-allocation assertion; no executable production code changed.
+- Local Godot execution is unavailable in this environment. Exactly one checkpoint is produced; GitHub Actions remains the executable Godot 4.7.1 validation gate for Increment 69.
 
 ## Current blockers
-- Increment 68 must be observed under Godot 4.7.1. If it fails, repair only the first concrete parser/type/test failure in the next run rather than creating a burst of speculative pushes.
+- Increment 69 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete T07 test/parser failure in the next run.
 - T07 feeding is not yet wired into `TransitPowerIntegratedRunner`; production Phase-E allocation / Phase-F satiety commit is the immediate next boundary after a green checkpoint.
 - S06 Monitor Beacon information-only behavior remains unimplemented.
 - S03 Baffle, S04 Nest Pad and S05 Feed Cartridge transit behavior remains unimplemented and intentionally fails closed.
@@ -69,7 +64,7 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 68. If failure, repair only the first concrete T07 primitive/test failure. If success, wire T07 into `TransitPowerIntegratedRunner` at the exact Phase-E feeding allocation and Phase-F satiety commit boundary with deterministic causal/checksum evidence.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 69. If failure, repair only the first concrete T07 test/parser failure. If success, wire T07 into `TransitPowerIntegratedRunner` at the exact Phase-E feeding allocation and Phase-F satiety commit boundary with deterministic causal/checksum evidence.**
 
 Next run:
 1. query latest `main` and its `organism-cargo/godot-headless` result first;

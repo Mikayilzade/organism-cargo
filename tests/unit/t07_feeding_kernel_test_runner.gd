@@ -53,8 +53,9 @@ func _test_range_and_tag_mismatch_block_feeding() -> void:
 	if not bool(result.get("ok", false)):
 		return
 	var allocations: Array = result["allocations"]
-	_expect_equal(allocations.size(), 1, "only compatible in-range consumer receives food")
-	_expect_equal(String(allocations[0]["consumer_id"]), "grazer-a", "range and compatibility both gate eligibility")
+	_expect_equal(allocations.size(), 2, "both conserved units may flow to the only compatible in-range consumer")
+	_expect_equal(String(allocations[0]["consumer_id"]), "grazer-a", "range and compatibility gate the first allocation")
+	_expect_equal(String(allocations[1]["consumer_id"]), "grazer-a", "ineligible consumers do not consume the producer's remaining unit")
 
 func _test_consumer_intake_cap_and_satiety_headroom() -> void:
 	var kernel: T07FeedingKernel = T07FeedingKernelScript.new()
