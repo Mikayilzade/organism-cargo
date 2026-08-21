@@ -37,28 +37,32 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Increment 57: focused Godot 4.7.1 parser repair.
 - Increment 58: scoped organism contamination response to authored contamination authority so thermal-only content bypasses contamination-profile preparation. Checkpoint `098ee4b586a895d01dd5f63b5bf46692b7e14bee` observed green via `organism-cargo/godot-headless`, workflow run `32429106209`.
 - Increment 59: exact deterministic T05 Spore Shedder Phase-C primitive with state/stage gates, explicit sleep gating, footprint-driven source cells and causal evidence.
+- Increment 60: focused Godot 4.7.1 bootstrap Variant-typing repair; checkpoint `772afd019ff4898bb17d15d7919574ef692a39b7` observed green via `organism-cargo/godot-headless`, workflow run `32436410537`.
 
-### Increment 60 — focused Godot 4.7.1 bootstrap test parser repair
-- Started by reading the mandatory implementation handoff/status/autonomy/freeze files and querying the latest `main` checkpoint.
-- Observed Increment 59 checkpoint `e480bccaf55f7055f9d8637b47e7b49700f3273c` failing `organism-cargo/godot-headless`, workflow run `32432769118`.
-- Inspected the failed job and full Godot 4.7.1 log before changing code.
-- Project import and shell boot both pass. The first concrete failure is isolated to `tests/unit/bootstrap_test_runner.gd` at lines 91, 104 and 119: chained `.get()` calls operate on values statically inferred as `Variant`, and warnings are treated as errors.
-- Repaired only that concrete test-compatibility failure by assigning each validated `contamination_by_cell` value to a typed `Dictionary` before the second `.get()` call.
-- No T05 gameplay behavior, source ordering, state/stage/sleep semantics, contamination arithmetic, production transit behavior, support behavior or hazard behavior changed in this increment.
-- Kept this run to one focused checkpoint as required by the anti-spam policy; production T05 integration remains the next action only after this repair is observed green.
+### Increment 61 — production T05 Phase-C integration
+- Started by reading the mandatory implementation handoff/status/autonomy/freeze files and confirming Increment 60 green before broadening Phase 12C.
+- Re-read the exact Phase-C, T05, contamination and sleep-gating authority in `MECHANICS.md`.
+- Wired `T05SporeShedderKernel` into the authoritative production Phase-C path in `TransitPowerIntegratedRunner`'s base composition.
+- T05 now reads the current Phase-B organism runtime directly, so state, body stage and occupied footprint are authoritative for same-tick spore output; it is not reconstructed from end-tick snapshots.
+- Added `t05_definitions` as explicit simulation data. Presence of T05 now enables the contamination channel even without H03 or S02, and therefore requires authored contamination propagation rules rather than silently inventing defaults.
+- Exact production order is now persistent contamination snapshot -> T05 organism source output -> H03 route source output -> S02 authorized mitigation -> Phase-D propagation/venting/clamping.
+- T05 source events join `phase_c_environment_events` with stable causal source identity; Phase-C checksum serialization now includes trait ID and organism instance ID as well as hazard identity, cell, delta and post-event value.
+- Kept S01 heat handling independent and preserved the existing organism contamination Phase-E/F/G response wrapper.
+- Expanded the always-run bootstrap suite with production acceptance cases covering current-footprint emission, primary-state gating, explicit sleep gating, T05 + H03 + S02 additive ordering, causal source evidence and deterministic replay checksum equality.
+- T06/T09/T10, feeding, sleep-transition implementation, S03-S06 behavior and unrelated hazards remain outside this increment.
 
 ## Checks performed this run
-- Read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` first.
-- Latest `main` at start: `e480bccaf55f7055f9d8637b47e7b49700f3273c`.
-- Observed `organism-cargo/godot-headless = failure`, workflow run `32432769118`.
-- Inspected workflow job `96627712194`; import/parse, production shell boot and persistent shell smoke boot all pass, then bootstrap fails on the three exact warnings-as-errors `Variant.get()` parse errors.
-- Performed a narrow static audit of the repair: the first dictionary lookup remains unchanged; only the returned value is explicitly typed before nested lookup, preserving test meaning.
-- Local Godot execution is unavailable in this environment. Exactly one coherent checkpoint is produced; GitHub Actions is the executable Godot 4.7.1 validation gate.
+- Read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and `MECHANICS.md` before implementation-sensitive changes.
+- Latest `main` at start: `772afd019ff4898bb17d15d7919574ef692a39b7`.
+- Confirmed `organism-cargo/godot-headless = success`, workflow run `32436410537`.
+- Canon re-confirmed: Phase C computes active organism/support outputs before propagation; T05 is a state/stage-gated contamination source; sleep only suppresses it when the trait explicitly declares sleep gating; resistance remains a Phase-F intake rule and never mutates the environment field.
+- Performed a static warnings-as-errors pass around Variant/Dictionary/Array boundaries, typed event access, deterministic ordering and checksum evidence.
+- Local Godot execution is unavailable in this environment. Exactly one coherent checkpoint is produced; GitHub Actions remains the executable Godot 4.7.1 validation gate.
 
 ## Current blockers
-- Increment 60 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
-- T05 is not yet wired into the production Phase-C transit path.
-- T06 Filter Feeder and T09 Symbiotic Buffer contamination interactions remain unimplemented.
+- Increment 61 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
+- T06 Filter Feeder contamination consumption/conservation remains unimplemented.
+- T09 Symbiotic Buffer contamination resistance/mitigation remains unimplemented.
 - S06 Monitor Beacon has Phase-A eligibility authority but its information-only behavior remains unimplemented.
 - S03 Baffle, S04 Nest Pad and S05 Feed Cartridge transit behavior remains unimplemented and intentionally fails closed.
 - Simultaneous multi-growth conflict semantics remain unimplemented until a canonical conflict rule is identified; runtime fails closed instead of inventing a winner.
@@ -66,14 +70,14 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 60. If failure, repair only the first concrete failure. If success, wire `T05SporeShedderKernel` directly into the authoritative Phase-C production transit path before H03/S02 and Phase-D propagation, preserving same-tick state/stage/sleep authority and checksum/causal evidence.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 61. If failure, repair only the first concrete failure. If success, implement the next exact contamination interaction: T06 Filter Feeder deterministic Phase-E consumption/allocation plus Phase-F conserved contamination reduction/satiety benefit according to frozen trait/resource-conservation authority.**
 
 Next run:
 1. query latest `main` and `organism-cargo/godot-headless` first;
 2. if failure, inspect the linked job/log and checkpoint one focused repair only;
-3. if success, integrate T05 from current Phase-B organism runtime into Phase C without reconstructing source state from end-tick snapshots;
-4. preserve deterministic additive ordering with H03 and S02, and include T05 source evidence in snapshots/checksum material;
-5. add production acceptance tests for state/stage/sleep gates, footprint-driven source expansion, H03 + T05 + S02 ordering and deterministic replay;
-6. keep T06/T09/T10, feeding, sleep-transition implementation, S03-S06 behavior and unrelated hazards out of that increment.
+3. if success, re-read exact T06, feeding/allocation and conservation authority before coding;
+4. implement one narrow deterministic T06 primitive with stable target/source ordering and explicit conservation evidence;
+5. add acceptance tests proving contamination consumed cannot exceed available field/resource, benefit matches consumed amount, deterministic replay holds and no unrelated state is mutated;
+6. keep T09/T10, sleep-transition implementation, S03-S06 behavior and unrelated hazards out of that increment.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.

@@ -6,6 +6,7 @@ const PhaseAPowerResolverScript := preload("res://src/sim/phase_a_power_resolver
 const ThermalResponseKernelScript := preload("res://src/sim/thermal_response_kernel.gd")
 const PhaseBGrowthResolverScript := preload("res://src/sim/phase_b_growth_resolver.gd")
 const T08GrowthQualifierScript := preload("res://src/sim/t08_growth_qualifier.gd")
+const T05SporeShedderKernelScript := preload("res://src/sim/t05_spore_shedder_kernel.gd")
 const S01CoolerKernelScript := preload("res://src/sim/s01_cooler_kernel.gd")
 const S02FilterKernelScript := preload("res://src/sim/s02_filter_kernel.gd")
 const ContaminationEnvironmentKernelScript := preload("res://src/sim/contamination_environment_kernel.gd")
@@ -56,6 +57,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 	var support_definitions_by_id: Dictionary = prepare_power["support_definitions_by_id"]
 	var has_s01: bool = bool(prepare_power["has_s01"])
 	var has_s02: bool = bool(prepare_power["has_s02"])
+	var t05_definitions: Array = prepare_power["t05_definitions"]
 	var contamination_enabled: bool = bool(prepare_power["contamination_enabled"])
 	var contamination_rules: Dictionary = prepare_power["contamination_rules"]
 	if contamination_enabled:
@@ -65,6 +67,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 	var thermal_kernel: ThermalResponseKernel = ThermalResponseKernelScript.new()
 	var growth_resolver: PhaseBGrowthResolver = PhaseBGrowthResolverScript.new()
 	var t08_qualifier: T08GrowthQualifier = T08GrowthQualifierScript.new()
+	var t05_kernel: T05SporeShedderKernel = T05SporeShedderKernelScript.new()
 	var s01_kernel: S01CoolerKernel = S01CoolerKernelScript.new()
 	var s02_kernel: S02FilterKernel = S02FilterKernelScript.new()
 	var contamination_kernel: ContaminationEnvironmentKernel = ContaminationEnvironmentKernelScript.new()
@@ -135,8 +138,29 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		)
 		var tick_phase_c_environment_events: Array = []
 		if contamination_enabled:
+			var contamination_source_field: Dictionary = environment_state.get("contamination", _zero_channel(cell_order))
+			if not t05_definitions.is_empty():
+				var t05_result: Dictionary = t05_kernel.apply_phase_c(
+					tick,
+					contamination_source_field,
+					organism_state,
+					t05_definitions
+				)
+				if not bool(t05_result["ok"]):
+					return {"ok": false, "error": "phase_c:%s" % String(t05_result["error"])}
+				contamination_source_field = t05_result["contamination_by_cell"]
+				var t05_events: Array = t05_result["events"]
+				for raw_t05_event: Variant in t05_events:
+					if not raw_t05_event is Dictionary:
+						continue
+					var t05_event: Dictionary = raw_t05_event
+					var t05_with_tick: Dictionary = t05_event.duplicate(true)
+					t05_with_tick["tick"] = tick
+					tick_phase_c_environment_events.append(t05_with_tick)
+					all_phase_c_environment_events.append(t05_with_tick)
+
 			var source_result: Dictionary = contamination_kernel.apply_h03_phase_c(
-				environment_state.get("contamination", _zero_channel(cell_order)),
+				contamination_source_field,
 				cell_order,
 				active_hazards,
 				all_hazards_by_id
@@ -377,8 +401,12 @@ func _prepare_power_authority(committed_input: Dictionary, simulation_defs: Dict
 			"supports_degraded_operation": bool(definition.get("supports_degraded_operation", false)),
 		})
 
+	var t05_definitions_value: Variant = simulation_defs.get("t05_definitions", [])
+	if not t05_definitions_value is Array:
+		return _failure("invalid_t05_definitions")
+	var t05_definitions: Array = t05_definitions_value
 	var has_h03: bool = _has_hazard_family(hazards_by_id, "H03")
-	var contamination_enabled: bool = has_h03 or has_s02
+	var contamination_enabled: bool = has_h03 or has_s02 or not t05_definitions.is_empty()
 	var contamination_rules: Dictionary = {}
 	if contamination_enabled:
 		var contamination_rules_value: Variant = simulation_defs.get("contamination_rules", null)
@@ -398,6 +426,7 @@ func _prepare_power_authority(committed_input: Dictionary, simulation_defs: Dict
 		"support_definitions_by_id": support_definitions.duplicate(true),
 		"has_s01": has_s01,
 		"has_s02": has_s02,
+		"t05_definitions": t05_definitions.duplicate(true),
 		"contamination_enabled": contamination_enabled,
 		"contamination_rules": contamination_rules.duplicate(true),
 	}
@@ -444,6 +473,7 @@ func _defs_without_integrated_hazards(simulation_defs: Dictionary) -> Dictionary
 		stripped["hazards_by_id"] = retained_hazards
 	stripped.erase("support_definitions_by_id")
 	stripped.erase("contamination_rules")
+	stripped.erase("t05_definitions")
 	return stripped
 
 func _active_route_hazards(tick: int, route_profile: Dictionary) -> PackedStringArray:
@@ -528,8 +558,10 @@ func _serialize_phase_c_environment_events(events: Array) -> String:
 		if not raw_event is Dictionary:
 			continue
 		var event: Dictionary = raw_event
-		encoded.append("%s:%s:%s:%d:%d" % [
+		encoded.append("%s:%s:%s:%s:%s:%d:%d" % [
 			String(event.get("kind", "")),
+			String(event.get("trait_id", "")),
+			String(event.get("instance_id", "")),
 			String(event.get("hazard_id", "")),
 			String(event.get("cell_key", "")),
 			int(event.get("contamination_delta", 0)),
