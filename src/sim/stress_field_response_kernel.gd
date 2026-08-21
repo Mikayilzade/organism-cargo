@@ -23,26 +23,9 @@ func sample_phase_e(tick: int, organisms: Array, stress_field_by_cell: Dictionar
 				return _failure("organism_cell_missing_from_stress_field:%s:%s" % [instance_id, cell_key])
 			exposure = maxi(exposure, int(stress_field_by_cell[cell_key]))
 		var event_id: String = "stress-field:E:%d:%s" % [tick, instance_id]
-		observations.append({
-			"instance_id": instance_id,
-			"stress_field_exposure": exposure,
-			"event_id": event_id,
-		})
-		events.append({
-			"event_id": event_id,
-			"kind": "STRESS_FIELD_EXPOSURE",
-			"phase": "E",
-			"tick": tick,
-			"instance_id": instance_id,
-			"stress_field_exposure": exposure,
-			"parent_event_ids": PackedStringArray(),
-		})
-	return {
-		"ok": true,
-		"error": "",
-		"observations": observations,
-		"events": events,
-	}
+		observations.append({"instance_id": instance_id, "stress_field_exposure": exposure, "event_id": event_id})
+		events.append({"event_id": event_id, "kind": "STRESS_FIELD_EXPOSURE", "phase": "E", "tick": tick, "instance_id": instance_id, "stress_field_exposure": exposure, "parent_event_ids": PackedStringArray()})
+	return {"ok": true, "error": "", "observations": observations, "events": events}
 
 func apply_phase_f(tick: int, organisms: Array, observations: Array) -> Dictionary:
 	if tick <= 0:
@@ -64,7 +47,6 @@ func apply_phase_f(tick: int, organisms: Array, observations: Array) -> Dictiona
 		if exposure < 0 or event_id.is_empty():
 			return _failure("invalid_stress_field_observation:%s" % instance_id)
 		observations_by_id[instance_id] = observation
-
 	var results: Array = []
 	var events: Array = []
 	var phase_f_event_id_by_instance_id: Dictionary = {}
@@ -85,33 +67,12 @@ func apply_phase_f(tick: int, organisms: Array, observations: Array) -> Dictiona
 		results.append(next)
 		var event_id: String = "stress-field:F:%d:%s" % [tick, instance_id]
 		phase_f_event_id_by_instance_id[instance_id] = event_id
-		events.append({
-			"event_id": event_id,
-			"kind": "STRESS_FIELD_INTERNAL_STRESS",
-			"phase": "F",
-			"tick": tick,
-			"instance_id": instance_id,
-			"stress_field_exposure": stress_delta,
-			"stress_delta": stress_delta,
-			"stress_before": stress_before,
-			"stress_after": stress_after,
-			"parent_event_ids": PackedStringArray([String(observation["event_id"])]),
-		})
+		events.append({"event_id": event_id, "kind": "STRESS_FIELD_INTERNAL_STRESS", "phase": "F", "tick": tick, "instance_id": instance_id, "stress_field_exposure": stress_delta, "stress_delta": stress_delta, "stress_before": stress_before, "stress_after": stress_after, "parent_event_ids": PackedStringArray([String(observation["event_id"])])})
 	if observations_by_id.size() != results.size():
 		return _failure("unknown_stress_field_observation")
-	return {
-		"ok": true,
-		"error": "",
-		"organisms": results,
-		"events": events,
-		"phase_f_event_id_by_instance_id": phase_f_event_id_by_instance_id,
-	}
+	return {"ok": true, "error": "", "organisms": results, "events": events, "phase_f_event_id_by_instance_id": phase_f_event_id_by_instance_id}
 
-func evaluate_phase_g(
-		tick: int,
-		organisms: Array,
-		phase_f_event_id_by_instance_id: Dictionary
-) -> Dictionary:
+func evaluate_phase_g(tick: int, organisms: Array, phase_f_event_id_by_instance_id: Dictionary) -> Dictionary:
 	if tick <= 0:
 		return _failure("invalid_tick")
 	var ordered_result: Dictionary = _ordered_validated_runtime(organisms)
@@ -127,32 +88,19 @@ func evaluate_phase_g(
 		if not phase_f_event_id_by_instance_id.has(instance_id):
 			return _failure("missing_phase_f_stress_event:%s" % instance_id)
 		var previous_state: String = String(organism["primary_state"])
-		var profile: Dictionary = organism["stress_profile"]
-		var next_state_result: Dictionary = thermal_kernel._next_primary_state(previous_state, int(organism["stress"]), profile)
-		if not bool(next_state_result.get("ok", false)):
-			return _failure("stress_hysteresis:%s" % String(next_state_result.get("error", "unknown")))
-		var next_state: String = String(next_state_result["state"])
+		var next_state: String = previous_state
+		if previous_state != "ASLEEP":
+			var profile: Dictionary = organism["stress_profile"]
+			var next_state_result: Dictionary = thermal_kernel._next_primary_state(previous_state, int(organism["stress"]), profile)
+			if not bool(next_state_result.get("ok", false)):
+				return _failure("stress_hysteresis:%s" % String(next_state_result.get("error", "unknown")))
+			next_state = String(next_state_result["state"])
 		var next: Dictionary = organism.duplicate(true)
 		next["primary_state"] = next_state
 		results.append(next)
 		if next_state != previous_state:
-			events.append({
-				"event_id": "stress-field:G:%d:%s" % [tick, instance_id],
-				"kind": "STRESS_STATE_TRANSITION",
-				"phase": "G",
-				"tick": tick,
-				"instance_id": instance_id,
-				"stress": int(organism["stress"]),
-				"state_before": previous_state,
-				"state_after": next_state,
-				"parent_event_ids": PackedStringArray([String(phase_f_event_id_by_instance_id[instance_id])]),
-			})
-	return {
-		"ok": true,
-		"error": "",
-		"organisms": results,
-		"events": events,
-	}
+			events.append({"event_id": "stress-field:G:%d:%s" % [tick, instance_id], "kind": "STRESS_STATE_TRANSITION", "phase": "G", "tick": tick, "instance_id": instance_id, "stress": int(organism["stress"]), "state_before": previous_state, "state_after": next_state, "parent_event_ids": PackedStringArray([String(phase_f_event_id_by_instance_id[instance_id])])})
+	return {"ok": true, "error": "", "organisms": results, "events": events}
 
 func _ordered_validated_runtime(organisms: Array) -> Dictionary:
 	var ordered: Array = organisms.duplicate(true)
@@ -178,11 +126,7 @@ func _ordered_validated_runtime(organisms: Array) -> Dictionary:
 		if not profile_value is Dictionary:
 			return _failure("missing_stress_profile:%s" % instance_id)
 		var profile: Dictionary = profile_value
-		for key: String in PackedStringArray([
-			"stress_min", "stress_max",
-			"agitated_enter", "agitated_exit",
-			"panic_enter", "panic_exit"
-		]):
+		for key: String in PackedStringArray(["stress_min", "stress_max", "agitated_enter", "agitated_exit", "panic_enter", "panic_exit"]):
 			if not profile.has(key):
 				return _failure("missing_stress_profile_field:%s:%s" % [instance_id, key])
 		var stress_min: int = int(profile["stress_min"])
@@ -198,7 +142,7 @@ func _ordered_validated_runtime(organisms: Array) -> Dictionary:
 		if panic_enter > stress_max:
 			return _failure("panic_threshold_out_of_range:%s" % instance_id)
 		var primary_state: String = String(organism.get("primary_state", ""))
-		if not primary_state in ["CALM", "AGITATED", "PANICKED"]:
+		if not primary_state in ["CALM", "AGITATED", "PANICKED", "ASLEEP"]:
 			return _failure("stress_field_primary_state_not_implemented:%s" % primary_state)
 		var stress: int = int(organism.get("stress", stress_min - 1))
 		if stress < stress_min or stress > stress_max:

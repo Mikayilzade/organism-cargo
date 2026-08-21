@@ -1,6 +1,7 @@
 extends SceneTree
 
 const SleepWakeKernelScript := preload("res://src/sim/sleep_wake_kernel.gd")
+const StressFieldResponseKernelScript := preload("res://src/sim/stress_field_response_kernel.gd")
 
 var failures: int = 0
 
@@ -10,6 +11,7 @@ func _init() -> void:
 	_test_stress_only_h02_does_not_wake()
 	_test_h02_wake_replay_is_deterministic()
 	_test_invalid_target_is_rejected()
+	_test_asleep_state_survives_stress_field_e_f_g_without_explicit_wake()
 	if failures == 0:
 		print("sleep_wake_kernel_test_runner: PASS")
 		quit(0)
@@ -26,22 +28,8 @@ func _test_sleep_gate_is_explicit_only() -> void:
 
 func _test_h02_wake_request_resolves_at_phase_b() -> void:
 	var kernel: SleepWakeKernel = SleepWakeKernelScript.new()
-	var organisms: Array = [
-		{"instance_id": "cargo-b", "primary_state": "ASLEEP"},
-		{"instance_id": "cargo-a", "primary_state": "ASLEEP"},
-	]
-	var result: Dictionary = kernel.resolve_phase_b(
-		3,
-		organisms,
-		PackedStringArray(["vibration"]),
-		{
-			"vibration": {
-				"family": "H02",
-				"wake_request": true,
-				"wake_target_instance_ids": ["cargo-b"],
-			},
-		}
-	)
+	var organisms: Array = [{"instance_id": "cargo-b", "primary_state": "ASLEEP"}, {"instance_id": "cargo-a", "primary_state": "ASLEEP"}]
+	var result: Dictionary = kernel.resolve_phase_b(3, organisms, PackedStringArray(["vibration"]), {"vibration": {"family": "H02", "wake_request": true, "wake_target_instance_ids": ["cargo-b"]}})
 	_expect_true(bool(result.get("ok", false)), "H02 explicit wake request resolves")
 	if not bool(result.get("ok", false)):
 		return
@@ -58,12 +46,7 @@ func _test_h02_wake_request_resolves_at_phase_b() -> void:
 
 func _test_stress_only_h02_does_not_wake() -> void:
 	var kernel: SleepWakeKernel = SleepWakeKernelScript.new()
-	var result: Dictionary = kernel.resolve_phase_b(
-		1,
-		[{"instance_id": "cargo-a", "primary_state": "ASLEEP"}],
-		PackedStringArray(["vibration"]),
-		{"vibration": {"family": "H02", "stress_field_delta": 4}}
-	)
+	var result: Dictionary = kernel.resolve_phase_b(1, [{"instance_id": "cargo-a", "primary_state": "ASLEEP"}], PackedStringArray(["vibration"]), {"vibration": {"family": "H02", "stress_field_delta": 4}})
 	_expect_true(bool(result.get("ok", false)), "stress-only H02 remains a legal non-wake hazard")
 	if not bool(result.get("ok", false)):
 		return
@@ -72,18 +55,8 @@ func _test_stress_only_h02_does_not_wake() -> void:
 
 func _test_h02_wake_replay_is_deterministic() -> void:
 	var kernel: SleepWakeKernel = SleepWakeKernelScript.new()
-	var organisms: Array = [
-		{"instance_id": "cargo-c", "primary_state": "CALM"},
-		{"instance_id": "cargo-b", "primary_state": "ASLEEP"},
-		{"instance_id": "cargo-a", "primary_state": "ASLEEP"},
-	]
-	var hazards: Dictionary = {
-		"vibration": {
-			"family": "H02",
-			"wake_request": true,
-			"wake_target_instance_ids": ["cargo-b", "cargo-a", "cargo-c"],
-		},
-	}
+	var organisms: Array = [{"instance_id": "cargo-c", "primary_state": "CALM"}, {"instance_id": "cargo-b", "primary_state": "ASLEEP"}, {"instance_id": "cargo-a", "primary_state": "ASLEEP"}]
+	var hazards: Dictionary = {"vibration": {"family": "H02", "wake_request": true, "wake_target_instance_ids": ["cargo-b", "cargo-a", "cargo-c"]}}
 	var first: Dictionary = kernel.resolve_phase_b(4, organisms, PackedStringArray(["vibration"]), hazards)
 	var second: Dictionary = kernel.resolve_phase_b(4, organisms, PackedStringArray(["vibration"]), hazards)
 	_expect_equal(first, second, "H02 wake replay is deterministic")
@@ -96,20 +69,28 @@ func _test_h02_wake_replay_is_deterministic() -> void:
 
 func _test_invalid_target_is_rejected() -> void:
 	var kernel: SleepWakeKernel = SleepWakeKernelScript.new()
-	var result: Dictionary = kernel.resolve_phase_b(
-		2,
-		[{"instance_id": "cargo-a", "primary_state": "ASLEEP"}],
-		PackedStringArray(["vibration"]),
-		{
-			"vibration": {
-				"family": "H02",
-				"wake_request": true,
-				"wake_target_instance_ids": ["missing"],
-			},
-		}
-	)
+	var result: Dictionary = kernel.resolve_phase_b(2, [{"instance_id": "cargo-a", "primary_state": "ASLEEP"}], PackedStringArray(["vibration"]), {"vibration": {"family": "H02", "wake_request": true, "wake_target_instance_ids": ["missing"]}})
 	_expect_true(not bool(result.get("ok", false)), "unknown explicit wake target is rejected")
 	_expect_equal(String(result.get("error", "")), "unknown_h02_wake_target:vibration:missing", "wake target failure is exact")
+
+func _test_asleep_state_survives_stress_field_e_f_g_without_explicit_wake() -> void:
+	var kernel: StressFieldResponseKernel = StressFieldResponseKernelScript.new()
+	var organism: Dictionary = {"instance_id": "cargo-a", "occupied_cells": ["0,0"], "stress": 1, "primary_state": "ASLEEP", "stress_profile": {"stress_min": 0, "stress_max": 10, "agitated_enter": 4, "agitated_exit": 2, "panic_enter": 8, "panic_exit": 6}}
+	var sampled: Dictionary = kernel.sample_phase_e(1, [organism], {"0,0": 5})
+	_expect_true(bool(sampled.get("ok", false)), "ASLEEP organism still samples ungated environmental stress")
+	if not bool(sampled.get("ok", false)):
+		return
+	var phase_f: Dictionary = kernel.apply_phase_f(1, [organism], sampled["observations"])
+	_expect_true(bool(phase_f.get("ok", false)), "ASLEEP organism still accumulates internal stress")
+	if not bool(phase_f.get("ok", false)):
+		return
+	_expect_equal(int(phase_f["organisms"][0]["stress"]), 6, "sleep does not silently suppress stress-field intake")
+	var phase_g: Dictionary = kernel.evaluate_phase_g(1, phase_f["organisms"], phase_f["phase_f_event_id_by_instance_id"])
+	_expect_true(bool(phase_g.get("ok", false)), "Phase G accepts canonical ASLEEP primary state")
+	if not bool(phase_g.get("ok", false)):
+		return
+	_expect_equal(String(phase_g["organisms"][0]["primary_state"]), "ASLEEP", "stress threshold alone never wakes an organism")
+	_expect_equal(phase_g["events"], [], "no fake wake or mood transition is emitted while ASLEEP")
 
 func _expect_equal(actual: Variant, expected: Variant, message: String) -> void:
 	if actual != expected:
