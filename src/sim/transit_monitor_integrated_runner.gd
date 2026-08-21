@@ -49,7 +49,8 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		var raw_snapshot: Variant = snapshots[index]
 		if not raw_snapshot is Dictionary:
 			return {"ok": false, "error": "invalid_end_tick_snapshot"}
-		var snapshot: Dictionary = raw_snapshot.duplicate(true)
+		var snapshot_source: Dictionary = raw_snapshot
+		var snapshot: Dictionary = snapshot_source.duplicate(true)
 		var tick: int = int(snapshot.get("tick", index + 1))
 		var eligible_value: Variant = snapshot.get("same_tick_effect_eligible_support_ids", PackedStringArray())
 		if not (eligible_value is Array or eligible_value is PackedStringArray):

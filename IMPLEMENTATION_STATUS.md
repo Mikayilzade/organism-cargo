@@ -37,31 +37,26 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Increments 62-64: deterministic T06 Filter Feeder primitive, CI semantic coverage and production Phase-E/Phase-F integration; checkpoint `7f94a49659699414afd7098b625c3aecef05471f` observed green.
 - Increments 65-67: deterministic T09 Symbiotic Buffer primitive plus production contamination-intake integration; checkpoint `78e1ceb467dc2cf5c6fdce45ca12687e33f5c6c7` observed green.
 - Increments 68-69: deterministic T07 feeding primitive plus corrected conserved-allocation acceptance expectation; checkpoint `cd51b79aaacb5a701b57b0e343f5882ee15a6807` observed green.
-- Increments 70-72: production T07 wrapper plus two focused coexistence-fixture repairs; checkpoint `a486d8ed2416cef1cf655d3aa923099dbca2a10b` observed green via `organism-cargo/godot-headless`, workflow run `32482176212`.
+- Increments 70-72: production T07 wrapper plus coexistence-fixture repairs; checkpoint `a486d8ed2416cef1cf655d3aa923099dbca2a10b` observed green via `organism-cargo/godot-headless`, workflow run `32482176212`.
 - Increment 73: shared T06 + T07 Phase-E/F resource composition from one pre-F organism snapshot, one final satiety clamp and multi-root shared satiety evidence; checkpoint `e62db4c3c97c851beebecf89459451fb154f772c` observed green via `organism-cargo/godot-headless`, workflow run `32487315622`.
+- Increment 74: S06 Monitor Beacon information-only runtime contract and production wrapper; checkpoint `0ce5b894a21bc9a9f8377a2dc6c826bb4f654284` failed Godot 4.7.1 parsing before the S06 suite executed.
 
-### Increment 74 — S06 Monitor Beacon information-only runtime contract
-- Started only after confirming Increment 73 green under Godot 4.7.1.
-- Re-read the mandatory recovery/freeze chain plus `MECHANICS.md`, `DECISION_ARCHITECTURE.md`, `CONTENT_ARCHITECTURE.md`, `TECHNICAL_SPEC.md` and `UX_ARCHITECTURE.md` for the exact Monitor Beacon boundary.
-- Added `src/sim/s06_monitor_beacon_kernel.gd` as an information-only deterministic support kernel. It supports exactly the two frozen information roles without mitigation: one contract-declared bounded fact or exact single-cell telemetry from an already-published authoritative channel snapshot.
-- A bounded fact is revealed at most once per run, only on the first tick where its owning S06 instance is Phase-A same-tick eligible. Brownout-disabled Monitor Beacon therefore produces no same-tick information event.
-- Local telemetry samples only one declared cell/channel per powered tick and never mutates heat, contamination, stress-field or organism/support runtime state.
-- Enforced one information contract per Monitor instance so S06 cannot become a multi-fact oracle. Bounded fact values are restricted to deterministic scalar bool/int/string data; the kernel computes no success verdict, layout recommendation, probability or inferred solution.
-- Added `src/sim/transit_monitor_integrated_runner.gd` above the existing contamination/shared-resource composition. It records S06 information events and one-time fact disclosure state in end-tick evidence/checksums while leaving the underlying mechanical snapshot untouched.
-- `transit_power_integrated_runner.gd` remains a thin public composition entrypoint and now points at the Monitor wrapper.
-- Added `tests/unit/s06_monitor_beacon_kernel_test_runner.gd` covering Brownout gating, once-only fact disclosure, exact local telemetry/no mutation, one-contract enforcement, production integration and deterministic replay/checksum evidence.
-- Added one headless CI step for the S06 contract suite. No presentation/UI, discovery progression, solver behavior or content population was pulled into Phase 12C.
+### Increment 75 — focused S06 wrapper Variant narrowing repair
+- Started by reading the mandatory handoff/status/freeze chain and querying the latest `main` checkpoint exactly as required.
+- Inspected workflow run `32492943210`. The first concrete failure is a warnings-as-errors parse error at `src/sim/transit_monitor_integrated_runner.gd:52`: `raw_snapshot` is statically `Variant`, so calling `duplicate()` directly is rejected even after the runtime `Dictionary` guard.
+- Repaired only that first concrete compatibility failure by assigning the validated value to a typed `Dictionary` (`snapshot_source`) before deep duplication.
+- This is a type-narrowing repair only. It does not change S06 information semantics, power gating, revelation timing, telemetry values, checksums, or any gameplay rule.
+- Did not broaden into stress-field/H02 work because the current checkpoint is not yet green.
 
 ## Checks performed this run
-- Read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md` and `PHASE11_FINAL_FREEZE.md` first.
-- Queried latest `main` checkpoint `e62db4c3c97c851beebecf89459451fb154f772c` and confirmed `organism-cargo/godot-headless = success`, workflow run `32487315622`.
-- Re-read canonical S06 authority: information support only; one contract-declared bounded fact or exact local telemetry; no direct mitigation; no success verdict/layout recommendation; discovery Bronze conservatively solvable without it.
-- Reused existing Phase-A same-tick power eligibility instead of inventing separate Monitor power rules.
-- Performed a static compatibility pass around Variant/Array/Dictionary narrowing, stable revelation ordering, scalar checksum serialization, wrapper inheritance and non-mutation of base snapshots.
-- Local Godot execution is unavailable in this environment. Exactly one main checkpoint is produced; GitHub Actions is the executable Godot 4.7.1 validation gate for Increment 74.
+- Read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` first.
+- Queried latest `main` checkpoint `0ce5b894a21bc9a9f8377a2dc6c826bb4f654284` and observed `organism-cargo/godot-headless = failure`, workflow run `32492943210`.
+- Inspected the failed job/log. Project import identifies `transit_monitor_integrated_runner.gd:52` as the first actionable parser/type failure; downstream T07 and other failures are compile fallout from that same dependency failure and are not independently patched in this increment.
+- Performed a narrow static audit: runtime guard remains unchanged, deep-copy semantics are preserved, and no source snapshot is mutated.
+- Local Godot execution is unavailable in this environment. Exactly one coherent repair checkpoint is produced; GitHub Actions remains the executable Godot 4.7.1 validation gate.
 
 ## Current blockers
-- Increment 74 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
+- Increment 75 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
 - S03 Baffle transit behavior remains unimplemented and depends on stress/direct-relation transmission authority.
 - S04 Nest Pad and authoritative sleep/recovery transitions remain unimplemented.
 - S05 Feed Cartridge finite conserved reserve/support behavior remains unimplemented.
@@ -72,7 +67,7 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck and player-facing Monitor presentation remain Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 74. If failure, repair only the first concrete failure. If success, implement the next independent environmental core boundary: deterministic stress-field state plus H02 Vibration Burst stress-field contribution/Phase-D publication, keeping explicit wake requests and sleep transitions separate unless the exact frozen ordering requires them in the same minimal increment.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 75. If failure, repair only the first concrete failure. If success, implement the next independent environmental core boundary: deterministic stress-field state plus H02 Vibration Burst stress-field contribution/Phase-D publication, keeping explicit wake requests and sleep transitions separate unless the exact frozen ordering requires them in the same minimal increment.**
 
 Next run:
 1. query latest `main` and its `organism-cargo/godot-headless` result first;
