@@ -12,6 +12,7 @@ func _init() -> void:
 	_test_kernel_chain_deterministic()
 	_test_production_response_persists_and_preserves_environment()
 	_test_production_exit_and_replay()
+	_test_production_t09_modifies_intake_not_environment_and_replays()
 	if failures == 0:
 		print("contamination_response_kernel_test_runner: PASS")
 		quit(0)
@@ -129,6 +130,42 @@ func _test_production_exit_and_replay() -> void:
 	_expect_equal(first["contamination_response_events"], second["contamination_response_events"], "integrated causal events replay deterministically")
 	_expect_equal(first["end_tick_snapshots"], second["end_tick_snapshots"], "integrated snapshots replay deterministically")
 
+func _test_production_t09_modifies_intake_not_environment_and_replays() -> void:
+	var runner: TransitPowerIntegratedRunner = TransitPowerIntegratedRunnerScript.new()
+	var defs: Dictionary = _t09_production_defs()
+	var first: Dictionary = runner.simulate(_t09_record(), 1, defs)
+	var second: Dictionary = runner.simulate(_t09_record(), 1, defs)
+	_expect_true(bool(first.get("ok", false)) and bool(second.get("ok", false)), "production T09 contamination integration succeeds")
+	if not bool(first.get("ok", false)) or not bool(second.get("ok", false)):
+		return
+	var snapshot: Dictionary = first["end_tick_snapshots"][0]
+	var field: Dictionary = snapshot["contamination_by_cell"]
+	_expect_equal(int(field["1,0"]), 8, "T09 never mutates published contamination field")
+	var modifiers: Dictionary = snapshot["t09_intake_multiplier_scaled_by_target_id"]
+	_expect_equal(modifiers.size(), 1, "one T09 source protects exactly one production target")
+	_expect_equal(int(modifiers["target"]), 500, "production target receives authored T09 x0.5 modifier")
+	_expect_true(not modifiers.has("other"), "compatible alternative outside range is not protected")
+	var runtime: Dictionary = _by_id(snapshot["organism_runtime"])
+	_expect_equal(int(runtime["target"]["contamination_load"]), 2, "Resistant x0.5 combined with T09 x0.5 yields x0.25 intake before one final floor")
+	_expect_equal(int(runtime["other"]["contamination_load"]), 0, "unexposed alternative remains unchanged")
+	var t09_events: Array = snapshot["t09_buffer_events"]
+	_expect_equal(t09_events.size(), 1, "production T09 emits one Phase-E assignment event")
+	if t09_events.size() == 1:
+		_expect_equal(String(t09_events[0]["source_instance_id"]), "buffer", "T09 evidence names source")
+		_expect_equal(String(t09_events[0]["target_instance_id"]), "target", "T09 evidence names selected target")
+	var f_event: Dictionary = _event_by_phase_instance(snapshot["contamination_response_events"], "F", "target")
+	_expect_true(not f_event.is_empty(), "target Phase-F contamination event exists")
+	if not f_event.is_empty():
+		_expect_equal(int(f_event["base_intake_multiplier_scaled"]), 500, "Phase-F evidence preserves base resistance multiplier")
+		_expect_equal(int(f_event["t09_intake_multiplier_scaled"]), 500, "Phase-F evidence records T09 target multiplier")
+		_expect_equal(int(f_event["combined_intake_multiplier_scaled"]), 250, "same-category multipliers combine before intake floor")
+		var parents: PackedStringArray = f_event["parent_event_ids"]
+		_expect_true(parents.has("1:E:contamination:target"), "Phase-F target event retains contamination exposure parent")
+		_expect_true(parents.has("t0001:E:T09:buffer>target"), "Phase-F target event retains T09 assignment parent")
+	_expect_equal(first["tick_checksums"], second["tick_checksums"], "T09 production checksum replays deterministically")
+	_expect_equal(first["t09_buffer_events"], second["t09_buffer_events"], "T09 causal evidence replays deterministically")
+	_expect_equal(first["end_tick_snapshots"], second["end_tick_snapshots"], "T09 production snapshots replay deterministically")
+
 func _record(instance_id: String) -> Dictionary:
 	return {
 		"run_id": "contamination-response-production-run",
@@ -171,6 +208,70 @@ func _defs(profile: Dictionary, hazard_delta: int, ticks: int, initial_load: int
 		},
 	}
 
+func _t09_record() -> Dictionary:
+	return {
+		"run_id": "t09-production-run",
+		"rules_version": "rules-r1",
+		"content_version": "t09-production-1",
+		"canonical_committed_input": {
+			"route_id": "route-t09-production",
+			"seed": 67,
+			"placements": [
+				{"instance_id": "buffer", "anchor": [0, 0], "orientation": 0},
+				{"instance_id": "target", "anchor": [1, 0], "orientation": 0},
+				{"instance_id": "other", "anchor": [2, 0], "orientation": 0},
+			],
+			"supports": [],
+			"brownout_priority": [],
+		},
+	}
+
+func _t09_production_defs() -> Dictionary:
+	return {
+		"route_profile": {
+			"id": "route-t09-production",
+			"tick_count": 1,
+			"events": [{"tick": 1, "duration_ticks": 1, "hazard_id": "h03-t09", "authored_order": 0}],
+		},
+		"hold_definition": {"dimensions": [3, 1], "blocked_cells": [], "power_capacity": 0},
+		"hazards_by_id": {
+			"h03-t09": {"id": "h03-t09", "family": "H03", "contamination_delta": 8, "target_cells": ["1,0"]},
+		},
+		"support_definitions_by_id": {},
+		"contamination_rules": {
+			"contamination_min": 0,
+			"contamination_max": 20,
+			"transfer_edges": [],
+			"vent_by_cell": {},
+		},
+		"organism_definitions": {
+			"buffer": {
+				"stress_profile": _stress_profile(),
+				"contamination_profile": _profile(1000, 8, 4),
+			},
+			"target": {
+				"stress_profile": _stress_profile(),
+				"contamination_profile": _profile(500, 11, 5),
+			},
+			"other": {
+				"stress_profile": _stress_profile(),
+				"contamination_profile": _profile(1000, 8, 4),
+			},
+		},
+		"t09_definitions": [
+			{
+				"instance_id": "buffer",
+				"eligible_target_ids": ["target", "other"],
+				"range": 1,
+				"max_targets": 1,
+				"intake_multiplier_scaled": 500,
+				"active_primary_states": ["CALM", "AGITATED", "PANICKED"],
+				"active_body_stages": [],
+				"sleep_gated": false,
+			},
+		],
+	}
+
 func _stress_profile() -> Dictionary:
 	return {
 		"heat_safe_max": 0,
@@ -200,6 +301,14 @@ func _runtime(instance_id: String, occupied_cells: Array, profile: Dictionary, l
 		"contamination_load": load,
 		"contaminated": contaminated,
 	}
+
+func _event_by_phase_instance(events: Array, phase: String, instance_id: String) -> Dictionary:
+	for raw_event: Variant in events:
+		if raw_event is Dictionary:
+			var event: Dictionary = raw_event
+			if String(event.get("phase", "")) == phase and String(event.get("instance_id", "")) == instance_id:
+				return event
+	return {}
 
 func _by_id(organisms: Array) -> Dictionary:
 	var result: Dictionary = {}

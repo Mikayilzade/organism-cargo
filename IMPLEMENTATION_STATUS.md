@@ -40,44 +40,46 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Increment 62: deterministic T06 Filter Feeder consumption/conservation primitive at checkpoint `8981c2e5de7d5dcf3e20f666d25c32b3bdb31546`.
 - Increment 63: promoted the saved T06 semantic acceptance runner into the always-run Godot suite; checkpoint `868b7fff95b134a829f766d9b19c227f420d1071` observed green via `organism-cargo/godot-headless`, workflow run `32447048083`.
 - Increment 64: production T06 Phase-E allocation / Phase-F commit integration; checkpoint `7f94a49659699414afd7098b625c3aecef05471f` observed green via `organism-cargo/godot-headless`, workflow run `32450865397`.
-- Increment 65: deterministic T09 Symbiotic Buffer targeting/resistance primitive at checkpoint `4fd6bdcc36a59d02eb6738b6bec1f74741475925`; first Godot run exposed a test-only Variant typing parse failure in the replay-order assertion.
+- Increment 65: deterministic T09 Symbiotic Buffer targeting/resistance primitive.
+- Increment 66: focused Godot 4.7.1 T09 replay-test Variant typing repair; checkpoint `59810598943c8e39e7292f473f9c929f3ea5f7ce` observed green via `organism-cargo/godot-headless`, workflow run `32454778079`.
 
-### Increment 66 — focused Godot 4.7.1 T09 test typing repair
-- Inspected workflow run `32454635955` for Increment 65 after the checkpoint reported `organism-cargo/godot-headless = failure`.
-- All existing project import and prior contract tests passed; the only failure was the new T09 test runner at line 97.
-- Exact failure: `definitions[1]` / `definitions[0]` are inferred as `Variant`, so direct `.duplicate(true)` calls are rejected under warnings-as-errors even though each element is a Dictionary at runtime.
-- Applied one focused compatibility repair only: assign the two validated array elements to statically typed `Dictionary` locals, duplicate those locals, and build the reversed-definition array from the typed copies.
-- No T09 gameplay semantics, selector, range, capacity, multiplier, event shape, workflow topology or unrelated system changed.
-- This repair remains within the same saved T09 primitive scope; production T09 integration is still the next substantive implementation boundary after a green checkpoint.
+### Increment 67 — production T09 contamination-intake integration
+- Started only after confirming Increment 66 green under Godot 4.7.1.
+- Re-read the required implementation/freeze chain and exact T09, contamination-load, multiplier-ordering and roster authority before coding.
+- Wired `T09SymbioticBufferKernel` into `TransitPowerIntegratedRunner` at the exact Phase-E direct-interaction boundary after published contamination exposure sampling and before Phase-F contamination-load commit.
+- T09 resolves against the same pre-F organism snapshot used by contamination response; the authored target modifier is combined with the target's base contamination-profile resistance as a same-category fixed-point multiplier before the single final intake floor.
+- T09 never mutates the Phase-D contamination field. The runner creates a temporary Phase-F profile view containing the combined multiplier, commits load through the existing contamination kernel, then restores the authored contamination profile before Phase-G hysteresis and persistence.
+- Added deterministic per-tick `t09_intake_multiplier_scaled_by_target_id` and `t09_buffer_events` snapshot evidence plus top-level `t09_buffer_events`.
+- Phase-F contamination causal evidence now retains both material Phase-E parents when applicable: the contamination exposure sample and every T09 assignment that contributes to that target's combined modifier. It also records base, T09 and combined intake multipliers.
+- Added T09 modifier/evidence material to the integrated tick checksum serialization so target selection or modifier changes are replay-visible.
+- Extended the existing always-run contamination response acceptance suite with a production case proving: one-target/range-limited assignment, base Resistant x0.5 combined with T09 x0.5 -> x0.25 before one final floor, unchanged environment authority, dual-parent causality and deterministic replay.
+- Kept T07, T10, sleep transitions, S03-S06 behavior and unrelated hazards outside this increment.
 
 ## Checks performed this run
-- Required authority/recovery chain re-read before changes.
-- Latest main at substantive implementation start: `7f94a49659699414afd7098b625c3aecef05471f`; confirmed green via workflow run `32450865397`.
-- Re-confirmed canon: T09 is narrow, conditional, capacity-limited protection for compatible targets; target intake/resistance modifiers are applied after source/transmission modifiers; capacity-limited selectors may use nearest then lowest `instance_id`; no universal shield/protector is allowed.
-- Re-confirmed launch roster usage: Warmback explicitly protects one target maximum; Velvet Nurse is a one-target buffer specialist; Amber Leech protects the same compatible partner.
-- Increment 65 checkpoint `4fd6bdcc36a59d02eb6738b6bec1f74741475925` parsed the new kernel successfully and passed every existing test, then failed only the new T09 test runner due to the concrete warnings-as-errors Variant typing issue above.
-- Focused repair performed against that exact failure; no speculative second gameplay change was made.
-- Local Godot execution is unavailable in this environment. GitHub Actions remains the executable Godot 4.7.1 parse/semantic gate.
+- Required authority/recovery chain re-read before changes: `IMPLEMENTATION_START_HERE.md`, live `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then `MECHANICS.md` and `CONTENT_ARCHITECTURE.md` for the current subsystem.
+- Latest main before changes: `59810598943c8e39e7292f473f9c929f3ea5f7ce`; confirmed `organism-cargo/godot-headless = success`, workflow run `32454778079`.
+- Re-confirmed canonical ordering: source production modifier -> transmission modifier -> target intake/resistance modifier -> final clamp; same-category fixed-point multipliers combine deterministically.
+- Re-confirmed T09 is narrow, conditional and capacity-limited, with nearest then lowest `instance_id` as a legal selector and one-target launch roster semantics.
+- Static compatibility pass performed for Variant/Array/Dictionary boundaries, stable ordering, no in-place environment mutation, profile restoration, causal-parent ordering and checksum determinism.
+- Local Godot execution is unavailable in this environment. Exactly one main checkpoint is produced; GitHub Actions is the executable Godot 4.7.1 validation gate for Increment 67.
 
 ## Current blockers
-- Increment 66 must be observed under Godot 4.7.1. If it fails, leave the next concrete failure for the next run rather than creating a burst of CI-fix pushes.
-- T09 is not yet wired into `TransitPowerIntegratedRunner`; the next production boundary is to apply its target modifier to same-tick contamination intake without mutating the environment field.
+- Increment 67 must be observed under Godot 4.7.1. If it fails, repair only the first concrete parser/type/test failure in the next run rather than creating a burst of speculative pushes.
 - S06 Monitor Beacon information-only behavior remains unimplemented.
 - S03 Baffle, S04 Nest Pad and S05 Feed Cartridge transit behavior remains unimplemented and intentionally fails closed.
 - Simultaneous multi-growth conflict semantics remain unimplemented until a canonical conflict rule is identified; runtime fails closed instead of inventing a winner.
-- T07 feeding, sleep runtime transitions, remaining hazards, finite reactive triggers and simultaneous multi-parent ancestry remain Phase 12C scope.
+- T07 feeding, sleep runtime transitions, remaining hazards, finite T10 reactive triggers and simultaneous multi-parent ancestry outside the now-covered contamination/T09 path remain Phase 12C scope.
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 66. If failure, repair only the first concrete remaining T09 primitive/test failure in the next run. If success, integrate T09 into production contamination response at the exact Phase-E target-intake/resistance boundary without mutating the environment field.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 67. If failure, repair only the first concrete T09 production integration failure. If success, implement the next exact core-system boundary from the frozen authority chain, prioritizing T07 deterministic feeding unless a more immediate dependency is exposed by the current production composition.**
 
 Next run:
 1. query latest `main` and its `organism-cargo/godot-headless` result first;
 2. if failure, inspect the linked job/log and checkpoint one focused repair only;
-3. if success, re-read production contamination-response composition and exact same-category multiplier ordering;
-4. prepare authored `t09_definitions`, resolve T09 assignment from the current organism snapshot in Phase E, and feed the resulting target multiplier into Phase-F contamination intake only;
-5. preserve the published Phase-D contamination field unchanged by T09 and add deterministic snapshot/checksum/causal evidence proving that separation;
-6. add production acceptance tests for one-target protection, range/compatibility selection, combined base-profile x T09 intake multiplier, no environment mutation and deterministic replay;
-7. keep T10, T07, sleep transitions, S03-S06 behavior and unrelated hazards out of that increment.
+3. if success, re-read exact T07 feeding compatibility/range/allocation/conservation authority and current T06/satiety runtime composition;
+4. implement one deterministic T07 feeding primitive or its minimum production boundary without free-roaming or hidden targeting;
+5. add causal/checksum/conservation acceptance evidence and deterministic replay coverage;
+6. keep T10, sleep transitions, S03-S06 behavior and unrelated hazards out of that increment unless required by an explicit dependency.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.
