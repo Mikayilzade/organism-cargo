@@ -12,7 +12,7 @@ func _init() -> void:
 	_test_sleep_gate_disables_declared_producer_output_only()
 	_test_definition_order_does_not_change_result()
 	_test_production_t07_phase_e_f_persists_satiety_and_causal_evidence()
-	_test_production_t07_replay_checksum_and_t06_coexistence_fail_closed()
+	_test_production_t07_replay_checksum_and_t06_shared_phase_f_composition()
 	if failures == 0:
 		print("t07_feeding_kernel_test_runner: PASS")
 		quit(0)
@@ -142,7 +142,7 @@ func _test_production_t07_phase_e_f_persists_satiety_and_causal_evidence() -> vo
 	var final_runtime: Dictionary = _by_id(result["final_organism_runtime"])
 	_expect_equal(int(final_runtime["grazer"]["satiety"]), 6, "production final runtime carries T07 satiety authority")
 
-func _test_production_t07_replay_checksum_and_t06_coexistence_fail_closed() -> void:
+func _test_production_t07_replay_checksum_and_t06_shared_phase_f_composition() -> void:
 	var runner: TransitPowerIntegratedRunner = TransitPowerIntegratedRunnerScript.new()
 	var first: Dictionary = runner.simulate(_production_record(), 2, _production_defs(false))
 	var second: Dictionary = runner.simulate(_production_record(), 2, _production_defs(false))
@@ -160,9 +160,39 @@ func _test_production_t07_replay_checksum_and_t06_coexistence_fail_closed() -> v
 		if bool(changed.get("ok", false)):
 			_expect_true(String(first["tick_checksums"][0]) != String(changed["tick_checksums"][0]), "T07 satiety/evidence is checksum-visible")
 
-	var coexistence: Dictionary = runner.simulate(_production_record(), 2, _production_defs(true))
-	_expect_true(not bool(coexistence.get("ok", false)), "T06 plus T07 currently fails closed instead of using post-F headroom")
-	_expect_equal(String(coexistence.get("error", "")), "t07_t06_shared_phase_f_composition_not_implemented", "cross-trait Phase-E/F composition exposes the explicit recoverable blocker")
+	var coexistence_defs: Dictionary = _production_defs(true)
+	var coexistence: Dictionary = runner.simulate(_production_record(), 2, coexistence_defs)
+	var coexistence_replay: Dictionary = runner.simulate(_production_record(), 2, coexistence_defs)
+	_expect_true(bool(coexistence.get("ok", false)) and bool(coexistence_replay.get("ok", false)), "T06 plus T07 resolves from one shared pre-F snapshot")
+	if not bool(coexistence.get("ok", false)) or not bool(coexistence_replay.get("ok", false)):
+		return
+	_expect_equal(coexistence["tick_checksums"], coexistence_replay["tick_checksums"], "shared T06/T07 production replay is deterministic")
+	var snapshots: Array = coexistence["end_tick_snapshots"]
+	var tick_one: Dictionary = snapshots[0]
+	var tick_one_runtime: Dictionary = _by_id(tick_one["organism_runtime"])
+	_expect_equal(int(tick_one_runtime["grazer"]["satiety"]), 7, "combined T06+T07 requested gain clamps once at the authored satiety maximum")
+	_expect_equal(int(tick_one["contamination_by_cell"]["1,0"]), 0, "T06 conserves and consumes both contamination units from the Phase-D source snapshot")
+	var allocations: Array = tick_one["t07_allocations"]
+	_expect_equal(allocations.size(), 1, "T07 still receives its full pre-F headroom even when T06 alone would fill the meter")
+	var t06_events: Array = tick_one["t06_events"]
+	var t06_consumed: int = 0
+	for raw_event: Variant in t06_events:
+		if raw_event is Dictionary:
+			var event: Dictionary = raw_event
+			if String(event.get("kind", "")) == "T06_CONTAMINATION_CONSUMED":
+				t06_consumed += int(event.get("consumed_amount", 0))
+	_expect_equal(t06_consumed, 2, "T06 allocation also sees the same pre-F satiety headroom with no T07-first disadvantage")
+	var shared_events: Array = tick_one["shared_satiety_events"]
+	_expect_equal(shared_events.size(), 1, "one authoritative shared Phase-F satiety commit is emitted")
+	var shared: Dictionary = shared_events[0]
+	_expect_equal(int(shared["satiety_before"]), 5, "shared commit records the common pre-F satiety snapshot")
+	_expect_equal(int(shared["satiety_requested_delta"]), 3, "shared commit aggregates T06 and T07 additive gains before clamping")
+	_expect_equal(int(shared["satiety_applied_delta"]), 2, "shared commit records clamp-limited applied gain")
+	_expect_equal(shared["contributor_traits"], PackedStringArray(["T06", "T07"]), "shared commit records both material trait contributors")
+	var shared_parents: PackedStringArray = shared["parent_event_ids"]
+	_expect_equal(shared_parents.size(), 2, "shared commit preserves both independent Phase-E material causes")
+	_expect_true(String(shared_parents[0]).contains(":T06:") or String(shared_parents[1]).contains(":T06:"), "shared ancestry includes T06 consumption")
+	_expect_true(String(shared_parents[0]).contains(":T07:") or String(shared_parents[1]).contains(":T07:"), "shared ancestry includes T07 allocation")
 
 func _organisms() -> Array:
 	return [
@@ -277,6 +307,9 @@ func _production_defs(with_t06: bool) -> Dictionary:
 	}
 	if with_t06:
 		var organism_definitions: Dictionary = defs["organism_definitions"]
+		var grazer_definition: Dictionary = organism_definitions["grazer"]
+		grazer_definition["initial_satiety"] = 5
+		organism_definitions["grazer"] = grazer_definition
 		for instance_id: String in ["moss", "grazer"]:
 			var definition: Dictionary = organism_definitions[instance_id]
 			definition["contamination_profile"] = {
@@ -288,6 +321,17 @@ func _production_defs(with_t06: bool) -> Dictionary:
 			}
 			organism_definitions[instance_id] = definition
 		defs["organism_definitions"] = organism_definitions
+		var route_profile: Dictionary = defs["route_profile"]
+		route_profile["events"] = [{"tick": 1, "duration_ticks": 1, "hazard_id": "h03-food-test", "authored_order": 0}]
+		defs["route_profile"] = route_profile
+		defs["hazards_by_id"] = {
+			"h03-food-test": {
+				"id": "h03-food-test",
+				"family": "H03",
+				"contamination_delta": 2,
+				"target_cells": ["1,0"],
+			},
+		}
 		defs["contamination_rules"] = {
 			"contamination_min": 0,
 			"contamination_max": 20,

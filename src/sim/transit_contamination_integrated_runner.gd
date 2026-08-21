@@ -1,4 +1,4 @@
-extends "res://src/sim/transit_power_integrated_runner_base.gd"
+extends "res://src/sim/transit_shared_resource_runner.gd"
 
 const ContaminationResponseKernelScript := preload("res://src/sim/contamination_response_kernel.gd")
 const T09SymbioticBufferKernelScript := preload("res://src/sim/t09_symbiotic_buffer_kernel.gd")
