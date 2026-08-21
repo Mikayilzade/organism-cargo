@@ -52,17 +52,25 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Updated only that coexistence fixture to `capacity: 2` and `benefit_per_unit: 1`, so the test can reach the intended explicit shared-Phase-F fail-closed boundary.
 - No gameplay code, allocation semantics, phase ordering, satiety rule, contamination rule or frozen design was changed.
 
+### Increment 72 — focused coexistence contamination-fixture repair
+- Inspected Increment 71 GitHub Actions before any production change. Checkpoint `baf19dc2666af9702f6affe4c9e848bb2118a8d3` failed only in `t07_feeding_kernel_test_runner.gd`; project import and every preceding suite passed.
+- Exact observed mismatch: expected `t07_t06_shared_phase_f_composition_not_implemented`, actual `contamination_prepare:missing_contamination_profile:grazer`.
+- Root cause is again test-fixture reachability, not gameplay: enabling T06 also activates the contamination-response production wrapper, whose existing green authority requires every organism in that runtime to carry a valid authored `contamination_profile` before the outer T07 wrapper can reach its deliberate shared-Phase-F fail-closed boundary.
+- Updated only the `with_t06` coexistence fixture to attach the standard authored contamination profile (`x1.0`, load 0..20, enter 8, exit 4) to both `moss` and `grazer`.
+- No production code, T06/T07 allocation semantics, phase ordering, resource conservation, satiety behavior, contamination behavior or frozen design was changed.
+
 ## Checks performed this run
 - Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` first.
-- Queried latest `main`: `eeb6ca7d7152b4f7848a83569262cc63274c45f8`; `organism-cargo/godot-headless = failure`, workflow run `32472980473`.
-- Inspected the failing job/log. Import/parse passed and all suites through T09 passed; only `t07_feeding_kernel_test_runner.gd` failed.
-- Exact observed mismatch: expected `t07_t06_shared_phase_f_composition_not_implemented`, actual `phase_e:invalid_t06_capacity:grazer`.
-- Compared the fixture against `src/sim/t06_filter_feeder_kernel.gd` validation and repaired only the stale test schema.
+- Re-read the exact A-I Phase-E/Phase-F authority and contamination/satiety runtime rules in `MECHANICS.md`.
+- Queried latest `main`: `baf19dc2666af9702f6affe4c9e848bb2118a8d3`; `organism-cargo/godot-headless = failure`, workflow run `32477473700`.
+- Inspected the failing job/log. Import/parse passed; all suites through T09 passed; only the T07 suite failed.
+- Compared the failure against `ContaminationResponseKernel.prepare_runtime()` and confirmed the coexistence fixture lacked the required authored profile for organisms entering the contamination-response wrapper.
+- Applied one narrow fixture-only repair so the intended explicit T06+T07 blocker can be exercised on the next CI run.
 - Local Godot execution is unavailable here; exactly one main checkpoint is produced and GitHub Actions remains the executable Godot 4.7.1 validation gate.
 
 ## Current blockers
-- Increment 71 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete failure.
-- T06 + T07 shared Phase-E allocation / Phase-F satiety composition remains intentionally fail-closed and is the immediate mechanical integration blocker.
+- Increment 72 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete failure.
+- T06 + T07 shared Phase-E allocation / Phase-F satiety composition remains intentionally fail-closed and is the immediate mechanical integration blocker once the coexistence fixture reaches it cleanly.
 - S06 Monitor Beacon information-only behavior remains unimplemented.
 - S03 Baffle, S04 Nest Pad and S05 Feed Cartridge transit behavior remains unimplemented and intentionally fails closed.
 - Simultaneous multi-growth conflict semantics remain unimplemented until a canonical conflict rule is identified; runtime fails closed instead of inventing a winner.
@@ -70,7 +78,7 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 71. If failure, repair only the first concrete failure. If success, remove the deliberate T06+T07 fail-closed boundary by composing both kernels from one shared Phase-E pre-F organism/environment snapshot and committing their satiety effects together in Phase F without trait-order advantage.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 72. If failure, repair only the first concrete failure. If success, remove the deliberate T06+T07 fail-closed boundary by composing both kernels from one shared Phase-E pre-F organism/environment snapshot and committing their satiety effects together in Phase F without trait-order advantage.**
 
 Next run:
 1. query latest `main` and its `organism-cargo/godot-headless` result first;

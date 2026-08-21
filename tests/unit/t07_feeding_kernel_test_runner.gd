@@ -276,6 +276,18 @@ func _production_defs(with_t06: bool) -> Dictionary:
 		}],
 	}
 	if with_t06:
+		var organism_definitions: Dictionary = defs["organism_definitions"]
+		for instance_id: String in ["moss", "grazer"]:
+			var definition: Dictionary = organism_definitions[instance_id]
+			definition["contamination_profile"] = {
+				"intake_multiplier_scaled": 1000,
+				"load_min": 0,
+				"load_max": 20,
+				"contaminated_enter": 8,
+				"contaminated_exit": 4,
+			}
+			organism_definitions[instance_id] = definition
+		defs["organism_definitions"] = organism_definitions
 		defs["contamination_rules"] = {
 			"contamination_min": 0,
 			"contamination_max": 20,
