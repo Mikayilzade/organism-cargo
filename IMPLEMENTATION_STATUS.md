@@ -36,28 +36,27 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Increment 56: production organism contamination response integration.
 - Increment 57: focused Godot 4.7.1 parser repair.
 - Increment 58: scoped organism contamination response to authored contamination authority so thermal-only content bypasses contamination-profile preparation. Checkpoint `098ee4b586a895d01dd5f63b5bf46692b7e14bee` observed green via `organism-cargo/godot-headless`, workflow run `32429106209`.
+- Increment 59: exact deterministic T05 Spore Shedder Phase-C primitive with state/stage gates, explicit sleep gating, footprint-driven source cells and causal evidence.
 
-### Increment 59 — exact T05 Spore Shedder Phase-C primitive
-- Re-read the implementation handoff/status/freeze chain and the exact Phase-C/T05/sleep-gating authority before coding.
-- Confirmed Increment 58 green under Godot 4.7.1 before broadening Phase 12C.
-- Added `src/sim/t05_spore_shedder_kernel.gd` as a deterministic Phase-C organism contamination-source primitive.
-- T05 output is data-defined per organism instance, stable-sorted by `instance_id`, and adds the authored weak/standard/strong continuous magnitude (`2/3/4`) to every currently occupied source cell. This makes footprint expansion automatically expand the emission footprint without bespoke species logic.
-- Added optional authored primary-state and body-stage gates. Ordinary state gates accept only `CALM`, `AGITATED`, or `PANICKED`.
-- Enforced the frozen sleep rule explicitly: `ASLEEP` does not suppress passive spores merely because a mood-state gate exists; sleep suppresses T05 only when `sleep_gated = true`.
-- The kernel copies the published Phase-C input field rather than mutating it, emits stable per-source-cell causal records, rejects duplicate/missing instance identities, rejects out-of-band continuous source magnitudes, and fails closed if an occupied source cell is absent from the contamination field.
-- Added executable T05 contract coverage to the existing always-run bootstrap headless suite for per-cell emission, state gating, explicit sleep gating, immutable input, stable source order and causal-event count.
-- Production transit integration is intentionally not yet added in this increment. Direct integration must occur inside the authoritative Phase-C path rather than by post-processing end-tick snapshots, because same-tick state/stage semantics must remain exact.
+### Increment 60 — focused Godot 4.7.1 bootstrap test parser repair
+- Started by reading the mandatory implementation handoff/status/autonomy/freeze files and querying the latest `main` checkpoint.
+- Observed Increment 59 checkpoint `e480bccaf55f7055f9d8637b47e7b49700f3273c` failing `organism-cargo/godot-headless`, workflow run `32432769118`.
+- Inspected the failed job and full Godot 4.7.1 log before changing code.
+- Project import and shell boot both pass. The first concrete failure is isolated to `tests/unit/bootstrap_test_runner.gd` at lines 91, 104 and 119: chained `.get()` calls operate on values statically inferred as `Variant`, and warnings are treated as errors.
+- Repaired only that concrete test-compatibility failure by assigning each validated `contamination_by_cell` value to a typed `Dictionary` before the second `.get()` call.
+- No T05 gameplay behavior, source ordering, state/stage/sleep semantics, contamination arithmetic, production transit behavior, support behavior or hazard behavior changed in this increment.
+- Kept this run to one focused checkpoint as required by the anti-spam policy; production T05 integration remains the next action only after this repair is observed green.
 
 ## Checks performed this run
-- Read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, `MECHANICS.md`, `CONTENT_ARCHITECTURE.md`, and `TECHNICAL_SPEC.md`.
-- Latest `main` at start: `098ee4b586a895d01dd5f63b5bf46692b7e14bee`.
-- Confirmed `organism-cargo/godot-headless = success`, workflow run `32429106209`.
-- Canon re-confirmed: Phase C computes active organism/support outputs before environmental propagation; T05 is a state/stage-gated contamination source; sleep changes a passive spore output only when that trait explicitly declares sleep gating; continuous organism source bands are weak 2 / standard 3 / strong 4.
-- Performed a static warnings-as-errors audit around Variant -> Dictionary/Array conversions, stable sorting, duplicate detection and PackedStringArray typing.
-- Local Godot execution is unavailable in this environment. Exactly one coherent main checkpoint is produced; GitHub Actions is the executable Godot 4.7.1 validation gate.
+- Read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` first.
+- Latest `main` at start: `e480bccaf55f7055f9d8637b47e7b49700f3273c`.
+- Observed `organism-cargo/godot-headless = failure`, workflow run `32432769118`.
+- Inspected workflow job `96627712194`; import/parse, production shell boot and persistent shell smoke boot all pass, then bootstrap fails on the three exact warnings-as-errors `Variant.get()` parse errors.
+- Performed a narrow static audit of the repair: the first dictionary lookup remains unchanged; only the returned value is explicitly typed before nested lookup, preserving test meaning.
+- Local Godot execution is unavailable in this environment. Exactly one coherent checkpoint is produced; GitHub Actions is the executable Godot 4.7.1 validation gate.
 
 ## Current blockers
-- Increment 59 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
+- Increment 60 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete parser/type/test failure.
 - T05 is not yet wired into the production Phase-C transit path.
 - T06 Filter Feeder and T09 Symbiotic Buffer contamination interactions remain unimplemented.
 - S06 Monitor Beacon has Phase-A eligibility authority but its information-only behavior remains unimplemented.
@@ -67,7 +66,7 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 59. If failure, repair only the first concrete failure. If success, wire `T05SporeShedderKernel` directly into the authoritative Phase-C production transit path before H03/S02 and Phase-D propagation, preserving same-tick state/stage/sleep authority and checksum/causal evidence.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 60. If failure, repair only the first concrete failure. If success, wire `T05SporeShedderKernel` directly into the authoritative Phase-C production transit path before H03/S02 and Phase-D propagation, preserving same-tick state/stage/sleep authority and checksum/causal evidence.**
 
 Next run:
 1. query latest `main` and `organism-cargo/godot-headless` first;

@@ -88,7 +88,8 @@ func _test_t05_spore_shedder_phase_c_contract() -> void:
 		}],
 		[definition]
 	)
-	_expect_equal(int(calm.get("contamination_by_cell", {}).get("0,0", -1)), 0, "T05 state gate suppresses nonmatching state")
+	var calm_field: Dictionary = calm.get("contamination_by_cell", {})
+	_expect_equal(int(calm_field.get("0,0", -1)), 0, "T05 state gate suppresses nonmatching state")
 
 	var asleep_not_gated: Dictionary = kernel.apply_phase_c(
 		1,
@@ -101,7 +102,8 @@ func _test_t05_spore_shedder_phase_c_contract() -> void:
 		}],
 		[definition]
 	)
-	_expect_equal(int(asleep_not_gated.get("contamination_by_cell", {}).get("0,0", -1)), 3, "sleep does not suppress T05 without explicit sleep gating")
+	var asleep_not_gated_field: Dictionary = asleep_not_gated.get("contamination_by_cell", {})
+	_expect_equal(int(asleep_not_gated_field.get("0,0", -1)), 3, "sleep does not suppress T05 without explicit sleep gating")
 
 	var sleep_gated_definition: Dictionary = definition.duplicate(true)
 	sleep_gated_definition["sleep_gated"] = true
@@ -116,4 +118,5 @@ func _test_t05_spore_shedder_phase_c_contract() -> void:
 		}],
 		[sleep_gated_definition]
 	)
-	_expect_equal(int(asleep_gated.get("contamination_by_cell", {}).get("0,0", -1)), 0, "explicit sleep gate suppresses T05")
+	var asleep_gated_field: Dictionary = asleep_gated.get("contamination_by_cell", {})
+	_expect_equal(int(asleep_gated_field.get("0,0", -1)), 0, "explicit sleep gate suppresses T05")
