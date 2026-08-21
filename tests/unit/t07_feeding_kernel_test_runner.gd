@@ -284,8 +284,8 @@ func _production_defs(with_t06: bool) -> Dictionary:
 		}
 		defs["t06_definitions"] = [{
 			"instance_id": "grazer",
-			"consume_capacity": 1,
-			"satiety_per_unit": 1,
+			"capacity": 2,
+			"benefit_per_unit": 1,
 			"satiety_max": 7,
 			"active_primary_states": ["CALM", "AGITATED", "PANICKED"],
 			"active_body_stages": ["JUVENILE"],

@@ -40,26 +40,29 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 
 ### Increment 70 — production T07 Phase-E/F integration boundary
 - Started only after confirming Increment 69 green under Godot 4.7.1.
-- Re-read the mandatory recovery/freeze chain and the exact feeding authority in `MECHANICS.md`: food output/eligibility/allocation is Phase E, satiety commits in Phase F, range and compatibility gate eligibility, indivisible finite resources use deterministic stable selection, and resource conservation is mandatory.
-- Preserved the existing contamination/T09 production wrapper verbatim by moving its exact blob to `src/sim/transit_contamination_integrated_runner.gd`; `src/sim/transit_power_integrated_runner.gd` is now a thin T07 composition layer above it. This keeps prior green contamination behavior unchanged and makes the new boundary recoverable.
-- Production T07 now initializes consumer satiety only from authored `organism_definitions.initial_satiety`, carries that satiety deterministically across ticks, invokes the existing `T07FeedingKernel`, exposes per-tick/aggregate allocation and causal events, writes final satiety into `final_organism_runtime`, and incorporates T07 runtime/evidence into authoritative tick checksums.
-- T07 remains data-driven through explicit `t07_producer_definitions` and `t07_consumer_definitions`; no content defaults or new gameplay were invented.
-- The integration intentionally fails closed when `t06_definitions` are present. T06 and T07 both allocate in Phase E and commit satiety in Phase F from the same pre-F snapshot; composing T07 as a post-pass after the existing T06 owner would incorrectly let T06 consume satiety headroom first. The explicit error is `t07_t06_shared_phase_f_composition_not_implemented` until both are moved into one shared authoritative Phase-E/F composition pass.
-- Extended the already-CI-wired `t07_feeding_kernel_test_runner.gd` with production acceptance coverage for two-tick satiety persistence, Phase-E -> Phase-F causal parentage, finite allocation evidence, final runtime, checksum determinism/visibility, and the deliberate T06+T07 fail-closed guard.
-- Kept T10, sleep transitions, S03-S06 behavior and unrelated hazards outside this increment.
+- Re-read the mandatory recovery/freeze chain and exact feeding authority in `MECHANICS.md`.
+- Preserved the existing contamination/T09 production wrapper under `src/sim/transit_contamination_integrated_runner.gd`; `src/sim/transit_power_integrated_runner.gd` became the thin T07 composition layer.
+- Production T07 initializes authored satiety, persists it across ticks, records Phase-E allocations and Phase-F satiety effects, exposes final runtime and checksum-visible evidence.
+- T06+T07 remains deliberately fail-closed at `t07_t06_shared_phase_f_composition_not_implemented` until both kernels are composed from the same pre-F snapshot.
+
+### Increment 71 — focused coexistence-fixture repair
+- Inspected Increment 70 GitHub Actions before making any gameplay changes. Checkpoint `eeb6ca7d7152b4f7848a83569262cc63274c45f8` failed only in the T07 suite; project import and all preceding suites passed.
+- The first concrete failure was not production behavior: the new T06+T07 coexistence test used stale T06 fixture keys `consume_capacity` / `satiety_per_unit` and capacity `1`.
+- Current green `T06FilterFeederKernel` authority requires `capacity` in `{2,3,4}` and `benefit_per_unit`.
+- Updated only that coexistence fixture to `capacity: 2` and `benefit_per_unit: 1`, so the test can reach the intended explicit shared-Phase-F fail-closed boundary.
+- No gameplay code, allocation semantics, phase ordering, satiety rule, contamination rule or frozen design was changed.
 
 ## Checks performed this run
-- Mandatory authority chain read first: `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`.
-- Re-read current subsystem authority in `MECHANICS.md` for exact A-I ordering, satiety semantics, deterministic selectors and feeding conservation.
-- Latest `main` before changes: `cd51b79aaacb5a701b57b0e343f5882ee15a6807`; `organism-cargo/godot-headless = success`, workflow run `32468057897`.
-- Reused the already-green T07 kernel rather than duplicating allocation logic in the runner.
-- Preserved the complete prior contamination/T09 runner as the exact same Git blob under its new composition-layer filename; only the new top-level T07 layer owns added behavior.
-- Performed a static warnings-as-errors pass around Variant/Array typing, consumer identity, authored initial satiety, deterministic ordering and checksum serialization.
-- Local Godot execution is unavailable in this environment. Exactly one main checkpoint is produced; GitHub Actions remains the executable Godot 4.7.1 validation gate for Increment 70.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` first.
+- Queried latest `main`: `eeb6ca7d7152b4f7848a83569262cc63274c45f8`; `organism-cargo/godot-headless = failure`, workflow run `32472980473`.
+- Inspected the failing job/log. Import/parse passed and all suites through T09 passed; only `t07_feeding_kernel_test_runner.gd` failed.
+- Exact observed mismatch: expected `t07_t06_shared_phase_f_composition_not_implemented`, actual `phase_e:invalid_t06_capacity:grazer`.
+- Compared the fixture against `src/sim/t06_filter_feeder_kernel.gd` validation and repaired only the stale test schema.
+- Local Godot execution is unavailable here; exactly one main checkpoint is produced and GitHub Actions remains the executable Godot 4.7.1 validation gate.
 
 ## Current blockers
-- Increment 70 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first concrete parser/type/test failure next run.
-- T06 + T07 shared Phase-E allocation / Phase-F satiety composition remains intentionally fail-closed. This is now the immediate mechanical integration blocker; it must be implemented inside one common pre-F snapshot pass rather than by ordering one trait after the other.
+- Increment 71 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first newly observable concrete failure.
+- T06 + T07 shared Phase-E allocation / Phase-F satiety composition remains intentionally fail-closed and is the immediate mechanical integration blocker.
 - S06 Monitor Beacon information-only behavior remains unimplemented.
 - S03 Baffle, S04 Nest Pad and S05 Feed Cartridge transit behavior remains unimplemented and intentionally fails closed.
 - Simultaneous multi-growth conflict semantics remain unimplemented until a canonical conflict rule is identified; runtime fails closed instead of inventing a winner.
@@ -67,7 +70,7 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 70. If failure, repair only the first concrete failure. If success, remove the deliberate T06+T07 fail-closed boundary by composing both kernels from one shared Phase-E pre-F organism/environment snapshot and committing their satiety effects together in Phase F without trait-order advantage.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 71. If failure, repair only the first concrete failure. If success, remove the deliberate T06+T07 fail-closed boundary by composing both kernels from one shared Phase-E pre-F organism/environment snapshot and committing their satiety effects together in Phase F without trait-order advantage.**
 
 Next run:
 1. query latest `main` and its `organism-cargo/godot-headless` result first;
