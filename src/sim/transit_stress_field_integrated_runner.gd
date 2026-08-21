@@ -1,7 +1,6 @@
 extends "res://src/sim/transit_monitor_integrated_runner.gd"
 
 const StressFieldEnvironmentKernelScript := preload("res://src/sim/stress_field_environment_kernel.gd")
-const TransitSliceRunnerScript := preload("res://src/sim/transit_slice_runner.gd")
 
 func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dictionary = {}) -> Dictionary:
 	var has_h02: bool = _has_h02(simulation_defs)
