@@ -1,6 +1,7 @@
 extends SceneTree
 
 const StressFieldEnvironmentKernelScript := preload("res://src/sim/stress_field_environment_kernel.gd")
+const StressFieldResponseKernelScript := preload("res://src/sim/stress_field_response_kernel.gd")
 const TransitPowerIntegratedRunnerScript := preload("res://src/sim/transit_power_integrated_runner.gd")
 
 var failures: int = 0
@@ -12,6 +13,8 @@ func _init() -> void:
 	_test_deterministic_replay()
 	_test_production_transit_h02_phase_c_d_integration()
 	_test_production_stress_field_coexists_with_heat_and_is_checksum_visible()
+	_test_stress_field_phase_g_hysteresis_boundaries()
+	_test_production_stress_field_internal_stress_response()
 	if failures == 0:
 		print("stress_field_environment_kernel_test_runner: PASS")
 		quit(0)
@@ -132,6 +135,50 @@ func _test_production_stress_field_coexists_with_heat_and_is_checksum_visible() 
 	_expect_true(stronger_tick1["stress_field_by_cell"] != weaker_tick1["stress_field_by_cell"], "authored H02 strength changes only stress-field authority")
 	_expect_true(String(stronger["tick_checksums"][0]) != String(weaker["tick_checksums"][0]), "stress-field authority is checksum-visible")
 
+func _test_stress_field_phase_g_hysteresis_boundaries() -> void:
+	var kernel: StressFieldResponseKernel = StressFieldResponseKernelScript.new()
+	var retained: Dictionary = kernel.evaluate_phase_g(1, [_response_organism(3, "AGITATED")], {"cargo-a": "phase-f-parent"})
+	_expect_true(bool(retained.get("ok", false)), "stress-field Phase G accepts valid AGITATED runtime")
+	if bool(retained.get("ok", false)):
+		_expect_equal(String(retained["organisms"][0]["primary_state"]), "AGITATED", "AGITATED persists at authored exit threshold")
+		_expect_equal(retained["events"], [], "no state transition event is emitted when hysteresis retains state")
+	var recovered: Dictionary = kernel.evaluate_phase_g(2, [_response_organism(2, "AGITATED")], {"cargo-a": "phase-f-parent"})
+	_expect_true(bool(recovered.get("ok", false)), "stress-field Phase G accepts recovery runtime")
+	if bool(recovered.get("ok", false)):
+		_expect_equal(String(recovered["organisms"][0]["primary_state"]), "CALM", "AGITATED exits only below authored lower threshold")
+		var events: Array = recovered["events"]
+		_expect_equal(events.size(), 1, "recovery crossing emits one Phase-G transition event")
+		_expect_equal(events[0]["parent_event_ids"], PackedStringArray(["phase-f-parent"]), "Phase-G transition retains Phase-F causal parent")
+
+func _test_production_stress_field_internal_stress_response() -> void:
+	var runner: TransitPowerIntegratedRunner = TransitPowerIntegratedRunnerScript.new()
+	var first: Dictionary = runner.simulate(_response_record(), 1, _response_defs(3))
+	var replay: Dictionary = runner.simulate(_response_record(), 1, _response_defs(3))
+	var weaker: Dictionary = runner.simulate(_response_record(), 1, _response_defs(2))
+	_expect_true(bool(first.get("ok", false)), "production transit converts H02 field exposure into organism stress")
+	_expect_equal(first, replay, "production stress-field organism response replay is deterministic")
+	_expect_true(bool(weaker.get("ok", false)), "comparison H02 response run succeeds")
+	if not bool(first.get("ok", false)) or not bool(weaker.get("ok", false)):
+		return
+	var snapshot: Dictionary = first["end_tick_snapshots"][0]
+	_expect_equal(snapshot["stress_field_by_cell"], {"0,0": 3}, "organism response never mutates the published environment field")
+	_expect_equal(int(snapshot["stress_field_upstream_stress_delta_by_id"]["cargo-a"]), 2, "wrapper preserves upstream heat stress delta before adding H02 pressure")
+	var runtime: Array = snapshot["organism_runtime"]
+	_expect_equal(int(runtime[0]["stress"]), 5, "Phase F aggregates upstream heat stress and stress-field exposure")
+	_expect_equal(String(runtime[0]["primary_state"]), "AGITATED", "Phase G evaluates combined post-F stress with existing hysteresis")
+	var events: Array = snapshot["stress_field_response_events"]
+	_expect_equal(events.size(), 3, "E exposure, F meter application and G transition produce deterministic evidence")
+	_expect_equal(String(events[0]["phase"]), "E", "first response event is exact Phase E")
+	_expect_equal(String(events[1]["phase"]), "F", "second response event is exact Phase F")
+	_expect_equal(String(events[2]["phase"]), "G", "third response event is exact Phase G")
+	_expect_equal(events[1]["parent_event_ids"], PackedStringArray([String(events[0]["event_id"])]), "Phase F stress intake points to Phase E exposure")
+	_expect_equal(events[2]["parent_event_ids"], PackedStringArray([String(events[1]["event_id"])]), "Phase G transition points to Phase F meter change")
+	var weaker_snapshot: Dictionary = weaker["end_tick_snapshots"][0]
+	_expect_equal(weaker_snapshot["stress_field_by_cell"], {"0,0": 2}, "comparison changes environmental H02 authority only")
+	_expect_equal(int(weaker_snapshot["organism_runtime"][0]["stress"]), 4, "weaker H02 pressure yields lower internal stress")
+	_expect_equal(String(weaker_snapshot["organism_runtime"][0]["primary_state"]), "CALM", "weaker combined stress stays below AGITATED entry")
+	_expect_true(String(first["tick_checksums"][0]) != String(weaker["tick_checksums"][0]), "organism stress/state response is checksum-visible")
+
 func _production_record() -> Dictionary:
 	return {
 		"run_id": "stress-field-production-run",
@@ -161,12 +208,7 @@ func _production_defs(h02_delta: int) -> Dictionary:
 			"h02-vibration": {"family": "H02", "stress_field_delta": h02_delta, "target_cells": ["0,0"]},
 			"h01-heat": {"family": "H01", "target_scope": "hold", "heat_delta": 1},
 		},
-		"thermal_rules": {
-			"heat_min": 0,
-			"heat_max": 20,
-			"transfer_edges": [],
-			"vent_by_cell": {},
-		},
+		"thermal_rules": {"heat_min": 0, "heat_max": 20, "transfer_edges": [], "vent_by_cell": {}},
 		"stress_field_rules": {
 			"stress_field_min": 0,
 			"stress_field_max": 20,
@@ -174,6 +216,68 @@ func _production_defs(h02_delta: int) -> Dictionary:
 			"decay_by_cell": {"0,0": 1, "1,0": 1},
 		},
 		"support_definitions_by_id": {},
+	}
+
+func _response_record() -> Dictionary:
+	return {
+		"run_id": "stress-field-response-run",
+		"rules_version": "rules-r1",
+		"content_version": "stress-field-response-1",
+		"canonical_committed_input": {
+			"route_id": "route-stress-field-response",
+			"seed": 91,
+			"placements": [{"instance_id": "cargo-a", "anchor": [0, 0], "orientation": 0}],
+			"supports": [],
+			"brownout_priority": [],
+		},
+	}
+
+func _response_defs(h02_delta: int) -> Dictionary:
+	return {
+		"route_profile": {
+			"id": "route-stress-field-response",
+			"tick_count": 1,
+			"events": [
+				{"tick": 1, "duration_ticks": 1, "hazard_id": "h02-vibration", "authored_order": 0},
+				{"tick": 1, "duration_ticks": 1, "hazard_id": "h01-heat", "authored_order": 1},
+			],
+		},
+		"hold_definition": {"dimensions": [1, 1], "blocked_cells": [], "power_capacity": 0},
+		"hazards_by_id": {
+			"h02-vibration": {"family": "H02", "stress_field_delta": h02_delta, "target_cells": ["0,0"]},
+			"h01-heat": {"family": "H01", "target_scope": "hold", "heat_delta": 4},
+		},
+		"thermal_rules": {"heat_min": 0, "heat_max": 20, "transfer_edges": [], "vent_by_cell": {}},
+		"stress_field_rules": {"stress_field_min": 0, "stress_field_max": 20, "transfer_edges": [], "decay_by_cell": {}},
+		"organism_definitions": {
+			"cargo-a": {
+				"initial_stress": 0,
+				"initial_state": "CALM",
+				"stress_profile": _stress_profile(),
+			},
+		},
+		"support_definitions_by_id": {},
+	}
+
+func _response_organism(stress: int, primary_state: String) -> Dictionary:
+	return {
+		"instance_id": "cargo-a",
+		"occupied_cells": ["0,0"],
+		"stress": stress,
+		"primary_state": primary_state,
+		"stress_profile": _stress_profile(),
+	}
+
+func _stress_profile() -> Dictionary:
+	return {
+		"heat_safe_max": 2,
+		"stress_per_heat_unit": 1,
+		"stress_min": 0,
+		"stress_max": 20,
+		"agitated_enter": 5,
+		"agitated_exit": 3,
+		"panic_enter": 10,
+		"panic_exit": 7,
 	}
 
 func _expect_true(value: bool, label: String) -> void:
