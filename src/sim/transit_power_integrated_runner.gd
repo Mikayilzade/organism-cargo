@@ -22,7 +22,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 	if not first_snapshot_value is Dictionary:
 		return _failure("invalid_end_tick_snapshot")
 	var first_snapshot: Dictionary = first_snapshot_value
-	var first_contamination_value: Variant = first_snapshot.get("contamination_by_cell", {})
+	var first_contamination_value: Variant = first_snapshot.get("phase_d_contamination_exposure_by_cell", first_snapshot.get("contamination_by_cell", {}))
 	var first_runtime_value: Variant = first_snapshot.get("organism_runtime", [])
 	if not first_contamination_value is Dictionary:
 		return _failure("invalid_contamination_snapshot")
@@ -63,7 +63,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		var snapshot: Dictionary = raw_snapshot_dictionary.duplicate(true)
 		var tick: int = int(snapshot.get("tick", index + 1))
 		var runtime_value: Variant = snapshot.get("organism_runtime", [])
-		var contamination_value: Variant = snapshot.get("contamination_by_cell", {})
+		var contamination_value: Variant = snapshot.get("phase_d_contamination_exposure_by_cell", snapshot.get("contamination_by_cell", {}))
 		if not runtime_value is Array:
 			return _failure("invalid_organism_runtime_snapshot")
 		if not contamination_value is Dictionary:

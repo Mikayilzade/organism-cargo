@@ -37,46 +37,49 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Increment 59: exact deterministic T05 Spore Shedder Phase-C primitive.
 - Increment 60: focused Godot 4.7.1 bootstrap Variant-typing repair; checkpoint `772afd019ff4898bb17d15d7919574ef692a39b7` observed green, workflow run `32436410537`.
 - Increment 61: production T05 Phase-C integration; checkpoint `d96b658013e65510bafc51368beb0c2d6c5c0e03` observed green, workflow run `32439929194`.
-- Increment 62: deterministic T06 Filter Feeder consumption/conservation primitive at checkpoint `8981c2e5de7d5dcf3e20f666d25c32b3bdb31546`; previous always-run suite observed green in workflow run `32443344449` before the saved T06 semantic runner itself was added to CI.
+- Increment 62: deterministic T06 Filter Feeder consumption/conservation primitive at checkpoint `8981c2e5de7d5dcf3e20f666d25c32b3bdb31546`.
+- Increment 63: promoted the saved T06 semantic acceptance runner into the always-run Godot suite; checkpoint `868b7fff95b134a829f766d9b19c227f420d1071` observed green via `organism-cargo/godot-headless`, workflow run `32447048083`.
 
-### Increment 63 — promote T06 semantic acceptance runner into the always-run Godot suite
-- Started from repository state only and re-read `IMPLEMENTATION_START_HERE.md`, this live status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, exact A-I ordering/resource-conservation authority in `MECHANICS.md`, and T06-related numeric bands in `CONTENT_ARCHITECTURE.md`.
-- Queried latest `main` first and confirmed Increment 62 checkpoint `8981c2e5de7d5dcf3e20f666d25c32b3bdb31546` had `organism-cargo/godot-headless = success`, workflow run `32443344449`.
-- Re-inspected `src/sim/t06_filter_feeder_kernel.gd` and `tests/unit/t06_filter_feeder_kernel_test_runner.gd` before changing integration scope.
-- Added the saved T06 runner to `.github/workflows/headless-tests.yml` as an explicit always-run Godot 4.7.1 contract step.
-- The promoted runner exercises finite contamination conservation, satiety-headroom capping, immutable input snapshots, deterministic contested integer allocation, no overdrawing, explicit sleep gating and preservation of unrelated runtime fields.
-- Deliberately did **not** wire T06 into production transit in the same checkpoint before its standalone semantic runner has been observed under the real Godot 4.7.1 warnings-as-errors gate. This follows the anti-spam/focused-repair rule: one coherent push, then inspect the concrete executable result rather than mixing unobserved primitive semantics with production state persistence.
-- No gameplay/design values were changed. T09/T10, sleep transitions, T07, S03-S06 behavior and unrelated hazards remain out of scope.
+### Increment 64 — production T06 Phase-E allocation / Phase-F commit integration
+- Re-read `IMPLEMENTATION_START_HERE.md`, this live status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and the exact A-I ordering/resource-conservation authority in `MECHANICS.md` before implementation-sensitive work.
+- Queried latest `main` first and confirmed Increment 63 checkpoint `868b7fff95b134a829f766d9b19c227f420d1071` is green under Godot 4.7.1, workflow run `32447048083`.
+- Added production `T06FilterFeederKernel` composition inside `TransitPowerIntegratedRunner` rather than applying a post-hoc snapshot mutation.
+- Added validated `t06_definitions` preparation and exact authored `initial_satiety` seeding for T06 organism instances. Missing or out-of-range authored satiety fails closed; no synthetic default is invented.
+- Phase D now preserves a named `phase_d_contamination_exposure_by_cell` snapshot before any T06 consumption.
+- Phase E resolves deterministic T06 allocation from that common published exposure snapshot without mutating authoritative state during allocation.
+- Phase F commits both finite contamination removal and satiety benefit, and the resulting reduced contamination field becomes the environment authority carried into the next tick.
+- Existing organism contamination-response composition now samples the named pre-T06 Phase-D exposure snapshot, so Filter Feeder consumption cannot retroactively reduce same-tick contamination intake.
+- Added `t06_events`, satiety/runtime state, pre-commit exposure and post-F contamination to end-tick evidence/checksum material.
+- Extended the already-always-run T06 contract runner with production acceptance cases proving two-tick field carry-forward, same-tick pre-consumption exposure sampling, authored satiety persistence, E/F event phase labels and deterministic replay.
+- T09/T10, T07, sleep transitions, S03-S06 behavior and unrelated hazards remain deliberately outside this increment.
 
 ## Checks performed this run
-- Required authority/recovery chain re-read before implementation-sensitive work.
-- Latest main at start: `8981c2e5de7d5dcf3e20f666d25c32b3bdb31546`.
-- Confirmed its existing `organism-cargo/godot-headless` status is `success` via workflow run `32443344449`.
-- Re-confirmed canon: Phase E computes interactions/allocation from a named snapshot; Phase F commits contamination/satiety changes; finite resources cannot be overdrawn; competing indivisible resource units require a documented stable selector; sleep suppresses a trait only when that trait explicitly declares sleep gating.
-- Static review confirms the workflow invokes exactly the saved T06 runner and does not change production behavior.
-- Exactly one coherent main checkpoint is produced in this run. The resulting GitHub Actions run is the executable semantic/parse validation for T06 under Godot 4.7.1.
+- Required authority/recovery chain re-read before changes.
+- Latest main at start: `868b7fff95b134a829f766d9b19c227f420d1071`.
+- Confirmed `organism-cargo/godot-headless = success` on that checkpoint via workflow run `32447048083`.
+- Re-confirmed canon: Phase D publishes the exposure snapshot; Phase E evaluates feeding/contamination interactions from that snapshot; Phase F commits contamination/satiety changes; resource conservation is mandatory; same-tick threshold/intake logic cannot be retroactively changed by a later commit.
+- Static review performed for deterministic ordering, immutable Phase-D exposure evidence, authored satiety validation, carry-forward authority and checksum coverage.
+- Existing T06 runner remains the single CI entry point, now expanded to cover production integration, so this checkpoint does not add an extra workflow or notification path.
+- Local Godot execution is unavailable in this environment. Exactly one coherent main checkpoint is produced; GitHub Actions is the executable Godot 4.7.1 parse/semantic gate for Increment 64.
 
 ## Current blockers
-- Increment 63 must be observed under Godot 4.7.1. If it fails, inspect and repair only the first concrete T06 parser/type/semantic failure.
-- T06 is not yet integrated into `TransitPowerIntegratedRunner`; production integration remains the immediate next increment after the standalone acceptance runner is green.
-- Production T06 integration must preserve the Phase-D published contamination snapshot for Phase-E exposure/allocation, commit T06 field reduction + satiety in Phase F, and carry that reduced contamination field into subsequent ticks; a post-hoc snapshot-only mutation is not sufficient.
+- Increment 64 must be observed under Godot 4.7.1. If it fails, inspect and repair only the first concrete parser/type/semantic failure.
 - T09 Symbiotic Buffer contamination resistance/mitigation remains unimplemented.
 - S06 Monitor Beacon information-only behavior remains unimplemented.
-- S03 Baffle, S04 Nest Pad and S05 Feed Cartridge transit behavior remain unimplemented and intentionally fail closed.
+- S03 Baffle, S04 Nest Pad and S05 Feed Cartridge transit behavior remains unimplemented and intentionally fails closed.
 - Simultaneous multi-growth conflict semantics remain unimplemented until a canonical conflict rule is identified; runtime fails closed instead of inventing a winner.
 - T07 feeding, sleep runtime transitions, remaining hazards, finite reactive triggers and simultaneous multi-parent ancestry remain Phase 12C scope.
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 63. If failure, repair only the first concrete T06 semantic/parser failure. If success, integrate `T06FilterFeederKernel` into the production transit tick itself at Phase-E allocation -> Phase-F contamination/satiety commit, preserving the Phase-D published exposure snapshot while carrying the post-F reduced field forward to the next tick.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 64. If failure, repair only the first concrete T06 integration failure. If success, implement the next exact contamination interaction boundary: T09 Symbiotic Buffer as a narrow, conditional, capacity-limited target intake/resistance modifier without mutating the environment field.**
 
 Next run:
 1. query latest `main` and its `organism-cargo/godot-headless` result first;
 2. if failure, inspect the linked job/log and checkpoint one focused repair only;
-3. if success, add validated `t06_definitions` preparation and seed required satiety runtime from authored organism definitions without inventing defaults outside canon;
-4. at each tick retain the Phase-D contamination exposure snapshot, resolve T06 allocation from that snapshot in Phase E, commit T06 contamination reduction + satiety in Phase F, then continue with the reduced environment as next-tick authority;
-5. ensure organism contamination exposure still samples the common pre-commit Phase-D snapshot, not the already-consumed post-F field;
-6. expose T06 events/satiety/field changes in end-tick snapshots and checksum evidence and add production deterministic replay/conservation acceptance coverage;
-7. keep T09/T10, T07, sleep transitions, S03-S06 behavior and unrelated hazards out of that increment.
+3. if success, re-read exact T09 targeting/range/capacity/resistance authority and roster constraints before coding;
+4. implement a standalone deterministic T09 primitive first, with stable target selection and explicit causal evidence;
+5. prove T09 modifies target intake/resistance rather than the contamination field itself and cannot become a universal protector;
+6. keep T10, T07, sleep transitions, S03-S06 behavior and unrelated hazards out of that increment.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.
