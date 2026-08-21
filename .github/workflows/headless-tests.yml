@@ -209,6 +209,12 @@ jobs:
           set -euo pipefail
           /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/t09_symbiotic_buffer_kernel_test_runner.gd
 
+      - name: T07 feeding compatibility range allocation and conservation contract test
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/t07_feeding_kernel_test_runner.gd
+
       - name: Publish observable main-commit test status
         if: always() && github.event_name == 'push'
         shell: bash
