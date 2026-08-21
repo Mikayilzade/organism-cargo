@@ -38,7 +38,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		return authority_result
 	var persisted_stress_by_id: Dictionary = authority_result["stress_by_id"]
 	var persisted_state_by_id: Dictionary = authority_result["state_by_id"]
-	var previous_base_stress_by_id: Dictionary = authority_result["stress_by_id"].duplicate(true)
+	var previous_base_stress_by_id: Dictionary = persisted_stress_by_id.duplicate(true)
 
 	var checksums_value: Variant = base_result.get("tick_checksums", PackedStringArray())
 	if not (checksums_value is Array or checksums_value is PackedStringArray):
