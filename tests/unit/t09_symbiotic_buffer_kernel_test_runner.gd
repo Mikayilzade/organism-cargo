@@ -94,7 +94,10 @@ func _test_multiple_sources_combine_target_intake_multipliers_deterministically(
 		_definition("buffer-a", ["target"], 1, 500),
 	]
 	var first: Dictionary = kernel.resolve_tick(4, organisms, definitions)
-	var second: Dictionary = kernel.resolve_tick(4, organisms.duplicate(true), [definitions[1].duplicate(true), definitions[0].duplicate(true)])
+	var definition_second: Dictionary = definitions[1]
+	var definition_first: Dictionary = definitions[0]
+	var reversed_definitions: Array = [definition_second.duplicate(true), definition_first.duplicate(true)]
+	var second: Dictionary = kernel.resolve_tick(4, organisms.duplicate(true), reversed_definitions)
 	_expect_true(bool(first.get("ok", false)) and bool(second.get("ok", false)), "stacked T09 cases succeed")
 	if not bool(first.get("ok", false)) or not bool(second.get("ok", false)):
 		return

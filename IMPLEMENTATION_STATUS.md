@@ -40,31 +40,27 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Increment 62: deterministic T06 Filter Feeder consumption/conservation primitive at checkpoint `8981c2e5de7d5dcf3e20f666d25c32b3bdb31546`.
 - Increment 63: promoted the saved T06 semantic acceptance runner into the always-run Godot suite; checkpoint `868b7fff95b134a829f766d9b19c227f420d1071` observed green via `organism-cargo/godot-headless`, workflow run `32447048083`.
 - Increment 64: production T06 Phase-E allocation / Phase-F commit integration; checkpoint `7f94a49659699414afd7098b625c3aecef05471f` observed green via `organism-cargo/godot-headless`, workflow run `32450865397`.
+- Increment 65: deterministic T09 Symbiotic Buffer targeting/resistance primitive at checkpoint `4fd6bdcc36a59d02eb6738b6bec1f74741475925`; first Godot run exposed a test-only Variant typing parse failure in the replay-order assertion.
 
-### Increment 65 — deterministic T09 Symbiotic Buffer targeting/resistance primitive
-- Re-read `IMPLEMENTATION_START_HERE.md`, this live status, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, and exact T09/targeting authority in `MECHANICS.md`, `DECISION_ARCHITECTURE.md`, and `CONTENT_ARCHITECTURE.md` before implementation-sensitive work.
-- Queried latest `main` first and confirmed Increment 64 checkpoint `7f94a49659699414afd7098b625c3aecef05471f` is green under Godot 4.7.1, workflow run `32450865397`.
-- Added standalone `T09SymbioticBufferKernel` as a deterministic Phase-E direct-interaction primitive only; production transit composition is intentionally deferred to the next recoverable increment.
-- The primitive accepts an authored compatible-target set, explicit near/adjacent range, state/stage/sleep gates, exactly one protected target per source, and an authored non-amplifying fixed-point contamination-intake multiplier.
-- Target selection is deterministic and previewable: eligible targets inside range are sorted by nearest occupied-cell Manhattan distance, then lowest `instance_id`.
-- The launch-roster one-target protection rule is enforced fail-closed with `max_targets == 1`; a T09 source cannot become a universal protector even when multiple compatible alternatives are in range.
-- Multiple T09 sources may affect the same eligible target; because they are target intake/resistance modifiers in one category, their fixed-point multipliers combine deterministically in stable source-instance order.
-- T09 returns intake-modifier authority plus explicit Phase-E causal assignment events; it does not receive or mutate the environmental contamination field and does not mutate organism runtime in place.
-- Added `tests/unit/t09_symbiotic_buffer_kernel_test_runner.gd` covering nearest-then-ID selection, explicit compatibility/range limits, one-target anti-universal protection, sleep gating, deterministic same-category multiplier composition, replay/order independence, causal evidence, and fail-closed multi-target definitions.
-- Added exactly one new test step to the existing Godot headless workflow; no new workflow/notification path was created.
-- T09 production application to organism contamination intake, T10, T07, sleep runtime transitions, S03-S06 behavior and unrelated hazards remain deliberately outside this increment.
+### Increment 66 — focused Godot 4.7.1 T09 test typing repair
+- Inspected workflow run `32454635955` for Increment 65 after the checkpoint reported `organism-cargo/godot-headless = failure`.
+- All existing project import and prior contract tests passed; the only failure was the new T09 test runner at line 97.
+- Exact failure: `definitions[1]` / `definitions[0]` are inferred as `Variant`, so direct `.duplicate(true)` calls are rejected under warnings-as-errors even though each element is a Dictionary at runtime.
+- Applied one focused compatibility repair only: assign the two validated array elements to statically typed `Dictionary` locals, duplicate those locals, and build the reversed-definition array from the typed copies.
+- No T09 gameplay semantics, selector, range, capacity, multiplier, event shape, workflow topology or unrelated system changed.
+- This repair remains within the same saved T09 primitive scope; production T09 integration is still the next substantive implementation boundary after a green checkpoint.
 
 ## Checks performed this run
 - Required authority/recovery chain re-read before changes.
-- Latest main at start: `7f94a49659699414afd7098b625c3aecef05471f`.
-- Confirmed `organism-cargo/godot-headless = success` on that checkpoint via workflow run `32450865397`.
+- Latest main at substantive implementation start: `7f94a49659699414afd7098b625c3aecef05471f`; confirmed green via workflow run `32450865397`.
 - Re-confirmed canon: T09 is narrow, conditional, capacity-limited protection for compatible targets; target intake/resistance modifiers are applied after source/transmission modifiers; capacity-limited selectors may use nearest then lowest `instance_id`; no universal shield/protector is allowed.
 - Re-confirmed launch roster usage: Warmback explicitly protects one target maximum; Velvet Nurse is a one-target buffer specialist; Amber Leech protects the same compatible partner.
-- Static review performed for stable source/target ordering, Manhattan distance over occupied cells, one-target enforcement, fixed-point multiplier composition, no runtime/environment mutation, sleep-gate semantics and warnings-as-errors-sensitive Variant handling.
-- Local Godot execution is unavailable in this environment. Exactly one coherent main checkpoint is produced; GitHub Actions is the executable Godot 4.7.1 parse/semantic gate for Increment 65.
+- Increment 65 checkpoint `4fd6bdcc36a59d02eb6738b6bec1f74741475925` parsed the new kernel successfully and passed every existing test, then failed only the new T09 test runner due to the concrete warnings-as-errors Variant typing issue above.
+- Focused repair performed against that exact failure; no speculative second gameplay change was made.
+- Local Godot execution is unavailable in this environment. GitHub Actions remains the executable Godot 4.7.1 parse/semantic gate.
 
 ## Current blockers
-- Increment 65 must be observed under Godot 4.7.1. If it fails, inspect and repair only the first concrete parser/type/semantic failure.
+- Increment 66 must be observed under Godot 4.7.1. If it fails, leave the next concrete failure for the next run rather than creating a burst of CI-fix pushes.
 - T09 is not yet wired into `TransitPowerIntegratedRunner`; the next production boundary is to apply its target modifier to same-tick contamination intake without mutating the environment field.
 - S06 Monitor Beacon information-only behavior remains unimplemented.
 - S03 Baffle, S04 Nest Pad and S05 Feed Cartridge transit behavior remains unimplemented and intentionally fails closed.
@@ -73,7 +69,7 @@ Increments 14-39 established and verified the complete tiny-content vertical sli
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck remains Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 65. If failure, repair only the first concrete T09 primitive failure. If success, integrate T09 into production contamination response at the exact Phase-E target-intake/resistance boundary without mutating the environment field.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 66. If failure, repair only the first concrete remaining T09 primitive/test failure in the next run. If success, integrate T09 into production contamination response at the exact Phase-E target-intake/resistance boundary without mutating the environment field.**
 
 Next run:
 1. query latest `main` and its `organism-cargo/godot-headless` result first;
