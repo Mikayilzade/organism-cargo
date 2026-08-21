@@ -203,6 +203,12 @@ jobs:
           set -euo pipefail
           /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/t06_filter_feeder_kernel_test_runner.gd
 
+      - name: T09 Symbiotic Buffer targeting and resistance-modifier contract test
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/t09_symbiotic_buffer_kernel_test_runner.gd
+
       - name: Publish observable main-commit test status
         if: always() && github.event_name == 'push'
         shell: bash
