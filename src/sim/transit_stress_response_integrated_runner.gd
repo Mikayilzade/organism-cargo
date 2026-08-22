@@ -1,4 +1,4 @@
-extends "res://src/sim/transit_stress_field_integrated_runner.gd"
+extends "res://src/sim/transit_h05_stress_field_integrated_runner.gd"
 
 const StressFieldResponseKernelScript := preload("res://src/sim/stress_field_response_kernel.gd")
 const SleepWakeKernelScript := preload("res://src/sim/sleep_wake_kernel.gd")

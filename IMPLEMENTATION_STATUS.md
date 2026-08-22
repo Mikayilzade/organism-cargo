@@ -17,10 +17,10 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 96
+## Current implementation checkpoint — Increment 97
 
 ### Phase / subsystem
-**12C Core Systems — H05 Vent Cycle production Phase-D integration boundary**
+**12C Core Systems — H05 Vent Cycle production runner integration**
 
 ### Repository truth read before work
 This run re-read the mandatory recovery chain before implementation:
@@ -31,64 +31,70 @@ This run re-read the mandatory recovery chain before implementation:
 - `PHASE11_FINAL_FREEZE.md`
 - current-subsystem canon: `GAME_BIBLE.md`, `MECHANICS.md`, `TECHNICAL_SPEC.md`
 
-The relevant frozen rule remains: H05 is not a fourth environmental channel. It modifies the existing Phase-D decay/venting authority for only the already-enabled frozen channels: Heat, Stress field and Contamination. Phase D still propagates from a common source snapshot, then applies decay/venting, clamps and publishes exposure.
+The relevant frozen rule remains unchanged: H05 Vent Cycle modifies only the existing Phase-D decay/venting authority for Heat, Stress field and Contamination. It does not add a fourth environmental channel, does not move work into another phase and does not alter the deterministic A–I order.
 
 ### Entry validation
-- Increment 95 checkpoint: `e173df4bc8ae361f37ed825abb475c701977024f` (`12C: add deterministic H05 vent modifier primitive`).
-- Latest observable `organism-cargo/godot-headless` status for Increment 95: **SUCCESS**, workflow run `32562560036`.
-- Therefore the run followed the prior `NEXT ACTION` success branch rather than repairing CI.
+- Repository `main` at start of work: `bd1e8472fab961a026bdce56881230b79692bb93` (`12C: establish shared H05 Phase-D environment boundary`).
+- Observable `organism-cargo/godot-headless` status for that exact head: **SUCCESS**, workflow run `32565160192`.
+- Therefore this run followed Increment 96's green success branch and resumed the H05 production runner wiring rather than performing a CI repair.
 
-### Implemented in Increment 96
-- Added `src/sim/phase_d_environment_resolver.gd` as the shared deterministic production Phase-D boundary for the three frozen spatial channels.
-- The resolver consumes the active tick hazard set plus the already-authored Phase-D rules and uses `H05VentCycleKernel` exactly once to derive effective tick-local vent/decay maps.
-- Heat retains the existing `thermal_rules.vent_by_cell` authority; H05 modifies that map before `ThermalResponseKernel.propagate_heat`.
-- Contamination retains the existing `contamination_rules.vent_by_cell` authority; H05 modifies that map before `ContaminationEnvironmentKernel.propagate_phase_d`.
-- Stress field retains its existing `stress_field_rules.decay_by_cell` authority. The shared boundary maps that existing decay field into the H05 vent-authority vocabulary and maps the effective value back to `decay_by_cell` before `StressFieldEnvironmentKernel.propagate_phase_d`; no new stress mechanic or channel was introduced.
-- The shared boundary rejects missing/unknown channels, negative authored Phase-D vent/decay values, and any H05 attempt to create a channel not enabled by the caller.
-- It preserves deterministic H05 event evidence and exposes H05 authority payload/checksum plus a final Phase-D environment authority payload/checksum suitable for inclusion in transit tick checksums.
-- Extended the already-wired `tests/unit/h05_vent_cycle_kernel_test_runner.gd` rather than adding another CI workflow. Existing H05 primitive tests remain and new production-boundary acceptance covers all three channels.
-- Added an inactive-H05 equivalence fixture that runs the same generated fields through the new boundary and directly through each existing Phase-D kernel, requiring exact dictionary equality for Heat, Stress field and Contamination.
-- Added active-H05 acceptance proving the same authored H05 changes the published Phase-D exposure of all three enabled channels and produces deterministic evidence/checksum material.
+### Implemented in Increment 97
+- Added `src/sim/transit_h05_shared_resource_runner_base.gd`, an H05-aware production transit layer used beneath the existing shared-resource/S05/T06/T07 stack.
+- The H05-aware production layer preserves the old runner byte-for-byte path when no Heat/Contamination H05 route event intersects the simulated tick window; existing non-H05 behavior therefore continues through the already-tested parent implementation.
+- When an H05 route event affects Heat and/or Contamination, the layer keeps the existing Phase A/B/C logic intact and replaces only the Phase-D propagation call with the shared `PhaseDEnvironmentResolver` introduced in Increment 96.
+- Heat and Contamination are passed to the shared resolver only when already enabled by existing simulation authority. An H05 definition attempting to target a disabled Heat or Contamination channel is rejected with typed `h05_channel_not_enabled` evidence rather than silently creating a new channel.
+- Active H05 definitions are scoped to the channels owned by that production layer before reaching `H05VentCycleKernel`, so a multi-channel H05 can be composed independently with the outer Stress-field layer without false disabled-channel failures.
+- The production H05 layer overrides legacy hazard delegation so H05 route events/definitions are removed before the old `TransitSliceRunner` H01-owned preparation path. H03/H04 stripping remains inherited and unchanged.
+- `src/sim/transit_shared_resource_runner.gd` now extends the H05-aware shared-resource base, keeping S05 evidence integration and the rest of the established stack unchanged.
+- Added `src/sim/transit_h05_stress_field_integrated_runner.gd` between the existing stress-field production layer and the stress-field organism-response layer.
+- The stress H05 layer reuses the existing H02 Phase-C source kernel, existing S03 boundary-transformed Phase-D rules and the shared `PhaseDEnvironmentResolver`; H05 therefore changes only the existing `decay_by_cell` authority before exposure publication.
+- A stress-field H05 is rejected when the Stress-field channel is not enabled by existing H02 authority. No H05 definition can create the channel.
+- Stress H05 recomputation preserves existing H02 source evidence, S03 evidence and downstream stress-field response ordering while replacing the published stress field before the existing Phase-E/F/G response layer samples it.
+- `src/sim/transit_stress_response_integrated_runner.gd` now consumes the H05-aware stress-field layer, so downstream stress response observes the corrected Phase-D exposure rather than the pre-H05 field.
+- Every affected end-tick snapshot now carries canonical `H05_VENT_MODIFIED` evidence plus `phase_d_effective_vent_by_channel`; affected Heat/Contamination snapshots also retain shared Phase-D environment authority payload/checksum, while affected Stress-field snapshots retain the stress Phase-D authority payload/checksum.
+- H05 authority material is appended to per-tick checksum material only when the H05 changes that tick's Phase-D authority or propagated Stress field. Unaffected pre-H05 ticks preserve prior checksum material.
+- Result-level `h05_vent_events` aggregates deterministic channel-specific H05 evidence across the production run.
+- Added `tests/unit/h05_transit_integration_test_runner.gd` with focused end-to-end production fixtures for Heat, Contamination and Stress field. The fixtures assert changed Phase-D exposure, canonical H05 evidence/effective vent or decay, checksum sensitivity, deterministic replay and byte-equivalent output when an H05 route event lies outside the simulated window.
+- Wired the focused production H05 integration runner into the existing single `Godot Headless Tests` workflow; no additional workflow or notification source was created.
 
 ### Files changed
-- `src/sim/phase_d_environment_resolver.gd` — new shared deterministic Phase-D/H05 composition boundary.
-- `tests/unit/h05_vent_cycle_kernel_test_runner.gd` — expanded primitive + production-boundary acceptance.
+- `src/sim/transit_h05_shared_resource_runner_base.gd` — new H05-aware Heat/Contamination production Phase-D runner layer.
+- `src/sim/transit_shared_resource_runner.gd` — routes the existing shared-resource/S05 stack through the H05-aware base.
+- `src/sim/transit_h05_stress_field_integrated_runner.gd` — new shared-resolver Stress-field H05 integration layer.
+- `src/sim/transit_stress_response_integrated_runner.gd` — consumes H05-corrected Stress-field exposure before existing response logic.
+- `tests/unit/h05_transit_integration_test_runner.gd` — focused end-to-end production H05 acceptance.
+- `.github/workflows/headless-tests.yml` — adds the new test to the existing workflow only.
 - `IMPLEMENTATION_STATUS.md` — this recoverable checkpoint and exact continuation instruction.
 
 ### Validation performed / available
-- Entry checkpoint CI was verified green before changes: `organism-cargo/godot-headless = success` for `e173df4bc8ae361f37ed825abb475c701977024f`.
-- The existing GitHub workflow already executes `tests/unit/h05_vent_cycle_kernel_test_runner.gd`; no extra workflow or notification source was created.
-- This environment has no working direct network clone/runtime checkout, so the new GDScript cannot be truthfully reported locally executed before the checkpoint. The single checkpoint push will trigger the existing headless suite; its result must be inspected at the start of the next autonomous run before further normal commits.
+- Entry checkpoint CI was verified green before implementation: `organism-cargo/godot-headless = success` for `bd1e8472fab961a026bdce56881230b79692bb93`, workflow run `32565160192`.
+- Existing Increment-96 unit coverage already validates the shared Phase-D resolver against direct Heat, Stress-field and Contamination kernels, including deterministic active H05 composition and inactive-H05 kernel equivalence.
+- New end-to-end test coverage is now wired to the existing workflow and will run on this single Increment-97 checkpoint together with the full prior regression suite.
+- This execution environment still has no working direct network clone/Godot runtime checkout, so the new production wiring cannot be truthfully reported locally executed before the checkpoint. The checkpoint's GitHub headless result is therefore the authoritative runtime validation and must be inspected before any further normal implementation commit.
 
 ### Deliberately not changed
 - No gameplay/canonical design files.
-- No fourth channel, new hazard family, species, support, currency or progression rule.
+- No fourth environmental channel or new Phase-D semantics.
 - No H06 Zone Isolation implementation.
 - No T10 Reactive Pulse implementation.
-- No fixture-only S05 production support change.
-- No S03 directed-interceptor runtime binding.
-- No speculative additional CI workflow.
-
-### Remaining H05 integration work
-The new boundary is production-grade and tested through the existing H05 test runner, but the current transit runners still call the individual Phase-D kernels directly. The next increment must wire this shared resolver into those existing transit execution paths, then place its H05 events in tick snapshots/result evidence and append its authority payload/checksum material to per-tick replay checksums. In particular, `transit_power_integrated_runner_base.gd` must strip H05 from the legacy `TransitSliceRunner` delegation (which only accepts H01) and handle it at the shared Phase-D boundary; `transit_stress_field_integrated_runner.gd` must consume the same tick-effective stress-field decay authority rather than a static rule map.
+- No fixture-only S05 production support change beyond preserving the existing S05 stack over the new H05-aware base.
+- No S03 directed-interceptor runtime binding; only its already-existing Phase-D stress transmission transform is reused.
+- No new workflow, scheduled notification or CI spam source.
 
 ### Blockers / deferred known work
 - **No user-action blocker.**
 - Current implementation is intentionally incomplete: 12C remains in progress.
-- Existing deferred items from prior checkpoints remain deferred unless a later `NEXT ACTION` selects them: fixture-only S05 production path, S03 directed-interceptor binding, remaining S04 composition edges, H06, T10 and subsequent complete A–I integration/acceptance.
+- Runtime truth for Increment 97 is pending the existing `organism-cargo/godot-headless` workflow triggered by this checkpoint.
+- The older `transit_power_integrated_runner_base.gd` remains the legacy parent implementation; production H05 stripping is supplied by the new H05-aware shared-resource subclass that actually feeds the current top-level runner. If later direct callers of the legacy base become production-authoritative, consolidate the H05 delegation guard downward before treating that legacy class as an H05-capable entry point.
+- Existing deferred items from prior checkpoints remain deferred unless a later `NEXT ACTION` selects them: fixture-only S05 work, S03 directed-interceptor binding, remaining S04 composition edges, H06, T10 and subsequent complete A–I integration/acceptance.
 
 ### Canonical contradictions
-- **NONE discovered.** The H05 integration boundary preserves the frozen rule that Vent Cycle modifies environmental decay/venting without creating a new simulation system.
+- **NONE discovered.** The implementation keeps H05 as a modifier of existing Phase-D vent/decay fields, preserves the common-source propagation model and leaves downstream Phase-E/F/G response semantics unchanged except for receiving the correctly modified exposure.
 
 ## NEXT ACTION
-At the start of the next run, first query current `main` and the latest `organism-cargo/godot-headless` status for this Increment-96 checkpoint. If the workflow failed, inspect the first concrete failure and make one focused repair checkpoint only; do not broaden scope.
+At the start of the next run, first query current `main` and the latest `organism-cargo/godot-headless` status for this Increment-97 checkpoint.
 
-If green, continue the same **12C / H05 production integration** and finish the runner wiring in one coherent batch:
-1. route active H05 hazards through `PhaseDEnvironmentResolver` inside the production heat/contamination Phase-D execution path;
-2. exclude H05 from the legacy `TransitSliceRunner` delegated hazard set so the base H01-only validator is not asked to own H05;
-3. route the production stress-field Phase-D path through the same resolver/effective `decay_by_cell` authority for ticks where that channel is enabled;
-4. persist deterministic `H05_VENT_MODIFIED` events and effective vent/decay evidence in end-tick snapshots/result evidence;
-5. include H05/Phase-D authority material in every affected tick checksum;
-6. add focused end-to-end production fixtures proving an active H05 changes exposure/checksum and an inactive H05 preserves prior production output byte-equivalent where applicable.
+- If the workflow failed, inspect the first concrete failure. Make **one focused repair batch only** for that failure class, update this status, and do not broaden scope in the same run.
+- If the workflow is green, first close the H05 integration gate by confirming the new `h05_transit_integration_test_runner.gd` passed in the same run and that existing H01/H02/H03/S03/S05/T06/T07/contamination/stress regressions stayed green. Then select the next still-missing 12C subsystem from the frozen Phase-12C requirement list and repository evidence; do not jump to 12D or later phases while 12C remains incomplete.
 
-Do not begin H06, T10, fixture-only S05, S03 directed runtime binding, 12D, 12E or later phases until this H05 runner integration checkpoint is green and the subsequent exact `NEXT ACTION` selects the next subsystem.
+Do not begin 12D, 12E or later phases until the full 12C exit gate is satisfied and recorded.
