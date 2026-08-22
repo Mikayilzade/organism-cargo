@@ -1,0 +1,112 @@
+name: Godot Headless Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  headless-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Godot 4.7.1 stable
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 \
+            -o /tmp/godot.zip \
+            https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.7.1-stable_linux.x86_64
+          /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --version
+
+      - name: Run headless contract suite
+        id: suite
+        shell: bash
+        run: |
+          set +e
+          GODOT=/tmp/godot/Godot_v4.7.1-stable_linux.x86_64
+          failure=0
+          cases=(
+            "Import and parse project|--headless --editor --path . --quit"
+            "Production core content shell boot contract test|--headless --path . --script tests/unit/shell_content_boot_test_runner.gd"
+            "Persistent shell smoke boot|--headless --path . --quit-after 1"
+            "Bootstrap deterministic tests|--headless --path . --script tests/unit/bootstrap_test_runner.gd"
+            "Content persistence input boundary tests|--headless --path . --script tests/unit/boundary_test_runner.gd"
+            "File-backed content and atomic storage tests|--headless --path . --script tests/unit/storage_content_test_runner.gd"
+            "Content registry and app state composition tests|--headless --path . --script tests/unit/composition_test_runner.gd"
+            "Exactly-once launch commit tests|--headless --path . --script tests/unit/launch_commit_test_runner.gd"
+            "Planning validation to durable launch flow tests|--headless --path . --script tests/unit/planning_launch_flow_test_runner.gd"
+            "Real-data current-footprint planning tests|--headless --path . --script tests/unit/planning_structural_resolver_test_runner.gd"
+            "Deterministic transit slice tests|--headless --path . --script tests/unit/transit_slice_test_runner.gd"
+            "Phase-I delivery completion and Causal Review handoff tests|--headless --path . --script tests/unit/delivery_completion_test_runner.gd"
+            "Thermal propagation and organism response tests|--headless --path . --script tests/unit/thermal_response_test_runner.gd"
+            "Deterministic Causal Review evidence tests|--headless --path . --script tests/unit/causal_review_evidence_test_runner.gd"
+            "Targeted Retry ownership and identity tests|--headless --path . --script tests/unit/targeted_retry_test_runner.gd"
+            "Shell-owned VS01 scene flow integration test|--headless --path . --script tests/unit/vertical_slice_scene_flow_test_runner.gd"
+            "Player-facing vertical slice control contract test|--headless --path . --script tests/unit/vertical_slice_control_test_runner.gd"
+            "Player-built VS01 planning editor contract test|--headless --path . --script tests/unit/vertical_slice_planning_editor_test_runner.gd"
+            "Persistent shell VS01 playability test|--headless --path . --script tests/unit/vertical_slice_shell_playability_test_runner.gd"
+            "Persistent shell deterministic replay contract test|--headless --path . --script tests/unit/vertical_slice_shell_determinism_test_runner.gd"
+            "Blocked-growth episode semantics contract test|--headless --path . --script tests/unit/blocked_growth_episode_test_runner.gd"
+            "Phase-B growth legality integration contract test|--headless --path . --script tests/unit/phase_b_growth_test_runner.gd"
+            "T08 qualifying-duration and Phase-B queue contract test|--headless --path . --script tests/unit/t08_growth_qualifier_test_runner.gd"
+            "Phase-A Brownout power authority contract test|--headless --path . --script tests/unit/phase_a_power_resolver_test_runner.gd"
+            "S01 Cooler Phase-C effect contract test|--headless --path . --script tests/unit/s01_cooler_kernel_test_runner.gd"
+            "S02 Filter Phase-C effect contract test|--headless --path . --script tests/unit/s02_filter_kernel_test_runner.gd"
+            "H03 contamination field and Phase-D propagation contract test|--headless --path . --script tests/unit/contamination_environment_kernel_test_runner.gd"
+            "Phase-E/F/G organism contamination response contract test|--headless --path . --script tests/unit/contamination_response_kernel_test_runner.gd"
+            "T06 Filter Feeder conservation and allocation contract test|--headless --path . --script tests/unit/t06_filter_feeder_kernel_test_runner.gd"
+            "T09 Symbiotic Buffer targeting and resistance-modifier contract test|--headless --path . --script tests/unit/t09_symbiotic_buffer_kernel_test_runner.gd"
+            "T07 feeding compatibility range allocation and conservation contract test|--headless --path . --script tests/unit/t07_feeding_kernel_test_runner.gd"
+            "S05 Feed Cartridge finite reserve conservation contract test|--headless --path . --script tests/unit/s05_feed_cartridge_kernel_test_runner.gd"
+            "S06 Monitor Beacon information-only contract test|--headless --path . --script tests/unit/s06_monitor_beacon_kernel_test_runner.gd"
+            "Phase-B sleep gating and H02 wake-request primitive contract test|--headless --path . --script tests/unit/sleep_wake_kernel_test_runner.gd"
+            "S04 Nest Pad Phase-B lifecycle and production composition contract test|--headless --path . --script tests/unit/s04_nest_pad_kernel_test_runner.gd"
+            "S03 Baffle stress transmission and directed relation contract test|--headless --path . --script tests/unit/s03_baffle_kernel_test_runner.gd"
+            "H02 stress-field generation and Phase-D propagation contract test|--headless --path . --script tests/unit/stress_field_environment_kernel_test_runner.gd"
+            "H05 Vent Cycle Phase-D vent modifier contract test|--headless --path . --script tests/unit/h05_vent_cycle_kernel_test_runner.gd"
+            "H05 Vent Cycle production transit integration contract test|--headless --path . --script tests/unit/h05_transit_integration_test_runner.gd"
+          )
+
+          for entry in "${cases[@]}"; do
+            label="${entry%%|*}"
+            args="${entry#*|}"
+            echo "::group::${label}"
+            ${GODOT} ${args}
+            rc=$?
+            echo "::endgroup::"
+            if [ ${rc} -ne 0 ]; then
+              echo "::error title=${label}::Headless contract failed with exit code ${rc}"
+              failure=${rc}
+              break
+            fi
+          done
+
+          echo "exit_code=${failure}" >> "${GITHUB_OUTPUT}"
+          exit 0
+
+      - name: Publish observable commit test status
+        if: always()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATUS_STATE: ${{ steps.suite.outputs.exit_code == '0' && 'success' || 'failure' }}
+        run: |
+          set -euo pipefail
+          curl -fsS -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            -d "{\"state\":\"${STATUS_STATE}\",\"context\":\"organism-cargo/godot-headless\",\"description\":\"Godot 4.7.1 headless contract suite\",\"target_url\":\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
