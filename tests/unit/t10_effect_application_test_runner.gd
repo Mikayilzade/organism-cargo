@@ -16,7 +16,7 @@ func _init() -> void:
 		quit(1)
 
 func _test_all_effect_authorities_clamp_carry_and_ancestry() -> void:
-	var runner: Variant = TransitT10EffectIntegratedRunnerScript.new()
+	var runner: Object = TransitT10EffectIntegratedRunnerScript.new()
 	var base_result: Dictionary = {
 		"ok": true,
 		"tick_checksums": PackedStringArray(["base-1", "base-2"]),
@@ -26,8 +26,8 @@ func _test_all_effect_authorities_clamp_carry_and_ancestry() -> void:
 		],
 	}
 	var defs: Dictionary = _effect_defs()
-	var first: Dictionary = runner.integrate_effects(base_result, defs)
-	var replay: Dictionary = runner.integrate_effects(base_result, defs)
+	var first: Dictionary = runner.call("integrate_effects", base_result, defs)
+	var replay: Dictionary = runner.call("integrate_effects", base_result, defs)
 	_expect_true(bool(first.get("ok", false)), "T10 effect integration resolves")
 	_expect_equal(first, replay, "T10 effect integration replay is deterministic")
 	if not bool(first.get("ok", false)):
