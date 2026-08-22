@@ -233,6 +233,12 @@ jobs:
           set -euo pipefail
           /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/s04_nest_pad_kernel_test_runner.gd
 
+      - name: S03 Baffle stress transmission and directed relation contract test
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/s03_baffle_kernel_test_runner.gd
+
       - name: H02 stress-field generation and Phase-D propagation contract test
         shell: bash
         run: |
