@@ -2,6 +2,7 @@ extends SceneTree
 
 const S04NestPadKernelScript := preload("res://src/sim/s04_nest_pad_kernel.gd")
 const SleepWakeKernelScript := preload("res://src/sim/sleep_wake_kernel.gd")
+const TransitPowerIntegratedRunnerScript := preload("res://src/sim/transit_power_integrated_runner.gd")
 
 var failures: int = 0
 
@@ -11,6 +12,7 @@ func _init() -> void:
 	_test_invalid_capacity_is_rejected()
 	_test_h02_same_tick_wake_wins_after_s04_sleep_entry()
 	_test_replay_and_checksum_sensitivity()
+	_test_production_s04_precedes_h02_wake_and_is_checksum_visible()
 	if failures == 0:
 		print("s04_nest_pad_kernel_test_runner: PASS")
 		quit(0)
@@ -76,6 +78,86 @@ func _test_replay_and_checksum_sensitivity() -> void:
 		return
 	_expect_equal(String(recovery["organisms"][0]["primary_state"]), "CALM", "S04 recovery exits ASLEEP at the authored Phase-B boundary")
 	_expect_true(String(first["checksum_material"]) != String(recovery["checksum_material"]), "sleep-entry versus recovery authority is checksum-sensitive")
+
+func _test_production_s04_precedes_h02_wake_and_is_checksum_visible() -> void:
+	var runner: TransitPowerIntegratedRunner = TransitPowerIntegratedRunnerScript.new()
+	var with_sleep: Dictionary = runner.simulate(_production_record(), 1, _production_defs(true))
+	var replay: Dictionary = runner.simulate(_production_record(), 1, _production_defs(true))
+	var without_sleep: Dictionary = runner.simulate(_production_record(), 1, _production_defs(false))
+	_expect_true(bool(with_sleep.get("ok", false)), "production runner accepts committed S04 through its Phase-B wrapper")
+	_expect_equal(with_sleep, replay, "production S04/H02 replay is deterministic")
+	_expect_true(bool(without_sleep.get("ok", false)), "production comparison without authored sleep transition succeeds")
+	if not bool(with_sleep.get("ok", false)) or not bool(without_sleep.get("ok", false)):
+		return
+	var snapshot: Dictionary = with_sleep["end_tick_snapshots"][0]
+	_expect_equal(String(snapshot["organism_runtime"][0]["primary_state"]), "CALM", "same-tick H02 wake runs after S04 sleep entry")
+	var s04_events: Array = snapshot["s04_transition_events"]
+	var wake_events: Array = snapshot["sleep_wake_events"]
+	var response_events: Array = snapshot["stress_field_response_events"]
+	_expect_equal(s04_events.size(), 1, "production snapshot retains S04 transition evidence")
+	_expect_equal(wake_events.size(), 1, "same-tick explicit H02 wake observes the S04 sleeper")
+	_expect_equal(String(response_events[0]["kind"]), "S04_SLEEP_ENTER_APPLIED", "S04 is first at the composed Phase-B boundary")
+	_expect_equal(String(response_events[1]["kind"]), "H02_WAKE_APPLIED", "H02 wake follows S04 in the same Phase-B boundary")
+	_expect_true(String(with_sleep["tick_checksums"][0]) != String(without_sleep["tick_checksums"][0]), "S04 transition evidence is production-checksum visible even when final state matches")
+
+func _production_record() -> Dictionary:
+	return {
+		"run_id": "s04-production-run",
+		"rules_version": "rules-r1",
+		"content_version": "s04-production-1",
+		"canonical_committed_input": {
+			"route_id": "route-s04",
+			"seed": 41,
+			"placements": [{"instance_id": "cargo-a", "anchor": [0, 0], "orientation": 0}],
+			"supports": [{"instance_id": "nest-a", "support_id": "S04", "linked_target_instance_id": "cargo-a"}],
+			"brownout_priority": [],
+		},
+	}
+
+func _production_defs(include_sleep_transition: bool) -> Dictionary:
+	var schedule: Array = []
+	if include_sleep_transition:
+		schedule.append({"tick": 1, "authored_order": 0, "support_instance_id": "nest-a", "target_instance_id": "cargo-a", "transition": "ENTER_SLEEP"})
+	return {
+		"route_profile": {
+			"id": "route-s04",
+			"tick_count": 1,
+			"events": [{"tick": 1, "duration_ticks": 1, "hazard_id": "vibration", "authored_order": 0}],
+		},
+		"hold_definition": {"dimensions": [1, 1], "blocked_cells": [], "power_capacity": 0},
+		"hazards_by_id": {
+			"vibration": {
+				"family": "H02",
+				"stress_field_delta": 1,
+				"target_cells": ["0,0"],
+				"wake_request": true,
+				"wake_target_instance_ids": ["cargo-a"],
+			},
+		},
+		"stress_field_rules": {"stress_field_min": 0, "stress_field_max": 20, "transfer_edges": [], "decay_by_cell": {}},
+		"organism_definitions": {
+			"cargo-a": {
+				"initial_stress": 0,
+				"initial_state": "CALM",
+				"can_sleep": true,
+				"stress_profile": _stress_profile(),
+			},
+		},
+		"support_definitions_by_id": {"S04": {"family": "S04", "capacity": 1, "powered": false}},
+		"s04_transition_schedule": schedule,
+	}
+
+func _stress_profile() -> Dictionary:
+	return {
+		"heat_safe_max": 2,
+		"stress_per_heat_unit": 1,
+		"stress_min": 0,
+		"stress_max": 20,
+		"agitated_enter": 5,
+		"agitated_exit": 3,
+		"panic_enter": 10,
+		"panic_exit": 7,
+	}
 
 func _organisms() -> Array:
 	return [{"instance_id": "cargo-a", "primary_state": "CALM", "can_sleep": true}]

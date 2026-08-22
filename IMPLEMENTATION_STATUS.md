@@ -38,38 +38,45 @@ Increments 40-75 established and iteratively verified blocked growth/T08, Browno
 - Checkpoint `9313c7ff5934ab7fb4949bed268eb0922881398b` was observed **GREEN** via `organism-cargo/godot-headless`, workflow run `32540623373`.
 
 ### Increment 85 — minimum S04 Nest Pad Phase-B lifecycle primitive
-- Re-read exact S04, sleep, Phase-B scheduling, support capacity and state-gating authority in `MECHANICS.md`, `CONTENT_ARCHITECTURE.md`, `TECHNICAL_SPEC.md`, plus the higher-authority top-level/freeze invariants.
-- Added `src/sim/s04_nest_pad_kernel.gd` as a deliberately narrow data-driven Phase-B primitive.
-- The kernel does **not** invent sleep duration, recovery magnitude or natural lifecycle numbers. It consumes explicit authored transition schedule entries and applies only `ENTER_SLEEP` or `RECOVER_WAKE` on their named tick.
-- Enforced frozen S04 capacity exactly 1, one linked target per support instance, stable identity/order, explicit organism `can_sleep` eligibility, and no implicit suppression of ungated traits.
-- Added deterministic S04 causal event records and canonical checksum material so later production composition can make the boundary checksum-visible without changing semantics.
-- Added `tests/unit/s04_nest_pad_kernel_test_runner.gd` covering authored timing, capacity-1 enforcement, non-sleepable rejection, recovery/wake, deterministic replay/checksum sensitivity and compatibility with existing same-tick explicit H02 wake semantics.
-- The new dedicated runner is not yet added as a separate workflow step; project import/parse in the existing Godot workflow will still parse the new scripts. Production S04 composition is intentionally deferred to the next coherent increment.
+- Added `src/sim/s04_nest_pad_kernel.gd` with explicit authored `ENTER_SLEEP` / `RECOVER_WAKE` scheduling at Phase B, frozen capacity 1, explicit `can_sleep` eligibility, deterministic event ordering and checksum material.
+- Added dedicated kernel coverage including same-tick compatibility with H02 wake semantics.
+- Checkpoint `bacf77d6ef935437ec4fa6ed9ca872fb1154e6eb` was observed **GREEN** via `organism-cargo/godot-headless`, workflow run `32543648108`.
+
+### Increment 86 — production S04 Phase-B composition before H02 wake
+- Re-read the required implementation handoff/status/freeze chain and current S04/sleep/H02 authority in `MECHANICS.md`, `CONTENT_ARCHITECTURE.md`, `TECHNICAL_SPEC.md`, and `GAME_BIBLE.md` before implementation.
+- Added `S04NestPadKernel` to the production stress-response composition boundary.
+- S04 committed supports are now consumed by this wrapper and stripped only from lower legacy support layers that do not yet implement non-powered supports; other committed supports remain untouched.
+- Explicit `s04_transition_schedule` data from simulation definitions is applied at Phase B before the already-integrated H02 explicit wake request.
+- Organism sleep eligibility is sourced from authored organism definitions; missing/false eligibility cannot be bypassed by the production wrapper.
+- Same-tick S04 `ENTER_SLEEP` followed by H02 Vibration wake deterministically produces `ASLEEP -> CALM` before Phase-E/F/G stress response.
+- S04 transition evidence is retained per tick and globally, ordered before H02 wake evidence, and included in the production checksum serialization even when the final organism state matches a no-sleep comparison run.
+- Added a production acceptance fixture to `s04_nest_pad_kernel_test_runner.gd` and wired that dedicated runner into the Godot headless workflow.
 
 ## Checks performed this run
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` first.
-- Confirmed Increment 84 checkpoint `9313c7ff5934ab7fb4949bed268eb0922881398b` green under `organism-cargo/godot-headless`, workflow run `32540623373`.
-- Re-read canonical Phase-B ordering, sleep semantics, S04 capacity/state-gating authority and support/runtime schema in `MECHANICS.md`, `CONTENT_ARCHITECTURE.md`, `TECHNICAL_SPEC.md`, `GAME_BIBLE.md`, and `PHASE11_FREEZE.md`.
-- Local Godot execution is unavailable in this environment; GitHub Actions / Godot 4.7.1 remains the executable validation gate.
-- This increment intentionally batches one coherent checkpoint only; no speculative CI-fix burst is permitted.
+- Read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` first.
+- Confirmed Increment 85 checkpoint `bacf77d6ef935437ec4fa6ed9ca872fb1154e6eb` green under `organism-cargo/godot-headless`, workflow run `32543648108`.
+- Re-read canonical Phase-B order, sleep semantics, S04 capacity/non-dominance, H02 wake semantics and deterministic headless/runtime rules in `MECHANICS.md`, `CONTENT_ARCHITECTURE.md`, `TECHNICAL_SPEC.md`, and `GAME_BIBLE.md`.
+- Added deterministic replay, same-tick S04-before-H02 ordering, evidence retention and checksum-sensitivity coverage to the dedicated S04 runner.
+- Added the dedicated S04 runner to `.github/workflows/headless-tests.yml`.
+- Local Godot execution is unavailable in this environment; GitHub Actions / Godot 4.7.1 remains the executable validation gate for this checkpoint.
+- Anti-spam rule preserved: one coherent checkpoint only; no speculative CI-fix burst.
 
 ## Current blockers
-- Increment 85 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first concrete parser/type failure.
-- S04 primitive exists but is not yet threaded into the production Phase-B composition path or canonical run checksum sequence.
-- The exact authored S04 transition schedule still needs a production source from contract/species/support data; the primitive deliberately does not invent timing values.
-- Same-tick sleep-gated trait outputs beyond the reconstructed H02 stress-response boundary still require one unified per-tick composition boundary rather than wrapper-order shortcuts.
+- Increment 86 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first concrete parser/type/test failure.
+- S04 production composition currently lives at the reconstructed stress-response boundary; S04 behavior on runs without an H02 stress-field path and same-tick sleep-gated outputs in lower Phase-C/E trait layers still need one unified per-tick composition boundary rather than wrapper-order shortcuts.
+- The authored `s04_transition_schedule` source is now production-consumable, but full launch content still needs concrete schedule data in Phase 12D; no sleep duration/recovery numbers were invented.
 - S03 Baffle, S05 Feed Cartridge, H05 Vent Cycle, H06 Zone Isolation, simultaneous multi-growth conflict semantics, finite T10 reactive triggers and remaining simultaneous multi-parent ancestry remain Phase 12C scope.
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck and player-facing Monitor presentation remain Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 85. If failure, repair only the first concrete failure. If success, wire `S04NestPadKernel` into the production Phase-B composition before the already-integrated H02 wake request so same-tick Vibration can deterministically wake an S04 sleeper; add the dedicated S04 runner to the headless workflow and make S04 transition events part of the production checksum-visible evidence without inventing sleep duration/recovery numbers.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 86. If failure, repair only the first concrete parser/type/test failure. If success, re-read the exact S03 Baffle transmission/directed-relation authority and current stress/direct-interaction kernels, then implement the minimum deterministic S03 primitive at its canonical boundary without broadening S04 or inventing modifier values.**
 
 Next run:
 1. query latest `main` and `organism-cargo/godot-headless` first;
 2. if failure, inspect the linked job/log and checkpoint one focused repair only;
-3. if success, identify the smallest existing production source for explicit S04 transition schedule data;
-4. compose S04 scheduled transitions before H02 wake inside canonical Phase B;
-5. run/wire acceptance coverage for capacity, timing, same-tick H02 interaction, causal/checksum visibility and deterministic replay;
-6. keep S03, S05, H05-H06 and unrelated mechanics out unless frozen ordering proves inseparable.
+3. if success, re-read S03 Baffle geometry/transmission and directed-relation rules from the authority chain;
+4. identify the smallest exact stress-field/direct-relation boundary S03 can modify without changing unrelated mechanics;
+5. add deterministic acceptance coverage and checksum/causal evidence;
+6. keep S05, H05-H06, T10 and unrelated mechanics out unless frozen ordering proves inseparable.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.

@@ -2,9 +2,18 @@ extends "res://src/sim/transit_stress_field_integrated_runner.gd"
 
 const StressFieldResponseKernelScript := preload("res://src/sim/stress_field_response_kernel.gd")
 const SleepWakeKernelScript := preload("res://src/sim/sleep_wake_kernel.gd")
+const S04NestPadKernelScript := preload("res://src/sim/s04_nest_pad_kernel.gd")
 
 func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dictionary = {}) -> Dictionary:
-	var base_result: Dictionary = super.simulate(committed_run, total_ticks, simulation_defs)
+	var s04_authority: Dictionary = _prepare_s04_authority(committed_run, simulation_defs)
+	if not bool(s04_authority.get("ok", false)):
+		return s04_authority
+	var base_run: Dictionary = s04_authority["base_run"]
+	var s04_supports: Array = s04_authority["s04_supports"]
+	var support_definitions_by_id: Dictionary = s04_authority["support_definitions_by_id"]
+	var s04_transition_schedule: Array = s04_authority["transition_schedule"]
+
+	var base_result: Dictionary = super.simulate(base_run, total_ticks, simulation_defs)
 	if not bool(base_result.get("ok", false)):
 		return base_result
 
@@ -56,10 +65,12 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 
 	var kernel: StressFieldResponseKernel = StressFieldResponseKernelScript.new()
 	var sleep_wake_kernel: SleepWakeKernel = SleepWakeKernelScript.new()
+	var s04_kernel: S04NestPadKernel = S04NestPadKernelScript.new()
 	var integrated_snapshots: Array = []
 	var integrated_checksums: PackedStringArray = PackedStringArray()
 	var all_events: Array = []
 	var all_wake_events: Array = []
+	var all_s04_events: Array = []
 	var final_runtime: Array = []
 
 	for index: int in range(snapshots.size()):
@@ -89,6 +100,27 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		var pre_field_runtime: Array = composed_result["organisms"]
 		var upstream_delta_by_id: Dictionary = composed_result["upstream_stress_delta_by_id"]
 		previous_base_stress_by_id = composed_result["base_stress_by_id"]
+
+		var s04_events: Array = []
+		if not s04_supports.is_empty():
+			var sleep_eligibility_result: Dictionary = _with_sleep_eligibility(pre_field_runtime, organism_definitions)
+			if not bool(sleep_eligibility_result.get("ok", false)):
+				return sleep_eligibility_result
+			pre_field_runtime = sleep_eligibility_result["organisms"]
+			var s04_result: Dictionary = s04_kernel.resolve_phase_b(
+				tick,
+				pre_field_runtime,
+				s04_supports,
+				support_definitions_by_id,
+				s04_transition_schedule
+			)
+			if not bool(s04_result.get("ok", false)):
+				return {"ok": false, "error": "phase_b_s04:%s" % String(s04_result.get("error", "unknown"))}
+			pre_field_runtime = s04_result["organisms"]
+			var s04_events_value: Variant = s04_result.get("events", [])
+			if not s04_events_value is Array:
+				return {"ok": false, "error": "invalid_s04_transition_events"}
+			s04_events = s04_events_value
 
 		var active_value: Variant = snapshot.get("active_hazards", PackedStringArray())
 		if not (active_value is Array or active_value is PackedStringArray):
@@ -126,6 +158,13 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		persisted_state_by_id = persisted_result["state_by_id"]
 
 		var tick_events: Array = []
+		for raw_s04_event: Variant in s04_events:
+			if not raw_s04_event is Dictionary:
+				return {"ok": false, "error": "invalid_s04_transition_event"}
+			var s04_event: Dictionary = raw_s04_event
+			tick_events.append(s04_event.duplicate(true))
+			all_events.append(s04_event.duplicate(true))
+			all_s04_events.append(s04_event.duplicate(true))
 		for raw_wake_event: Variant in wake_events:
 			if not raw_wake_event is Dictionary:
 				return {"ok": false, "error": "invalid_sleep_wake_event"}
@@ -149,6 +188,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 				all_events.append(next_event.duplicate(true))
 
 		snapshot["organism_runtime"] = final_runtime.duplicate(true)
+		snapshot["s04_transition_events"] = s04_events.duplicate(true)
 		snapshot["sleep_wake_events"] = wake_events.duplicate(true)
 		snapshot["stress_field_upstream_stress_delta_by_id"] = upstream_delta_by_id.duplicate(true)
 		snapshot["stress_field_response_events"] = tick_events.duplicate(true)
@@ -161,10 +201,72 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 
 	base_result["end_tick_snapshots"] = integrated_snapshots
 	base_result["tick_checksums"] = integrated_checksums
+	base_result["s04_transition_events"] = all_s04_events
 	base_result["sleep_wake_events"] = all_wake_events
 	base_result["stress_field_response_events"] = all_events
 	base_result["final_organism_runtime"] = final_runtime.duplicate(true)
 	return base_result
+
+func _prepare_s04_authority(committed_run: Dictionary, simulation_defs: Dictionary) -> Dictionary:
+	if not committed_run.has("canonical_committed_input") or not committed_run["canonical_committed_input"] is Dictionary:
+		return {"ok": false, "error": "missing_committed_input"}
+	var committed_input: Dictionary = committed_run["canonical_committed_input"]
+	var supports_value: Variant = committed_input.get("supports", [])
+	if not supports_value is Array:
+		return {"ok": false, "error": "invalid_committed_supports"}
+	var support_definitions_value: Variant = simulation_defs.get("support_definitions_by_id", {})
+	if not support_definitions_value is Dictionary:
+		return {"ok": false, "error": "invalid_support_definitions"}
+	var support_definitions_by_id: Dictionary = support_definitions_value
+	var transition_schedule_value: Variant = simulation_defs.get("s04_transition_schedule", [])
+	if not transition_schedule_value is Array:
+		return {"ok": false, "error": "invalid_s04_transition_schedule"}
+	var transition_schedule: Array = transition_schedule_value
+	var retained_supports: Array = []
+	var s04_supports: Array = []
+	for raw_support: Variant in supports_value:
+		if not raw_support is Dictionary:
+			return {"ok": false, "error": "invalid_committed_support"}
+		var support: Dictionary = raw_support
+		var support_id: String = String(support.get("support_id", ""))
+		if support_id.is_empty():
+			return {"ok": false, "error": "invalid_committed_support_identity"}
+		if not support_definitions_by_id.has(support_id) or not support_definitions_by_id[support_id] is Dictionary:
+			return {"ok": false, "error": "missing_support_definition:%s" % support_id}
+		var support_definition: Dictionary = support_definitions_by_id[support_id]
+		if String(support_definition.get("family", support_id)) == "S04":
+			s04_supports.append(support.duplicate(true))
+		else:
+			retained_supports.append(support.duplicate(true))
+	if not transition_schedule.is_empty() and s04_supports.is_empty():
+		return {"ok": false, "error": "s04_schedule_without_nest_pad"}
+	var base_run: Dictionary = committed_run.duplicate(true)
+	var base_input: Dictionary = committed_input.duplicate(true)
+	base_input["supports"] = retained_supports
+	base_run["canonical_committed_input"] = base_input
+	return {
+		"ok": true,
+		"error": "",
+		"base_run": base_run,
+		"s04_supports": s04_supports,
+		"support_definitions_by_id": support_definitions_by_id.duplicate(true),
+		"transition_schedule": transition_schedule.duplicate(true),
+	}
+
+func _with_sleep_eligibility(organisms: Array, organism_definitions: Dictionary) -> Dictionary:
+	var results: Array = []
+	for raw_organism: Variant in organisms:
+		if not raw_organism is Dictionary:
+			return {"ok": false, "error": "invalid_organism_runtime_snapshot"}
+		var organism: Dictionary = raw_organism
+		var instance_id: String = String(organism.get("instance_id", ""))
+		if instance_id.is_empty() or not organism_definitions.has(instance_id) or not organism_definitions[instance_id] is Dictionary:
+			return {"ok": false, "error": "missing_organism_definition:%s" % instance_id}
+		var definition: Dictionary = organism_definitions[instance_id]
+		var next: Dictionary = organism.duplicate(true)
+		next["can_sleep"] = bool(definition.get("can_sleep", false))
+		results.append(next)
+	return {"ok": true, "error": "", "organisms": results}
 
 func _initial_stress_authority(base_runtime: Array, organism_definitions: Dictionary) -> Dictionary:
 	var stress_by_id: Dictionary = {}
@@ -280,11 +382,15 @@ func _serialize_stress_field_response(runtime: Array, upstream_delta_by_id: Dict
 			for raw_parent: Variant in parents_value:
 				parents.append(String(raw_parent))
 		parents.sort()
-		parts.append("event=%s:%s:%s:%s:%d:%s" % [
+		parts.append("event=%s:%s:%s:%s:%s:%s:%s:%s:%d:%s" % [
 			String(event.get("event_id", "")),
 			String(event.get("phase", "")),
 			String(event.get("kind", "")),
 			String(event.get("instance_id", "")),
+			String(event.get("support_instance_id", "")),
+			String(event.get("target_instance_id", "")),
+			String(event.get("state_before", "")),
+			String(event.get("state_after", "")),
 			int(event.get("stress_delta", event.get("stress_field_exposure", 0))),
 			",".join(parents),
 		])
