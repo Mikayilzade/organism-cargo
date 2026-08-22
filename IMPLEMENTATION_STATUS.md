@@ -67,37 +67,49 @@ Increments 40-75 established and iteratively verified blocked growth/T08, Browno
 - Checkpoint `f004510e82549555c224159a20fd57dda6e0e7b6` reached project import and every preceding contract successfully, then failed the dedicated S03 test runner under workflow run `32554899804` at one Godot 4.7.1 warning-as-error parser issue in the new test fixture.
 
 ### Increment 91 — focused S03 Godot Variant typing repair
-- Inspected the first concrete failure from Increment 90: `tests/unit/s03_baffle_kernel_test_runner.gd:93` called `.duplicate(true)` directly on `defs["stress_field_rules"]`, which Godot 4.7.1 inferred as `Variant` and rejected with warnings treated as errors.
-- Repaired only the fixture typing by assigning `defs["stress_field_rules"]` to an explicitly typed `Dictionary` before duplicating it.
-- No S03, H02, Phase-D transmission, support-boundary binding, event, checksum or gameplay semantics were changed.
+- Repaired the single Godot 4.7.1 warning-as-error parser issue in the S03 production fixture by explicitly typing the extracted stress-field rule dictionary before calling `duplicate(true)`.
+- No S03/H02 gameplay or production semantics changed.
+- Checkpoint `6dfbd3b879a4ce9b413a1f5ed7aaa591312e279c` was observed **GREEN** via `organism-cargo/godot-headless`, workflow run `32555838612`.
+
+### Increment 92 — minimum deterministic S05 finite-reserve primitive
+- Re-read the frozen S03 directed-line authority and searched current production interaction ownership. No reusable production directed-ray boundary exists yet; therefore S03 Phase-E binding remains explicitly deferred instead of inventing a new selector/path.
+- Re-read S05 and feeding authority: Feed Cartridge is a finite conserved food reserve with spatial opportunity cost; feeding eligibility/compatibility/range belongs to the existing Phase-E feeding system and conservation is mandatory.
+- Added `src/sim/s05_feed_cartridge_kernel.gd` as a narrow reserve ledger, not a second feeding selector.
+- S05 reserve initializes from authored support `capacity` and requires the committed support to retain either fixture or cell placement identity, preserving its frozen spatial opportunity cost without interpreting geometry.
+- `apply_phase_e_allocations` accepts only already-resolved feeding allocations, canonicalizes equivalent support/consumer allocations, verifies the whole batch fits the remaining reserve before mutation, subtracts exactly the allocated units and never replenishes reserve implicitly.
+- Over-allocation fails atomically; caller state is not mutated. S05 does not choose targets, invent range, alter compatibility, grant satiety directly or compete with T07's feeding authority.
+- Added checksum-visible `S05_FOOD_RESERVE_ALLOCATED` evidence with equal `food_units` / `source_cost_units` plus reserve-before/after values.
+- Added dedicated headless coverage for finite initialization, persisted multi-tick depletion, atomic over-allocation rejection, canonical allocation ordering/replay, non-S05 filtering and required spatial identity.
+- Wired the S05 contract into the existing Godot 4.7.1 headless workflow.
 
 ## Checks performed this run
-- Read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` before modifying the checkpoint.
-- Queried fresh `main` and confirmed it was still Increment 90 checkpoint `f004510e82549555c224159a20fd57dda6e0e7b6`.
-- Confirmed `organism-cargo/godot-headless = failure`, workflow run `32554899804`.
-- Inspected the failing job/log: project import succeeded and all preceding contracts through S04 were green; the first failure was the dedicated S03 test parser error at line 93: `duplicate()` is not present on inferred type `Variant`.
-- Applied one focused test-only typing repair; no production code was changed.
+- Read the current `IMPLEMENTATION_STATUS.md`, `IMPLEMENTATION_START_HERE.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md` and `PHASE11_FINAL_FREEZE.md` authority chain before continuing.
+- Queried fresh `main` and confirmed Increment 91 remained the head checkpoint `6dfbd3b879a4ce9b413a1f5ed7aaa591312e279c`.
+- Confirmed Increment 91 is green via `organism-cargo/godot-headless`, workflow run `32555838612`.
+- Re-read `MECHANICS.md` directed-line, Phase-E feeding, conservation and S05 support rules plus the Phase-11 support non-dominance matrix.
+- Inspected current production code and found no exact directed-ray interaction boundary to bind `S03BaffleKernel.clip_directed_ray` without adding a new production selector/path.
+- Inspected `transit_shared_resource_runner.gd` and confirmed T07 already owns feeding eligibility/range/allocation; S05 is therefore implemented only as the finite source ledger to be composed into that existing boundary next.
 - Local Godot execution is unavailable in this environment; GitHub Actions / Godot 4.7.1 remains the executable validation gate for this checkpoint.
-- Anti-spam rule preserved: one coherent repair checkpoint and one CI-triggering push only.
+- Anti-spam rule preserved: one coherent checkpoint with one CI-triggering push only.
 
 ## Current blockers
-- Increment 91 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first concrete parser/type/test failure on the next run.
-- S03 directed-relation production binding is still pending. It must reuse the existing first-fixture interception primitive only at an exact canonical directed-ray production boundary; do not create an S03-specific target selector.
+- Increment 92 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first concrete parser/type/test failure on the next run.
+- S05 is not yet production-composed with `transit_shared_resource_runner.gd` / T07. The next integration must use existing T07 compatibility/range/consumer authority and make the cartridge a finite source without creating a parallel target selector.
+- S03 directed-relation production binding remains deferred until a real canonical directed-ray path exists.
 - Planning-side generic support resolution still has legacy gaps and remains outside this focused simulation increment; do not broaden Phase 12C simulation work into UI/content population prematurely.
 - S04 production composition currently lives at the reconstructed stress-response boundary; S04 behavior on runs without an H02 stress-field path and same-tick sleep-gated outputs in lower Phase-C/E trait layers still need one unified per-tick composition boundary rather than wrapper-order shortcuts.
-- The authored `s04_transition_schedule` source is production-consumable, but full launch content still needs concrete schedule data in Phase 12D; no sleep duration/recovery numbers were invented.
-- S05 Feed Cartridge, H05 Vent Cycle, H06 Zone Isolation, simultaneous multi-growth conflict semantics, finite T10 reactive triggers and remaining simultaneous multi-parent ancestry remain Phase 12C scope.
+- H05 Vent Cycle, H06 Zone Isolation, simultaneous multi-growth conflict semantics, finite T10 reactive triggers and remaining simultaneous multi-parent ancestry remain Phase 12C scope.
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck and player-facing Monitor presentation remain Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 91. If failure, repair only the first concrete parser/type/test failure. If success, re-read the exact S03 directed-relation authority and current production direct-interaction paths. Integrate Baffle first-fixture clipping only if an exact canonical directed-ray production boundary already exists without inventing a selector; otherwise leave directed S03 binding explicitly deferred and implement the minimum deterministic S05 Feed Cartridge finite conserved-reserve primitive.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 92. If failure, repair only the first concrete parser/type/test failure. If success, integrate S05 Feed Cartridge into the existing production T07/shared-resource Phase-E feeding boundary: keep T07 as the sole compatibility/range/consumer selector, convert committed S05 cartridges into finite producer authority, debit the S05 reserve exactly from resolved allocations, persist reserve across ticks, and include cartridge allocation/reserve state in snapshots/checksums without inventing new targeting rules.**
 
 Next run:
 1. query latest `main` and `organism-cargo/godot-headless` first;
 2. if failure, inspect the linked job/log and checkpoint one focused repair only;
-3. if success, inspect existing production direct-interaction/ray ownership and frozen S03 interception rules;
-4. if an exact reusable directed-ray boundary exists, bind `S03BaffleKernel.clip_directed_ray` there with deterministic causal/checksum evidence;
-5. if no exact boundary exists, do not invent one: re-read S05 authority and implement its minimum finite conserved reserve/support primitive instead;
-6. keep H05-H06, T10 and unrelated mechanics out unless frozen ordering proves inseparable.
+3. if success, inspect `_prepare_t07_definitions` and T07 producer runtime assumptions before composing S05;
+4. bind committed S05 supports into the existing Phase-E feeding producer/allocation path without duplicating target selection;
+5. persist finite reserve across ticks and add production acceptance coverage for depletion, competition already resolved by T07, deterministic replay and checksum visibility;
+6. keep S03 directed binding, H05-H06, T10 and unrelated mechanics out unless the frozen production boundary proves inseparable.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.

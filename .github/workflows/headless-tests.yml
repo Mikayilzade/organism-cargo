@@ -215,6 +215,12 @@ jobs:
           set -euo pipefail
           /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/t07_feeding_kernel_test_runner.gd
 
+      - name: S05 Feed Cartridge finite reserve conservation contract test
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/s05_feed_cartridge_kernel_test_runner.gd
+
       - name: S06 Monitor Beacon information-only contract test
         shell: bash
         run: |
