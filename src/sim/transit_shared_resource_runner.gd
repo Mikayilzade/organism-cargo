@@ -1,4 +1,4 @@
-extends "res://src/sim/transit_h05_shared_resource_runner_base.gd"
+extends "res://src/sim/transit_shared_resource_runner_base.gd"
 
 const S05_SOURCE_KIND := "S05"
 
