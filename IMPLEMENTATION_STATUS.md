@@ -17,10 +17,10 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 108
+## Current implementation checkpoint — Increment 109
 
 ### Phase / subsystem
-**12C Core Systems — production T10 Phase-H trigger/evidence composition boundary**
+**12C Core Systems — production T10 Phase-H trigger/guard acceptance through TransitPowerIntegratedRunner**
 
 ### Repository truth read before work
 This run re-read the mandatory recovery chain:
@@ -30,55 +30,54 @@ This run re-read the mandatory recovery chain:
 - `DESIGN_STATUS.md`
 - `PHASE11_FINAL_FREEZE.md`
 
-For the exact T10 subsystem it also re-read `GAME_BIBLE.md`, `PHASE11_FREEZE.md`, `MECHANICS.md`, and `CONTENT_ARCHITECTURE.md`, plus the current H05/stress-response production chain.
+For the exact T10 subsystem it also re-read `GAME_BIBLE.md` and `MECHANICS.md`, the production T10 runner/kernel, the existing stress-field and S04/H02 production contracts, and the current headless workflow.
 
-Frozen requirements preserved: T10 resolves as bounded Phase-H consequence authority; every definition has exactly one finite guard; same-tick recursive/self-sustaining positive loops remain invalid; material trigger ancestry is deterministic and explicit; no species-specific production branch is introduced.
+Frozen requirements preserved: T10 resolves only as bounded Phase-H consequence authority; every definition has exactly one finite guard; trigger ancestry is explicit/deterministic; same-tick recursive loops remain rejected; no species-specific production branch is introduced.
 
 ### Entry validation
-- Repository `main` at start: `0ffda68b586eba8cb71e009560465b49b74649de` (`12C: establish T10 finite trigger authority`).
-- Explicit `organism-cargo/godot-headless` status for that head: **SUCCESS**, workflow run `32581717810`.
-- Therefore the standalone T10 finite-trigger kernel and all prior H05/core regressions are green before this increment.
+- Repository `main` at start: `0fb7e5a19a3088d01ddc9d44d0ff995efcdd93dc` (`12C: connect T10 Phase-H production trigger boundary`).
+- Explicit `organism-cargo/godot-headless` status for that head: **SUCCESS**, workflow run `32584936298`.
+- Therefore the new T10 production inheritance/parse boundary, standalone finite-trigger kernel tests and all prior H05/core regressions are green before this increment.
 
-### Implemented in Increment 108
-- Added `src/sim/transit_t10_integrated_runner.gd` above the established H05-aware stress-response production runner.
-- Production now accepts optional data-driven `t10_definitions`; when absent/empty it returns the prior result unchanged, preserving all existing non-T10 behavior and checksums.
-- The new Phase-H layer gathers existing stress-state and wake events plus explicit named trigger events, derives semantic `PRIMARY_STATE_ENTERED_PANICKED`, `PRIMARY_STATE_RECOVERED_CALM`, and `PRIMARY_STATE_WOKE` trigger boundaries, then delegates finite guard ownership to `T10ReactivePulseKernel`.
-- T10 runtime guard state persists across ticks, pulse/effect evidence is attached to per-tick snapshots and aggregate results, causal parent chains are retained, and T10 authority is folded into deterministic tick checksums.
-- `src/sim/transit_power_integrated_runner.gd` now selects this T10-aware production layer; the established lower H05/stress inheritance chain is not replaced or redesigned.
+### Implemented in Increment 109
+- Added `tests/unit/t10_transit_integration_test_runner.gd` as focused production acceptance through `TransitPowerIntegratedRunner` rather than direct kernel-only coverage.
+- Added a real stress-field case that drives `cargo-a` into PANICKED, verifies semantic `PRIMARY_STATE_ENTERED_PANICKED`, once-per-run pulse count/state, two-hop ancestry back to the underlying Phase-G stress transition, and full deterministic replay.
+- Added a three-tick S04 sleep + H02 wake production case that creates distinct wake episodes each tick and proves `once_per_episode` permits exactly one pulse per episode while `max_triggers_per_run=2` exhausts after two pulses.
+- The repeated wake case also verifies semantic wake ancestry resolves back to the real `H02_WAKE_REQUEST_APPLIED` evidence on every tick and that both guarded production paths replay identically.
+- Added the new production T10 integration contract to the single existing notification-safe headless suite.
 
 ### Files changed
-- `src/sim/transit_t10_integrated_runner.gd` — new production Phase-H trigger/guard/evidence composition layer.
-- `src/sim/transit_power_integrated_runner.gd` — production entry now routes through the T10-aware layer.
-- `IMPLEMENTATION_STATUS.md` — Increment-108 checkpoint and continuation instructions.
+- `tests/unit/t10_transit_integration_test_runner.gd` — production T10 PANICKED/wake/guard/ancestry/replay acceptance.
+- `.github/workflows/headless-tests.yml` — runs the new production T10 contract after the standalone T10 kernel contract.
+- `IMPLEMENTATION_STATUS.md` — Increment-109 checkpoint and exact continuation instructions.
 
 ### Validation performed / available
 - Pre-change head is fully green under the notification-safe Godot 4.7.1 headless suite.
-- The new production entry preserves exact old behavior when `t10_definitions` is empty, so the existing full regression suite exercises the new inheritance/parse boundary immediately after push.
-- This automation environment has no local Godot runtime; per anti-spam policy this run makes one coherent checkpoint only and leaves post-push runtime truth to the existing single notification-safe workflow.
+- New fixtures reuse already-green production stress-field and S04/H02 composition patterns and route exclusively through `TransitPowerIntegratedRunner`.
+- This automation environment has no local Godot runtime; per anti-spam policy this run produces one coherent checkpoint only and leaves post-push runtime truth to the existing single notification-safe workflow.
 
 ### Deliberately not changed
 - No canonical gameplay/design files.
-- No H05 behavior.
-- No T10 authored effect record is yet mutating Heat, Stress-field, Contamination or Satiety production authority; this increment establishes trigger/guard/evidence ownership first so effect composition can be implemented without mixing trigger semantics and resource mutation in one speculative batch.
-- No H06 implementation.
-- No test weakening/suppression and no additional workflow/email path.
+- No T10 production effect mutation yet; existing effect records remain evidence only in this checkpoint.
+- No T10 kernel semantics or guard rules.
+- No H05 behavior, no H06 implementation, no test weakening/suppression and no extra workflow/email path.
 - No 12D or later-phase work.
 
 ### Blockers / deferred known work
 - **No user-action blocker.**
 - 12C remains incomplete.
-- T10 production effect application remains required after this trigger boundary is runtime-green.
-- H06 Zone Isolation remains a separate missing 12C hazard subsystem.
+- Authored T10 effect records still need bounded/clamped application into existing Heat / Stress-field / Contamination / Satiety authorities at the correct Phase-H boundary and must influence subsequent authoritative state where applicable.
+- H06 Zone Isolation remains a separate missing 12C hazard subsystem after T10 closes.
 
 ### Canonical contradictions
-- **NONE discovered.** This increment composes the already-frozen Phase-H T10 guard authority into production without changing trait grammar or phase ordering.
+- **NONE discovered.** This increment tests the already-frozen T10 trigger/guard semantics through the real production runner without changing gameplay rules.
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and the explicit `organism-cargo/godot-headless` status for Increment 108.
+At the start of the next run, query current `main` and the explicit `organism-cargo/godot-headless` status for Increment 109.
 
-- If the workflow fails, inspect the first concrete compile/runtime regression from the new T10 production layer and make one focused repair batch only; do not weaken the T10 kernel contract.
-- If the workflow is green, add focused production acceptance for PANICKED-entry once-per-run, wake once-per-episode, finite max-trigger exhaustion, ancestry and deterministic replay through `TransitPowerIntegratedRunner`.
-- Then apply authored T10 effect records through existing Heat/Stress-field/Contamination/Satiety authorities at the correct Phase-H boundary, with bounded/clamped data-driven effect kinds and no species-specific branches. Prove effects influence subsequent authoritative state where canon requires it, not only result evidence.
+- If the workflow fails, inspect the first concrete failure in `t10_transit_integration_test_runner.gd` and make one focused repair batch only; do not weaken the T10 kernel/production contract.
+- If the workflow is green, implement bounded, clamped, data-driven application of authored T10 effect records into the existing Heat, Stress-field, Contamination and Satiety authorities at Phase H. Effects that canonically persist must alter subsequent authoritative ticks, not only evidence/checksums.
+- Add focused production acceptance for effect clamping, next-tick observability, deterministic replay, ancestry, and finite-trigger interaction; keep same-tick recursive/self-sustaining positive loops invalid.
 - After production T10 is fully green, implement H06 Zone Isolation as the next clearest missing 12C hazard obligation.
 
 Do not begin 12D, 12E or later phases until the full 12C exit gate is satisfied and recorded.
