@@ -32,7 +32,8 @@ func _prepare_s05_production_authority(committed_run: Dictionary, simulation_def
 	var producer_value: Variant = simulation_defs.get("t07_producer_definitions", [])
 	if not producer_value is Array:
 		return {"ok": false, "error": "invalid_t07_producer_definitions"}
-	var producers: Array = producer_value.duplicate(true)
+	var authored_producers: Array = producer_value
+	var producers: Array = authored_producers.duplicate(true)
 	var retained_supports: Array = []
 	var initial_states: Array = []
 	var seen_support_instances: Dictionary = {}
@@ -150,7 +151,8 @@ func _integrate_s05_evidence(result: Dictionary, initial_states: Array) -> Dicti
 		var raw_snapshot: Variant = snapshots[index]
 		if not raw_snapshot is Dictionary:
 			return {"ok": false, "error": "invalid_end_tick_snapshot"}
-		var snapshot: Dictionary = raw_snapshot.duplicate(true)
+		var typed_snapshot: Dictionary = raw_snapshot
+		var snapshot: Dictionary = typed_snapshot.duplicate(true)
 		var events_value: Variant = snapshot.get("t07_events", [])
 		if not events_value is Array:
 			return {"ok": false, "error": "invalid_t07_events"}
