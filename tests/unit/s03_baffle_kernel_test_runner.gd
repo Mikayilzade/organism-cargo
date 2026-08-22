@@ -90,7 +90,8 @@ func _test_replay_and_checksum_sensitivity() -> void:
 func _test_production_h02_s03_phase_d_binding() -> void:
 	var runner: TransitPowerIntegratedRunner = TransitPowerIntegratedRunnerScript.new()
 	var defs: Dictionary = _production_defs()
-	var original_rules: Dictionary = defs["stress_field_rules"].duplicate(true)
+	var stress_rules: Dictionary = defs["stress_field_rules"]
+	var original_rules: Dictionary = stress_rules.duplicate(true)
 	var blocked: Dictionary = runner.simulate(_production_record(true), 1, defs)
 	var open: Dictionary = runner.simulate(_production_record(false), 1, _production_defs())
 	_expect_true(bool(blocked.get("ok", false)), "production H02 accepts a committed S03 Baffle bound to an authored hold boundary")

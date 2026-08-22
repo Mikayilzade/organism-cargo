@@ -57,28 +57,31 @@ Increments 40-75 established and iteratively verified blocked growth/T08, Browno
 - Checkpoint `afa4d5cfafcda987122e03aa469b988bf5f24acf` was observed **GREEN** via `organism-cargo/godot-headless`, workflow run `32554477683`.
 
 ### Increment 90 — production S03 -> H02 Phase-D boundary integration
-- Re-read the live implementation handoff plus frozen S03 support/transmission authority and the `HoldDefinition` / `SupportState` schemas before binding the primitive.
 - Extended `transit_stress_field_integrated_runner.gd` so the H02 production path owns committed S03 supports at the exact layer where stress-field Phase-D rules are applied.
 - Only S03 supports are stripped from the lower legacy H02 base run; all unrelated committed supports remain untouched for their existing owners.
-- Each committed S03 support is resolved by stable `instance_id` + explicit `fixture_id` against `hold_definition.authored_support_boundaries`. The runtime does not infer a boundary from anchor position, orientation or neighboring cells.
+- Each committed S03 support is resolved by stable `instance_id` + explicit `fixture_id` against `hold_definition.authored_support_boundaries`; no boundary geometry is inferred.
 - The resolved physical boundary is passed through `S03BaffleKernel.apply_phase_d_transmission` before `StressFieldEnvironmentKernel.propagate_phase_d`.
-- Upstream authored transfer amounts are never changed: a crossing edge is removed exactly, while every unrelated transfer edge is retained unchanged.
-- Per-tick `S03_STRESS_TRANSFER_BLOCKED` evidence is published in snapshots and at result level with support identity, endpoints, blocked amount and tick.
-- Bound S03 support/boundary identity is checksum-visible even when a particular boundary blocks no active transfer edge, so stripping the support from the lower legacy layer does not erase authoritative support configuration from replay diagnostics.
-- Extended the already-running S03 headless suite with production acceptance coverage for blocked vs open H02 transfer, unrelated-edge preservation, authored-rule non-mutation, exact support-to-boundary binding, deterministic replay and checksum sensitivity.
-- Directed Phase-E relation production binding remains deliberately separate until an exact production directed-ray path exists; this increment changes only the H02 Phase-D boundary.
+- Upstream authored transfer amounts are never changed: crossing edges are removed exactly while unrelated transfer edges are retained unchanged.
+- Per-tick blocked-transfer evidence and bound support/boundary identity are checksum-visible.
+- Extended the existing S03 headless suite with production acceptance coverage for blocked/open H02 transfer, unrelated-edge preservation, authored-rule non-mutation, exact binding, deterministic replay and checksum sensitivity.
+- Checkpoint `f004510e82549555c224159a20fd57dda6e0e7b6` reached project import and every preceding contract successfully, then failed the dedicated S03 test runner under workflow run `32554899804` at one Godot 4.7.1 warning-as-error parser issue in the new test fixture.
+
+### Increment 91 — focused S03 Godot Variant typing repair
+- Inspected the first concrete failure from Increment 90: `tests/unit/s03_baffle_kernel_test_runner.gd:93` called `.duplicate(true)` directly on `defs["stress_field_rules"]`, which Godot 4.7.1 inferred as `Variant` and rejected with warnings treated as errors.
+- Repaired only the fixture typing by assigning `defs["stress_field_rules"]` to an explicitly typed `Dictionary` before duplicating it.
+- No S03, H02, Phase-D transmission, support-boundary binding, event, checksum or gameplay semantics were changed.
 
 ## Checks performed this run
-- Read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, `PHASE11_FREEZE.md`, `TECHNICAL_SPEC.md`, and the current stress/S03 production code before editing.
-- Queried fresh `main`: Increment 89 checkpoint `afa4d5cfafcda987122e03aa469b988bf5f24acf` reports `organism-cargo/godot-headless = success`, workflow run `32554477683`.
-- Confirmed the frozen S03 rule is qualitative blocking/interception with spatial opportunity cost; no numeric attenuation authority exists, so production integration preserves exact upstream magnitudes and removes only explicitly crossed relations.
-- Confirmed the technical schema already provides committed support fixture identity and `HoldDefinition.authored support boundaries`; the implementation binds those explicit authorities rather than inventing geometry.
-- Reused the existing `S03BaffleKernel` and existing S03 workflow runner; no new CI step was added.
-- Local Godot execution is unavailable in this environment; GitHub Actions / Godot 4.7.1 remains the executable parser/test gate for this checkpoint.
-- Anti-spam rule preserved: this run prepares one coherent production checkpoint only; no speculative CI repair pushes.
+- Read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` before modifying the checkpoint.
+- Queried fresh `main` and confirmed it was still Increment 90 checkpoint `f004510e82549555c224159a20fd57dda6e0e7b6`.
+- Confirmed `organism-cargo/godot-headless = failure`, workflow run `32554899804`.
+- Inspected the failing job/log: project import succeeded and all preceding contracts through S04 were green; the first failure was the dedicated S03 test parser error at line 93: `duplicate()` is not present on inferred type `Variant`.
+- Applied one focused test-only typing repair; no production code was changed.
+- Local Godot execution is unavailable in this environment; GitHub Actions / Godot 4.7.1 remains the executable validation gate for this checkpoint.
+- Anti-spam rule preserved: one coherent repair checkpoint and one CI-triggering push only.
 
 ## Current blockers
-- Increment 90 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first concrete parser/type/test failure on the next run.
+- Increment 91 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first concrete parser/type/test failure on the next run.
 - S03 directed-relation production binding is still pending. It must reuse the existing first-fixture interception primitive only at an exact canonical directed-ray production boundary; do not create an S03-specific target selector.
 - Planning-side generic support resolution still has legacy gaps and remains outside this focused simulation increment; do not broaden Phase 12C simulation work into UI/content population prematurely.
 - S04 production composition currently lives at the reconstructed stress-response boundary; S04 behavior on runs without an H02 stress-field path and same-tick sleep-gated outputs in lower Phase-C/E trait layers still need one unified per-tick composition boundary rather than wrapper-order shortcuts.
@@ -87,7 +90,7 @@ Increments 40-75 established and iteratively verified blocked growth/T08, Browno
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck and player-facing Monitor presentation remain Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 90. If failure, repair only the first concrete parser/type/test failure. If success, re-read the exact S03 directed-relation authority and current production direct-interaction paths. Integrate Baffle first-fixture clipping only if an exact canonical directed-ray production boundary already exists without inventing a selector; otherwise leave directed S03 binding explicitly deferred and implement the minimum deterministic S05 Feed Cartridge finite conserved-reserve primitive.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 91. If failure, repair only the first concrete parser/type/test failure. If success, re-read the exact S03 directed-relation authority and current production direct-interaction paths. Integrate Baffle first-fixture clipping only if an exact canonical directed-ray production boundary already exists without inventing a selector; otherwise leave directed S03 binding explicitly deferred and implement the minimum deterministic S05 Feed Cartridge finite conserved-reserve primitive.**
 
 Next run:
 1. query latest `main` and `organism-cargo/godot-headless` first;
