@@ -43,7 +43,6 @@ Increments 40-75 established and iteratively verified blocked growth/T08, Browno
 - Checkpoint `bacf77d6ef935437ec4fa6ed9ca872fb1154e6eb` was observed **GREEN** via `organism-cargo/godot-headless`, workflow run `32543648108`.
 
 ### Increment 86 — production S04 Phase-B composition before H02 wake
-- Re-read the required implementation handoff/status/freeze chain and current S04/sleep/H02 authority in `MECHANICS.md`, `CONTENT_ARCHITECTURE.md`, `TECHNICAL_SPEC.md`, and `GAME_BIBLE.md` before implementation.
 - Added `S04NestPadKernel` to the production stress-response composition boundary.
 - S04 committed supports are now consumed by this wrapper and stripped only from lower legacy support layers that do not yet implement non-powered supports; other committed supports remain untouched.
 - Explicit `s04_transition_schedule` data from simulation definitions is applied at Phase B before the already-integrated H02 explicit wake request.
@@ -51,25 +50,29 @@ Increments 40-75 established and iteratively verified blocked growth/T08, Browno
 - Same-tick S04 `ENTER_SLEEP` followed by H02 Vibration wake deterministically produces `ASLEEP -> CALM` before Phase-E/F/G stress response.
 - S04 transition evidence is retained per tick and globally, ordered before H02 wake evidence, and included in the production checksum serialization even when the final organism state matches a no-sleep comparison run.
 - Added a production acceptance fixture to `s04_nest_pad_kernel_test_runner.gd` and wired that dedicated runner into the Godot headless workflow.
+- Checkpoint `d58d5a92b41d1d58d6647ce786202a09a0d94c6c` failed under `organism-cargo/godot-headless`, workflow run `32546536270`, at the first concrete parser failure: `VALID_STATES` used `PackedStringArray(...)` in a constant expression unsupported by Godot 4.7.1.
+
+### Increment 87 — focused S04 Godot constant-expression repair
+- Replaced only the invalid `PackedStringArray(...)` constant constructor with a literal constant Array for `VALID_STATES`.
+- No S04, sleep, wake, timing, capacity, eligibility, checksum or gameplay semantics were changed.
 
 ## Checks performed this run
 - Read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` first.
-- Confirmed Increment 85 checkpoint `bacf77d6ef935437ec4fa6ed9ca872fb1154e6eb` green under `organism-cargo/godot-headless`, workflow run `32543648108`.
-- Re-read canonical Phase-B order, sleep semantics, S04 capacity/non-dominance, H02 wake semantics and deterministic headless/runtime rules in `MECHANICS.md`, `CONTENT_ARCHITECTURE.md`, `TECHNICAL_SPEC.md`, and `GAME_BIBLE.md`.
-- Added deterministic replay, same-tick S04-before-H02 ordering, evidence retention and checksum-sensitivity coverage to the dedicated S04 runner.
-- Added the dedicated S04 runner to `.github/workflows/headless-tests.yml`.
+- Queried latest `main` and confirmed Increment 86 checkpoint `d58d5a92b41d1d58d6647ce786202a09a0d94c6c` was red via `organism-cargo/godot-headless`, workflow run `32546536270`.
+- Inspected the failing job/log and isolated the first concrete failure to `src/sim/s04_nest_pad_kernel.gd:4`: `Assigned value for constant VALID_STATES isn't a constant expression.`
+- Applied one focused compatibility repair only, per the anti-spam/failure policy.
 - Local Godot execution is unavailable in this environment; GitHub Actions / Godot 4.7.1 remains the executable validation gate for this checkpoint.
-- Anti-spam rule preserved: one coherent checkpoint only; no speculative CI-fix burst.
+- Anti-spam rule preserved: one coherent repair checkpoint; no speculative second CI fix in this run.
 
 ## Current blockers
-- Increment 86 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first concrete parser/type/test failure.
+- Increment 87 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first concrete parser/type/test failure on the next run.
 - S04 production composition currently lives at the reconstructed stress-response boundary; S04 behavior on runs without an H02 stress-field path and same-tick sleep-gated outputs in lower Phase-C/E trait layers still need one unified per-tick composition boundary rather than wrapper-order shortcuts.
 - The authored `s04_transition_schedule` source is now production-consumable, but full launch content still needs concrete schedule data in Phase 12D; no sleep duration/recovery numbers were invented.
 - S03 Baffle, S05 Feed Cartridge, H05 Vent Cycle, H06 Zone Isolation, simultaneous multi-growth conflict semantics, finite T10 reactive triggers and remaining simultaneous multi-parent ancestry remain Phase 12C scope.
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck and player-facing Monitor presentation remain Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 86. If failure, repair only the first concrete parser/type/test failure. If success, re-read the exact S03 Baffle transmission/directed-relation authority and current stress/direct-interaction kernels, then implement the minimum deterministic S03 primitive at its canonical boundary without broadening S04 or inventing modifier values.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 87. If failure, repair only the first concrete parser/type/test failure. If success, re-read the exact S03 Baffle transmission/directed-relation authority and current stress/direct-interaction kernels, then implement the minimum deterministic S03 primitive at its canonical boundary without broadening S04 or inventing modifier values.**
 
 Next run:
 1. query latest `main` and `organism-cargo/godot-headless` first;

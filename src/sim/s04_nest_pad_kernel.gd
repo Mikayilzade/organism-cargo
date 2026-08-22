@@ -1,7 +1,7 @@
 class_name S04NestPadKernel
 extends RefCounted
 
-const VALID_STATES: PackedStringArray = PackedStringArray(["CALM", "AGITATED", "PANICKED", "ASLEEP"])
+const VALID_STATES := ["CALM", "AGITATED", "PANICKED", "ASLEEP"]
 const ENTER_SLEEP := "ENTER_SLEEP"
 const RECOVER_WAKE := "RECOVER_WAKE"
 
