@@ -153,11 +153,13 @@ func _validate_organism(organism: Dictionary, heat_by_cell: Dictionary) -> Dicti
 	if panic_enter > stress_max:
 		return {"ok": false, "error": "panic_threshold_out_of_range:%s" % instance_id}
 	var primary_state: String = String(organism.get("primary_state", ""))
-	if not primary_state in ["CALM", "AGITATED", "PANICKED"]:
+	if not primary_state in ["CALM", "AGITATED", "PANICKED", "ASLEEP"]:
 		return {"ok": false, "error": "slice_primary_state_not_implemented:%s" % primary_state}
 	return {"ok": true, "error": ""}
 
 func _next_primary_state(previous_state: String, stress: int, profile: Dictionary) -> Dictionary:
+	if previous_state == "ASLEEP":
+		return {"ok": true, "error": "", "state": "ASLEEP"}
 	var agitated_enter: int = int(profile["agitated_enter"])
 	var agitated_exit: int = int(profile["agitated_exit"])
 	var panic_enter: int = int(profile["panic_enter"])

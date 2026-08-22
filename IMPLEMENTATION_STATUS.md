@@ -50,36 +50,43 @@ Increments 40-75 established and iteratively verified blocked growth/T08, Browno
 - Checkpoint `8c8473112878d27b620e26f0b13aa8b45cd220df` was observed **GREEN** via `organism-cargo/godot-headless`, workflow run `32533156593`.
 
 ### Increment 83 — ASLEEP-safe stress-field response boundary
-- Re-read the frozen Phase-B/Phase-E/F/G ordering and sleep authority: sleep suppresses only explicitly sleep-gated behaviors, while stress pressure alone must not imply wake.
 - Extended `stress_field_response_kernel.gd` to accept the canonical `ASLEEP` primary state through Phase E/F and preserve it at Phase G unless an explicit wake transition has already occurred at the earlier Phase-B authority.
-- Stress-field exposure and internal-stress accumulation therefore remain active while asleep; only the primary state remains `ASLEEP` in the absence of an explicit wake request.
-- Extended the existing sleep/wake headless suite with an ASLEEP stress-field E/F/G regression proving no implicit wake and no implicit suppression of ungated stress intake.
-- This is the state-path prerequisite for threading H02 wake events into the production wrapper without having later stress handling reject or silently wake sleepers.
+- Stress-field exposure and internal-stress accumulation remain active while asleep; stress pressure alone does not imply wake.
+- Added regression coverage proving no implicit wake and no implicit suppression of ungated stress intake.
+- Checkpoint `80d19422964cbdeaadb19e9e553680554fbae829` was observed **GREEN** via `organism-cargo/godot-headless`, workflow run `32536920500`.
+
+### Increment 84 — production H02 Phase-B wake integration
+- Re-read the frozen A-I ordering, sleep semantics and H02 authority before changing the production path.
+- Made `ThermalResponseKernel` ASLEEP-safe: heat exposure and thermal stress remain active while asleep, but thermal thresholds do not implicitly wake an organism.
+- Threaded `SleepWakeKernel.resolve_phase_b` through `transit_stress_response_integrated_runner.gd` using the authored per-tick `active_hazards` restored by the H02 environmental wrapper.
+- An explicit H02 wake now changes `ASLEEP -> CALM` before same-tick stress-field Phase E/F/G processing; the final Phase-G mood still derives from the common post-F stress snapshot.
+- Wake events are retained separately in `sleep_wake_events`, included in ordered response evidence, and therefore checksum-visible with their Phase-A route-hazard parentage.
+- Added thermal regression coverage for ungated ASLEEP heat intake and a production mixed H01/H02 acceptance scenario proving deterministic replay, wake timing, end-tick threshold state, causal evidence and checksum sensitivity.
+- S04 sleep entry/recovery scheduling remains deliberately outside this increment.
 
 ## Checks performed this run
 - Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` first.
-- Confirmed Increment 82 checkpoint `8c8473112878d27b620e26f0b13aa8b45cd220df` is green under `organism-cargo/godot-headless`, workflow run `32533156593`.
-- Re-read exact Phase-B, sleep, H02 and state-gating authority in `MECHANICS.md` and the top-level invariants in `GAME_BIBLE.md`.
-- Added regression coverage to the already-running `sleep_wake_kernel_test_runner.gd`; no extra workflow step was needed.
-- Local Godot execution remains unavailable in this environment; the new checkpoint must be observed under GitHub Actions / Godot 4.7.1.
+- Confirmed Increment 83 checkpoint `80d19422964cbdeaadb19e9e553680554fbae829` is green under `organism-cargo/godot-headless`, workflow run `32536920500`.
+- Re-read the canonical Phase-B, sleep, H02, stress and state-gating authority in `MECHANICS.md` plus top-level invariants in `GAME_BIBLE.md`.
+- Extended the already-running `thermal_response_test_runner.gd` and `sleep_wake_kernel_test_runner.gd`; no workflow expansion is required.
+- Local Godot execution is unavailable in this environment, so this checkpoint must be observed under GitHub Actions / Godot 4.7.1 before broadening scope.
 
 ## Current blockers
-- Increment 83 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first concrete parser/type/test failure.
-- The ASLEEP-safe response kernel is ready, but the explicit H02 wake event is still not threaded through `transit_stress_response_integrated_runner.gd` before same-tick stress-field E/F/G processing.
-- Lower production layers that directly evaluate thermal mood state still need ASLEEP-safe handling before a fully authored sleeping organism can traverse every mixed H01/H02 path.
-- S04 Nest Pad sleep entry/recovery scheduling remains unimplemented.
+- Increment 84 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first concrete parser/type/test failure.
+- S04 Nest Pad authoritative sleep entry/recovery scheduling remains unimplemented; no sleep-entry rule has been invented.
+- Same-tick sleep-gated trait outputs beyond the reconstructed H02 stress-response boundary still require the canonical unified per-tick composition boundary rather than wrapper-order shortcuts.
 - S03 Baffle, S05 Feed Cartridge, H05 Vent Cycle, H06 Zone Isolation, simultaneous multi-growth conflict semantics, finite T10 reactive triggers and remaining simultaneous multi-parent ancestry remain Phase 12C scope.
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck and player-facing Monitor presentation remain Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 83. If failure, repair only the first concrete failure. If success, complete the production sleep/wake integration by making the thermal/base runtime path ASLEEP-safe and applying `SleepWakeKernel.resolve_phase_b` from the authored H02 `active_hazards` before stress-field Phase-E/F/G processing in `transit_stress_response_integrated_runner.gd`; include wake events in checksum-visible causal evidence and prove deterministic mixed H01/H02 behavior.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 84. If failure, repair only the first concrete failure. If success, re-read the exact S04 Nest Pad, sleep-entry/recovery scheduling and state-gating authority in `MECHANICS.md`, `CONTENT_ARCHITECTURE.md`, and `TECHNICAL_SPEC.md`, then implement the minimum deterministic S04 sleep-entry/recovery primitive without changing the now-integrated H02 wake semantics.**
 
 Next run:
 1. query latest `main` and `organism-cargo/godot-headless` first;
 2. if failure, inspect the linked job/log and checkpoint one focused repair only;
-3. if success, adapt the minimum thermal/base state path to preserve ASLEEP without implicit wake;
-4. thread explicit H02 wake requests into the production stress-response wrapper before Phase-E/F/G;
-5. add production acceptance coverage for wake timing, end-tick threshold state, causal/checksum visibility and deterministic replay;
-6. keep S04 sleep-entry scheduling and unrelated mechanics out.
+3. if success, re-read exact S04/sleep lifecycle authority and current support composition path;
+4. implement the minimum deterministic Nest Pad capacity-1 sleep-entry/recovery scheduling at the frozen transition boundary;
+5. add acceptance coverage for capacity, timing, explicit-only sleep gating, wake interaction, causal/checksum evidence and deterministic replay;
+6. keep S03, S05, H05-H06 and unrelated mechanics out unless frozen ordering proves inseparable.
 
 Do not mark the project complete until `IMPLEMENTATION COMPLETE = YES`.

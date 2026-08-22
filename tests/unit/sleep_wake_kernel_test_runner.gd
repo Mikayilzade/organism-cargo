@@ -2,6 +2,7 @@ extends SceneTree
 
 const SleepWakeKernelScript := preload("res://src/sim/sleep_wake_kernel.gd")
 const StressFieldResponseKernelScript := preload("res://src/sim/stress_field_response_kernel.gd")
+const TransitPowerIntegratedRunnerScript := preload("res://src/sim/transit_power_integrated_runner.gd")
 
 var failures: int = 0
 
@@ -12,6 +13,7 @@ func _init() -> void:
 	_test_h02_wake_replay_is_deterministic()
 	_test_invalid_target_is_rejected()
 	_test_asleep_state_survives_stress_field_e_f_g_without_explicit_wake()
+	_test_production_mixed_h01_h02_wake_before_stress_response()
 	if failures == 0:
 		print("sleep_wake_kernel_test_runner: PASS")
 		quit(0)
@@ -91,6 +93,91 @@ func _test_asleep_state_survives_stress_field_e_f_g_without_explicit_wake() -> v
 		return
 	_expect_equal(String(phase_g["organisms"][0]["primary_state"]), "ASLEEP", "stress threshold alone never wakes an organism")
 	_expect_equal(phase_g["events"], [], "no fake wake or mood transition is emitted while ASLEEP")
+
+func _test_production_mixed_h01_h02_wake_before_stress_response() -> void:
+	var runner: TransitPowerIntegratedRunner = TransitPowerIntegratedRunnerScript.new()
+	var wake_defs: Dictionary = _production_sleep_defs(true)
+	var first: Dictionary = runner.simulate(_production_sleep_record(), 1, wake_defs)
+	var replay: Dictionary = runner.simulate(_production_sleep_record(), 1, wake_defs)
+	var no_wake: Dictionary = runner.simulate(_production_sleep_record(), 1, _production_sleep_defs(false))
+	_expect_true(bool(first.get("ok", false)), "mixed H01/H02 production run accepts an authored ASLEEP organism")
+	_expect_equal(first, replay, "mixed H01/H02 wake production replay is deterministic")
+	_expect_true(bool(no_wake.get("ok", false)), "comparison run without explicit wake remains valid")
+	if not bool(first.get("ok", false)) or not bool(no_wake.get("ok", false)):
+		return
+	var snapshot: Dictionary = first["end_tick_snapshots"][0]
+	var runtime: Array = snapshot["organism_runtime"]
+	_expect_equal(int(runtime[0]["stress"]), 5, "thermal stress is preserved before H02 stress-field intake")
+	_expect_equal(String(runtime[0]["primary_state"]), "AGITATED", "Phase-B wake allows same-tick Phase-G hysteresis after combined stress")
+	var wake_events: Array = snapshot["sleep_wake_events"]
+	_expect_equal(wake_events.size(), 1, "production snapshot records one explicit wake transition")
+	_expect_equal(String(wake_events[0]["phase"]), "B", "production wake remains at canonical Phase B")
+	_expect_equal(String(wake_events[0]["kind"]), "H02_WAKE_REQUEST_APPLIED", "production wake retains explicit H02 authority")
+	_expect_equal(wake_events[0]["parent_event_ids"], PackedStringArray(["route:A:1:h02-vibration"]), "production wake retains route-hazard causal parent")
+	var response_events: Array = snapshot["stress_field_response_events"]
+	_expect_equal(response_events.size(), 4, "checksum-visible response evidence contains B wake then E/F/G response")
+	_expect_equal(String(response_events[0]["phase"]), "B", "wake evidence precedes stress-field E/F/G evidence")
+	_expect_equal(String(response_events[1]["phase"]), "E", "stress exposure follows Phase-B wake")
+	_expect_equal(String(response_events[2]["phase"]), "F", "internal meter update follows exposure")
+	_expect_equal(String(response_events[3]["phase"]), "G", "mood threshold is evaluated after wake and meter update")
+	var sleeping_snapshot: Dictionary = no_wake["end_tick_snapshots"][0]
+	_expect_equal(int(sleeping_snapshot["organism_runtime"][0]["stress"]), 5, "removing wake request does not remove ungated stress intake")
+	_expect_equal(String(sleeping_snapshot["organism_runtime"][0]["primary_state"]), "ASLEEP", "without explicit wake the organism remains ASLEEP despite threshold stress")
+	_expect_equal(sleeping_snapshot["sleep_wake_events"], [], "comparison run emits no fake wake evidence")
+	_expect_true(String(first["tick_checksums"][0]) != String(no_wake["tick_checksums"][0]), "explicit wake authority is checksum-visible")
+
+func _production_sleep_record() -> Dictionary:
+	return {
+		"run_id": "sleep-wake-production-run",
+		"rules_version": "rules-r1",
+		"content_version": "sleep-wake-integration-1",
+		"canonical_committed_input": {
+			"route_id": "route-sleep-wake",
+			"seed": 93,
+			"placements": [{"instance_id": "cargo-a", "anchor": [0, 0], "orientation": 0}],
+			"supports": [],
+			"brownout_priority": [],
+		},
+	}
+
+func _production_sleep_defs(with_wake: bool) -> Dictionary:
+	return {
+		"route_profile": {
+			"id": "route-sleep-wake",
+			"tick_count": 1,
+			"events": [
+				{"tick": 1, "duration_ticks": 1, "hazard_id": "h02-vibration", "authored_order": 0},
+				{"tick": 1, "duration_ticks": 1, "hazard_id": "h01-heat", "authored_order": 1},
+			],
+		},
+		"hold_definition": {"dimensions": [1, 1], "blocked_cells": [], "power_capacity": 0},
+		"hazards_by_id": {
+			"h02-vibration": {"family": "H02", "stress_field_delta": 3, "target_cells": ["0,0"], "wake_request": with_wake, "wake_target_instance_ids": ["cargo-a"]},
+			"h01-heat": {"family": "H01", "target_scope": "hold", "heat_delta": 4},
+		},
+		"thermal_rules": {"heat_min": 0, "heat_max": 20, "transfer_edges": [], "vent_by_cell": {}},
+		"stress_field_rules": {"stress_field_min": 0, "stress_field_max": 20, "transfer_edges": [], "decay_by_cell": {}},
+		"organism_definitions": {
+			"cargo-a": {
+				"initial_stress": 0,
+				"initial_state": "ASLEEP",
+				"stress_profile": _production_stress_profile(),
+			},
+		},
+		"support_definitions_by_id": {},
+	}
+
+func _production_stress_profile() -> Dictionary:
+	return {
+		"heat_safe_max": 2,
+		"stress_per_heat_unit": 1,
+		"stress_min": 0,
+		"stress_max": 20,
+		"agitated_enter": 5,
+		"agitated_exit": 3,
+		"panic_enter": 10,
+		"panic_exit": 7,
+	}
 
 func _expect_equal(actual: Variant, expected: Variant, message: String) -> void:
 	if actual != expected:

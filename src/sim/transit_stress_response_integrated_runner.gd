@@ -1,6 +1,7 @@
 extends "res://src/sim/transit_stress_field_integrated_runner.gd"
 
 const StressFieldResponseKernelScript := preload("res://src/sim/stress_field_response_kernel.gd")
+const SleepWakeKernelScript := preload("res://src/sim/sleep_wake_kernel.gd")
 
 func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dictionary = {}) -> Dictionary:
 	var base_result: Dictionary = super.simulate(committed_run, total_ticks, simulation_defs)
@@ -33,6 +34,10 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 	if not definitions_value is Dictionary:
 		return {"ok": false, "error": "missing_organism_definitions_for_stress_field_response"}
 	var organism_definitions: Dictionary = definitions_value
+	var hazards_value: Variant = simulation_defs.get("hazards_by_id", null)
+	if not hazards_value is Dictionary:
+		return {"ok": false, "error": "missing_sleep_wake_hazard_authority"}
+	var hazards_by_id: Dictionary = hazards_value
 	var authority_result: Dictionary = _initial_stress_authority(first_runtime, organism_definitions)
 	if not bool(authority_result.get("ok", false)):
 		return authority_result
@@ -50,9 +55,11 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		return {"ok": false, "error": "base_tick_checksum_count_mismatch"}
 
 	var kernel: StressFieldResponseKernel = StressFieldResponseKernelScript.new()
+	var sleep_wake_kernel: SleepWakeKernel = SleepWakeKernelScript.new()
 	var integrated_snapshots: Array = []
 	var integrated_checksums: PackedStringArray = PackedStringArray()
 	var all_events: Array = []
+	var all_wake_events: Array = []
 	var final_runtime: Array = []
 
 	for index: int in range(snapshots.size()):
@@ -83,6 +90,21 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		var upstream_delta_by_id: Dictionary = composed_result["upstream_stress_delta_by_id"]
 		previous_base_stress_by_id = composed_result["base_stress_by_id"]
 
+		var active_value: Variant = snapshot.get("active_hazards", PackedStringArray())
+		if not (active_value is Array or active_value is PackedStringArray):
+			return {"ok": false, "error": "invalid_active_hazards_for_sleep_wake"}
+		var active_hazard_ids: PackedStringArray = PackedStringArray()
+		for raw_hazard_id: Variant in active_value:
+			active_hazard_ids.append(String(raw_hazard_id))
+		var wake_result: Dictionary = sleep_wake_kernel.resolve_phase_b(tick, pre_field_runtime, active_hazard_ids, hazards_by_id)
+		if not bool(wake_result.get("ok", false)):
+			return {"ok": false, "error": "phase_b_sleep_wake:%s" % String(wake_result.get("error", "unknown"))}
+		pre_field_runtime = wake_result["organisms"]
+		var wake_events_value: Variant = wake_result.get("events", [])
+		if not wake_events_value is Array:
+			return {"ok": false, "error": "invalid_sleep_wake_events"}
+		var wake_events: Array = wake_events_value
+
 		var sampled: Dictionary = kernel.sample_phase_e(tick, pre_field_runtime, stress_field_by_cell)
 		if not bool(sampled.get("ok", false)):
 			return {"ok": false, "error": "phase_e_stress_field:%s" % String(sampled.get("error", "unknown"))}
@@ -104,6 +126,13 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		persisted_state_by_id = persisted_result["state_by_id"]
 
 		var tick_events: Array = []
+		for raw_wake_event: Variant in wake_events:
+			if not raw_wake_event is Dictionary:
+				return {"ok": false, "error": "invalid_sleep_wake_event"}
+			var wake_event: Dictionary = raw_wake_event
+			tick_events.append(wake_event.duplicate(true))
+			all_events.append(wake_event.duplicate(true))
+			all_wake_events.append(wake_event.duplicate(true))
 		for event_batch: Variant in [sampled.get("events", []), phase_f.get("events", []), phase_g.get("events", [])]:
 			if not event_batch is Array:
 				return {"ok": false, "error": "invalid_stress_field_response_events"}
@@ -120,6 +149,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 				all_events.append(next_event.duplicate(true))
 
 		snapshot["organism_runtime"] = final_runtime.duplicate(true)
+		snapshot["sleep_wake_events"] = wake_events.duplicate(true)
 		snapshot["stress_field_upstream_stress_delta_by_id"] = upstream_delta_by_id.duplicate(true)
 		snapshot["stress_field_response_events"] = tick_events.duplicate(true)
 		integrated_snapshots.append(snapshot)
@@ -131,6 +161,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 
 	base_result["end_tick_snapshots"] = integrated_snapshots
 	base_result["tick_checksums"] = integrated_checksums
+	base_result["sleep_wake_events"] = all_wake_events
 	base_result["stress_field_response_events"] = all_events
 	base_result["final_organism_runtime"] = final_runtime.duplicate(true)
 	return base_result
@@ -158,7 +189,7 @@ func _initial_stress_authority(base_runtime: Array, organism_definitions: Dictio
 		if initial_stress < stress_min or initial_stress > stress_max:
 			return {"ok": false, "error": "initial_stress_out_of_range:%s" % instance_id}
 		var initial_state: String = String(definition.get("initial_state", "CALM"))
-		if not initial_state in ["CALM", "AGITATED", "PANICKED"]:
+		if not initial_state in ["CALM", "AGITATED", "PANICKED", "ASLEEP"]:
 			return {"ok": false, "error": "stress_field_initial_state_not_implemented:%s" % initial_state}
 		stress_by_id[instance_id] = initial_stress
 		state_by_id[instance_id] = initial_state

@@ -8,6 +8,7 @@ func _init() -> void:
 	_test_authored_transfer_vent_and_clamp()
 	_test_heat_response_changes_stress_and_state()
 	_test_hysteresis_recovery()
+	_test_asleep_heat_response_preserves_state_and_stress()
 	_test_non_orthogonal_transfer_rejected()
 	if failures == 0:
 		print("thermal_response_test_runner: PASS")
@@ -24,9 +25,7 @@ func _test_authored_transfer_vent_and_clamp() -> void:
 		{
 			"heat_min": 0,
 			"heat_max": 20,
-			"transfer_edges": [
-				{"from": "1,0", "to": "0,0", "amount": 2},
-			],
+			"transfer_edges": [{"from": "1,0", "to": "0,0", "amount": 2}],
 			"vent_by_cell": {"0,0": 1, "1,0": 1},
 		}
 	)
@@ -37,13 +36,9 @@ func _test_authored_transfer_vent_and_clamp() -> void:
 
 func _test_heat_response_changes_stress_and_state() -> void:
 	var kernel: ThermalResponseKernel = ThermalResponseKernelScript.new()
-	var result: Dictionary = kernel.apply_heat_response(
-		[_organism("specimen-a", 1, "CALM")],
-		{"0,0": 1, "1,0": 5}
-	)
+	var result: Dictionary = kernel.apply_heat_response([_organism("specimen-a", 1, "CALM")], {"0,0": 1, "1,0": 5})
 	_expect_true(bool(result["ok"]), "heat response applies to authored organism runtime")
-	var organisms: Array = result["organisms"]
-	var specimen: Dictionary = organisms[0]
+	var specimen: Dictionary = result["organisms"][0]
 	_expect_equal(int(specimen["heat_exposure"]), 5, "Phase E samples occupied-cell heat exposure")
 	_expect_equal(int(specimen["stress_delta"]), 6, "authored excess-heat conversion produces deterministic stress delta")
 	_expect_equal(int(specimen["stress"]), 7, "Phase F applies and clamps internal stress")
@@ -51,18 +46,22 @@ func _test_heat_response_changes_stress_and_state() -> void:
 
 func _test_hysteresis_recovery() -> void:
 	var kernel: ThermalResponseKernel = ThermalResponseKernelScript.new()
-	var retained: Dictionary = kernel.apply_heat_response(
-		[_organism("specimen-a", 4, "AGITATED")],
-		{"0,0": 0, "1,0": 0}
-	)
-	var retained_specimen: Dictionary = retained["organisms"][0]
-	_expect_equal(String(retained_specimen["primary_state"]), "AGITATED", "AGITATED persists above lower exit threshold")
-	var recovered: Dictionary = kernel.apply_heat_response(
-		[_organism("specimen-a", 2, "AGITATED")],
-		{"0,0": 0, "1,0": 0}
-	)
-	var recovered_specimen: Dictionary = recovered["organisms"][0]
-	_expect_equal(String(recovered_specimen["primary_state"]), "CALM", "AGITATED exits only below authored lower threshold")
+	var retained: Dictionary = kernel.apply_heat_response([_organism("specimen-a", 4, "AGITATED")], {"0,0": 0, "1,0": 0})
+	_expect_equal(String(retained["organisms"][0]["primary_state"]), "AGITATED", "AGITATED persists above lower exit threshold")
+	var recovered: Dictionary = kernel.apply_heat_response([_organism("specimen-a", 2, "AGITATED")], {"0,0": 0, "1,0": 0})
+	_expect_equal(String(recovered["organisms"][0]["primary_state"]), "CALM", "AGITATED exits only below authored lower threshold")
+
+func _test_asleep_heat_response_preserves_state_and_stress() -> void:
+	var kernel: ThermalResponseKernel = ThermalResponseKernelScript.new()
+	var result: Dictionary = kernel.apply_heat_response([_organism("sleeper", 1, "ASLEEP")], {"0,0": 1, "1,0": 5})
+	_expect_true(bool(result.get("ok", false)), "ASLEEP runtime remains valid through thermal E/F/G")
+	if not bool(result.get("ok", false)):
+		return
+	var sleeper: Dictionary = result["organisms"][0]
+	_expect_equal(int(sleeper["heat_exposure"]), 5, "sleep does not suppress ungated heat exposure")
+	_expect_equal(int(sleeper["stress_delta"]), 6, "sleep does not suppress ungated thermal stress intake")
+	_expect_equal(int(sleeper["stress"]), 7, "ASLEEP organism still accumulates internal stress")
+	_expect_equal(String(sleeper["primary_state"]), "ASLEEP", "thermal threshold alone never wakes an organism")
 
 func _test_non_orthogonal_transfer_rejected() -> void:
 	var kernel: ThermalResponseKernel = ThermalResponseKernelScript.new()
@@ -72,9 +71,7 @@ func _test_non_orthogonal_transfer_rejected() -> void:
 		{
 			"heat_min": 0,
 			"heat_max": 20,
-			"transfer_edges": [
-				{"from": "0,0", "to": "1,1", "amount": 1},
-			],
+			"transfer_edges": [{"from": "0,0", "to": "1,1", "amount": 1}],
 			"vent_by_cell": {},
 		}
 	)
