@@ -2,10 +2,10 @@ extends "res://src/sim/transit_shared_resource_runner_base.gd"
 
 const PhaseDEnvironmentResolverScript := preload("res://src/sim/phase_d_environment_resolver.gd")
 
-const H05_ENVIRONMENT_CHANNELS := PackedStringArray(["heat", "contamination"])
+const H05_ENVIRONMENT_CHANNELS := ["heat", "contamination"]
 
 func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dictionary = {}) -> Dictionary:
-	if not _has_relevant_h05_route_event(simulation_defs, total_ticks, H05_ENVIRONMENT_CHANNELS):
+	if not _has_relevant_h05_route_event(simulation_defs, total_ticks, PackedStringArray(H05_ENVIRONMENT_CHANNELS)):
 		return super.simulate(committed_run, total_ticks, simulation_defs)
 	if total_ticks <= 0:
 		return {"ok": false, "error": "invalid_total_ticks"}
@@ -217,7 +217,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 			phase_d_generated["contamination"] = generated_environment.get("contamination", {})
 			phase_d_rules["contamination"] = contamination_rules
 		if not phase_d_generated.is_empty():
-			var scoped_h05: Dictionary = _scoped_h05_authority(active_hazards, all_hazards_by_id, H05_ENVIRONMENT_CHANNELS)
+			var scoped_h05: Dictionary = _scoped_h05_authority(active_hazards, all_hazards_by_id, PackedStringArray(H05_ENVIRONMENT_CHANNELS))
 			if not bool(scoped_h05.get("ok", false)):
 				return scoped_h05
 			var phase_d_result: Dictionary = phase_d_resolver.resolve_phase_d(
