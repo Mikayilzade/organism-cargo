@@ -17,10 +17,10 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 114
+## Current implementation checkpoint — Increment 115
 
 ### Phase / subsystem
-**12C Core Systems — repair focused T10 dynamic test seam after Increment-113 static typing still blocked direct method calls**
+**12C Core Systems — bind carried T10 Stress-field pulse into the actual next-tick Phase-E/F consumer path**
 
 ### Repository truth read before work
 This run re-read the mandatory recovery chain:
@@ -30,55 +30,63 @@ This run re-read the mandatory recovery chain:
 - `DESIGN_STATUS.md`
 - `PHASE11_FINAL_FREEZE.md`
 
-For the exact T10 subsystem it also re-read `GAME_BIBLE.md`, `MECHANICS.md`, the focused effect-application acceptance, and the current CI failure evidence.
+For the exact T10 subsystem it also re-read `GAME_BIBLE.md`, `MECHANICS.md`, the current production T10 runners and focused effect acceptance.
 
-Frozen requirements remain unchanged: T10 resolves only in Phase H, finite trigger guards are mandatory, no same-tick retroactive Phase-E/F/G mutation is allowed, effects remain deterministic/clamped/causally traceable, and optional authority is not fabricated.
+Frozen requirements remain unchanged: T10 resolves in Phase H only; finite trigger guards are mandatory; a tick-N pulse cannot retroactively mutate tick-N Phase-E/F/G authority; any carried effect that remains authoritative on tick N+1 must be deterministically consumed by the legitimate next-tick system and retain causal ancestry.
 
 ### Entry validation
-- Repository `main` at start: `101e446d6a1b7eb66fd1e8ae0d01cabddeb30b81` (`12C: repair T10 effect test typing`).
-- Explicit `organism-cargo/godot-headless` status: **FAILURE**, workflow run `32599473949`.
-- Import, all prior regressions, H05, standalone T10 finite-trigger acceptance and production T10 integration all passed.
-- First concrete failure remained only the final focused `t10_effect_application_test_runner.gd`: Godot 4.7.1 warning-as-error rejected `runner.integrate_effects(...)` because the locally preloaded script instance was statically typed as `Variant` and the method could not be proven on that inferred type.
-- No gameplay assertion in that focused effect test executed, so repository evidence still does not justify any production semantic change in this run.
+- Repository `main` at start: `915cd9e9a79320fc2ed53bfd413059167f043310` (`12C: repair T10 dynamic test seam`).
+- Explicit `organism-cargo/godot-headless` status for Increment 114: **SUCCESS**, workflow run `32602431329`.
+- Therefore the focused T10 effect/clamp/carry seam is now executable and green, together with all earlier regressions, H05, finite-trigger T10 acceptance and production T10 integration.
+- The remaining concrete T10 gap is semantic rather than compile-only: carried values were visible in next-tick snapshots, but downstream Phase-C–G consumers had not yet been explicitly re-bound to those adjusted authorities.
 
-### Implemented in Increment 114
-- Changed the focused test seam to hold the preloaded script instance as `Object` and invoke the test-only `integrate_effects` method through `Object.call(...)`.
-- This removes the static method-resolution warning while retaining dynamic access to the script-only helper used by the focused acceptance.
-- Assertions, fixtures and expected T10 effect/clamp/carry/ancestry behavior are unchanged.
-- No production T10 code, effect semantics, finite-trigger behavior, carry representation, checksum material, ancestry or Phase-H timing was changed.
+### Implemented in Increment 115
+- Added `transit_t10_reconsumption_integrated_runner.gd` as a narrow production composition layer above the existing T10 effect/authority-guard chain.
+- For a tick-N applied `STRESS_FIELD_PULSE`, the next tick now reconstructs the pre-stress-response organism authority from the original Phase-F/G evidence, samples the T10-adjusted Stress-field through the real `StressFieldResponseKernel`, reapplies Phase F internal stress and Phase G hysteresis/state evaluation, and writes the recomputed organism runtime back into the authoritative snapshot.
+- Reconsumed Phase-E exposure evidence receives the prior tick's `T10_EFFECT_APPLIED` event as a material parent when the affected organism occupies the pulsed cell; Phase-F/G ancestry then continues through the normal kernel event IDs.
+- Existing non-stress response events (including sleep/wake and S04 evidence) are preserved; only the prior Stress-field E/F/G response records for the affected next tick are replaced by the recomputed legitimate consumer output.
+- Added deterministic checksum material for the reconsumption evidence and rebuilt aggregate Stress-field response/final-runtime outputs from the rewritten snapshots.
+- Wired the production `TransitPowerIntegratedRunner` through the new reconsumption layer without changing the frozen lower-level T10 kernel or H05 chain.
+- Added a dedicated production regression proving a tick-1 Phase-H Stress-field pulse changes tick-2 Phase-E sampled exposure, is consumed by tick-2 Phase F, retains application ancestry, and replays deterministically.
 
 ### Files changed
-- `tests/unit/t10_effect_application_test_runner.gd` — compile-safe dynamic invocation through `Object.call(...)` for the script-only test seam.
-- `IMPLEMENTATION_STATUS.md` — Increment-114 checkpoint and exact continuation instruction.
+- `src/sim/transit_t10_reconsumption_integrated_runner.gd` — next-tick Stress-field consumer re-binding and causal/checksum evidence.
+- `src/sim/transit_power_integrated_runner.gd` — production composition now includes T10 reconsumption layer.
+- `tests/unit/t10_reconsumption_test_runner.gd` — focused next-tick Phase-E/F production regression.
+- `.github/workflows/headless-tests.yml` — adds the focused T10 reconsumption contract to the single notification-safe suite.
+- `IMPLEMENTATION_STATUS.md` — Increment-115 checkpoint and exact continuation instruction.
 
 ### Validation performed / available
-- Workflow run `32599473949` was inspected at full job/log level before implementation.
-- Every contract before the final focused T10 effect-application test was green, including production T10 integration.
-- The repair is restricted to the exact warning-as-error failure class and does not weaken any assertion.
-- Per anti-spam policy this run creates one coherent checkpoint only; post-push Godot 4.7.1 validation is left to the existing single notification-safe headless workflow.
+- Increment-114 workflow `32602431329` was confirmed green before implementation.
+- The new regression is deliberately production-path based and compares T10 vs no-T10 authority while also checking deterministic replay and ancestry.
+- No extra speculative push is made in this run; per anti-spam policy this coherent checkpoint is pushed once and the existing single Godot 4.7.1 workflow is the authoritative post-push runtime validation.
 
 ### Deliberately not changed
 - No canonical gameplay/design files.
-- No T10 production runner behavior or effect application logic.
-- No H05 behavior and no H06 implementation.
+- No T10 finite-trigger policy, Phase-H timing, effect magnitudes or target-selection semantics.
+- No H05 behavior.
+- No H06 implementation.
 - No 12D or later-phase work.
 
 ### Blockers / deferred known work
 - **No user-action blocker.**
 - 12C remains incomplete.
-- Increment 114 must first prove the focused T10 effect/clamp/carry acceptance is executable and green.
-- After that, full downstream re-consumption of carried T10 Heat, Stress-field, Contamination and Satiety/contamination-load deltas by actual tick-N+1 Phase-C–G consumers remains the T10 closure obligation.
+- Increment 115 must prove the new Stress-field reconsumption layer compiles and passes the complete regression suite.
+- Heat and Contamination channel carry still need equivalent proof through their actual next-tick environmental/response consumers rather than snapshot overlay alone.
+- Satiety and contamination-load carry still need equivalent proof through their actual next-tick feeding/contamination consumers.
+- T10 carry lifetime/propagation across more than one later tick must be validated against channel decay/persistence semantics rather than relying on snapshot overlay behavior.
 - H06 Zone Isolation remains the next separate missing 12C hazard subsystem after T10 propagation closes.
 
 ### Canonical contradictions
-- **NONE discovered.** This checkpoint is test compile-safety only.
+- **NONE discovered.** The increment enforces the already-frozen Phase-H-to-next-tick ordering and causal requirements without adding gameplay.
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and the explicit `organism-cargo/godot-headless` status for Increment 114.
+At the start of the next run, query current `main` and the explicit `organism-cargo/godot-headless` status for Increment 115.
 
-- If the workflow fails, inspect the first concrete compile/runtime/assertion failure and make one focused repair batch only; do not weaken finite-trigger, effect/clamp/carry, ancestry or production acceptance.
-- If the workflow is green, bind/prove carried T10 Heat, Stress-field, Contamination and Satiety/contamination-load deltas through actual subsequent-tick Phase-C–G consumers rather than snapshot overlay alone. Preserve Phase-H timing: tick N Phase-E/F/G cannot be retroactively changed by a tick-N T10 pulse.
-- Add regression proving a tick-N T10 pulse causally changes a legitimate tick-N+1 exposure, meter or state transition while remaining finite and deterministic.
+- If the workflow fails, inspect the first concrete compile/runtime/assertion failure and make one focused repair batch only; do not weaken the new reconsumption, finite-trigger, ancestry or production acceptance.
+- If the workflow is green, extend the same next-tick consumer principle to carried Heat and Contamination through their real environmental/organism response path, then to Satiety/contamination-load through the existing feeding/contamination consumers. Prefer the smallest shared composition seam that preserves deterministic A–I ordering.
+- Add regression proving each carried authority changes a legitimate tick-N+1 exposure, meter or state result and retains deterministic causal evidence.
+- Validate carry lifetime beyond one tick so one Phase-H pulse enters subsequent authority exactly according to normal channel/meter persistence and decay rules rather than being blindly re-added each tick.
 - Once the complete T10 effect path is green, mark T10 core semantics closed and implement H06 Zone Isolation as the next clearest missing 12C hazard obligation.
 
 Do not begin 12D, 12E or later phases until the full 12C exit gate is satisfied and recorded.
