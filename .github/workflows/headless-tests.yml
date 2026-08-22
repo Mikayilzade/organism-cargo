@@ -79,6 +79,7 @@ jobs:
             "H05 Vent Cycle production transit integration contract test|--headless --path . --script tests/unit/h05_transit_integration_test_runner.gd"
             "T10 Reactive Pulse finite-trigger guard contract test|--headless --path . --script tests/unit/t10_reactive_pulse_kernel_test_runner.gd"
             "T10 Reactive Pulse production transit integration contract test|--headless --path . --script tests/unit/t10_transit_integration_test_runner.gd"
+            "T10 Phase-H effect application and next-tick carry contract test|--headless --path . --script tests/unit/t10_effect_application_test_runner.gd"
           )
 
           for entry in "${cases[@]}"; do
