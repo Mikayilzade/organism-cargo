@@ -1,7 +1,7 @@
 class_name H05VentCycleKernel
 extends RefCounted
 
-const FROZEN_CHANNEL_ORDER := PackedStringArray(["heat", "stress_field", "contamination"])
+const FROZEN_CHANNEL_ORDER := ["heat", "stress_field", "contamination"]
 
 func resolve_phase_d(
 		tick: int,

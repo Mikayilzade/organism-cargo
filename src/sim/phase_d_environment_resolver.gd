@@ -6,7 +6,7 @@ const ThermalResponseKernelScript := preload("res://src/sim/thermal_response_ker
 const ContaminationEnvironmentKernelScript := preload("res://src/sim/contamination_environment_kernel.gd")
 const StressFieldEnvironmentKernelScript := preload("res://src/sim/stress_field_environment_kernel.gd")
 
-const CHANNEL_ORDER := PackedStringArray(["heat", "stress_field", "contamination"])
+const CHANNEL_ORDER := ["heat", "stress_field", "contamination"]
 
 func resolve_phase_d(
 		tick: int,

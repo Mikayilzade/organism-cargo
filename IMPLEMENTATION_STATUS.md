@@ -17,10 +17,10 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 100
+## Current implementation checkpoint — Increment 101
 
 ### Phase / subsystem
-**12C Core Systems — isolate H05 shared-resource inheritance regression and restore prior production chain**
+**12C Core Systems — H05 compile-safety repair after restored production-chain isolation**
 
 ### Repository truth read before work
 This run re-read the mandatory recovery chain before implementation:
@@ -30,63 +30,63 @@ This run re-read the mandatory recovery chain before implementation:
 - `DESIGN_STATUS.md`
 - `PHASE11_FINAL_FREEZE.md`
 
-For the exact H05/production-runner subsystem, the run also re-read the current canonical authority required by the frozen chain:
+For the exact H05 subsystem it also re-read the current canonical authority required by the frozen chain:
 - `GAME_BIBLE.md`
 - `MECHANICS.md`
 - `TECHNICAL_SPEC.md`
 
-The frozen rule remains unchanged: H05 Vent Cycle only modifies existing Phase-D decay/venting for Heat, Stress field and Contamination. It does not create a fourth environmental channel and does not alter deterministic A–I phase ordering.
+Frozen rule unchanged: H05 Vent Cycle modifies only existing Phase-D Heat / Stress-field / Contamination vent-or-decay authority. It does not create a new environmental channel and does not alter A–I ordering.
 
 ### Entry validation
-- Repository `main` at start of work: `69a814c511691e63d6cc3baa763ec8db9dd8f4f3` (`12C: restore known-good stress response runner`).
-- Observable `organism-cargo/godot-headless` status for that exact head: **FAILURE**, workflow run `32573154096`.
-- The first failing executable contract remained `Phase-I delivery completion and Causal Review handoff tests`.
-- Project import and delivery-completion compilation both reported `Could not resolve class res://src/sim/transit_stress_response_integrated_runner.gd`.
-- The restored `transit_stress_response_integrated_runner.gd` is byte-identical to the last runtime-green pre-H05 implementation, so the unresolved class cannot be explained by drift in that restored file.
-- The inherited chain is `transit_stress_response_integrated_runner.gd -> transit_stress_field_integrated_runner.gd -> transit_monitor_integrated_runner.gd -> transit_contamination_integrated_runner.gd -> transit_shared_resource_runner.gd`.
-- Comparing current `main` against the last runtime-green pre-H05 checkpoint `fff5dd3417d5e3f1d1d7af21b95b23fd41c4873d` showed that the only H05-era change inside that established inherited production chain is `transit_shared_resource_runner.gd` changing its parent from `transit_shared_resource_runner_base.gd` to the new `transit_h05_shared_resource_runner_base.gd`.
+- Repository `main` at start: `4ed7725cbd0f543e860b2508ee3ee76d07beb417` (`12C: restore pre-H05 shared resource inheritance`).
+- Observable `organism-cargo/godot-headless` status: **FAILURE**, workflow run `32574813128`.
+- The Increment-100 isolation worked: project import plus the complete pre-H05 regression chain through H02 stress-field tests compiled and passed, including delivery completion, thermal/contamination response, T06/T07/T09, S03/S04/S05/S06 and sleep/wake contracts.
+- The workflow finally reached the focused H05 production integration step.
+- Concrete H05 compile faults exposed by that run:
+  1. `h05_vent_cycle_kernel.gd`: `PackedStringArray(...)` used as a `const` initializer is not a Godot constant expression.
+  2. `phase_d_environment_resolver.gd`: same invalid `PackedStringArray(...)` constant initializer.
+  3. `h05_transit_integration_test_runner.gd`: chained dictionary indexing left `route_profile.events` inferred as `Variant`; warning-as-error rejected `.append()` at line 70.
 
-### Focused repair in Increment 100
-- Restored `src/sim/transit_shared_resource_runner.gd` to inherit from the exact last runtime-green parent `res://src/sim/transit_shared_resource_runner_base.gd`.
-- The resulting file blob is exactly the pre-H05 runtime-green blob `79cd75ddd67b4d4f1d6263758d6961a14f35157a`.
-- This removes the new H05-aware shared-resource base from the established delivery/stress-response inheritance chain so the next CI run can determine whether the prior regression suite compiles again.
-- `transit_h05_shared_resource_runner_base.gd`, `transit_h05_stress_field_integrated_runner.gd`, `phase_d_environment_resolver.gd`, `h05_vent_cycle_kernel.gd` and the focused H05 tests remain present and unchanged. No H05 acceptance was weakened or skipped.
-- This checkpoint intentionally does not attempt a second speculative H05 composition design in the same run. If the old chain compiles, the focused H05 integration test will provide the next concrete failure boundary.
+### Focused repair in Increment 101
+- Replaced only the two H05 channel-order constant initializers with literal constant arrays, preserving exact channel order and membership semantics.
+- Rewrote only the failing future-H05 fixture mutation through explicitly typed `Dictionary`/`Array` locals before appending the route event.
+- No production inheritance/composition path was changed in this increment.
+- No H05 test was weakened, skipped or removed.
 
 ### Files changed
-- `src/sim/transit_shared_resource_runner.gd` — parent restored exactly to the last runtime-green pre-H05 production chain.
-- `IMPLEMENTATION_STATUS.md` — Increment-100 recovery record and exact continuation instruction.
+- `src/sim/h05_vent_cycle_kernel.gd` — compile-safe frozen channel-order constant.
+- `src/sim/phase_d_environment_resolver.gd` — compile-safe shared Phase-D channel-order constant.
+- `tests/unit/h05_transit_integration_test_runner.gd` — typed route/hazard fixture mutation; same assertions retained.
+- `IMPLEMENTATION_STATUS.md` — this checkpoint and exact continuation instruction.
 
 ### Validation performed / available
-- Workflow run `32573154096` inspected at job/step/log level.
-- Steps 1–14 were green; the suite failed at delivery completion before any new H05 integration test could execute.
-- Import and shell/bootstrap logs reproduced the same unresolved `transit_stress_response_integrated_runner.gd` dependency-chain failure.
-- Repository comparison against `fff5dd3417d5e3f1d1d7af21b95b23fd41c4873d` isolated the H05-era inherited-chain change to the `transit_shared_resource_runner.gd` parent insertion.
-- The repaired `transit_shared_resource_runner.gd` hashes to the exact known-good pre-H05 blob `79cd75ddd67b4d4f1d6263758d6961a14f35157a`.
-- Per anti-spam policy, this run makes one focused normal checkpoint only. The existing single `organism-cargo/godot-headless` workflow is the authoritative runtime validation for Increment 100.
+- Workflow run `32574813128` inspected at job/step/log level.
+- Steps 1–40 were green; H05 primitive step exposed the two constant-expression parse errors while its old runner still printed PASS, and the H05 production step correctly failed on the warning-as-error fixture parse error.
+- This increment is intentionally one focused compile-safety batch only, per anti-spam policy.
+- The existing single `organism-cargo/godot-headless` workflow remains the authoritative runtime validation for Increment 101 after this checkpoint is pushed.
 
 ### Deliberately not changed
 - No gameplay/canonical design files.
-- No H05 kernel semantics or Phase-D shared resolver behavior.
-- No H05 test suppression or workflow topology changes.
-- No stress-response implementation changes.
+- No H05 semantic formulas, event schema, Phase-D resolver behavior or checksums.
+- No restored stress-response implementation.
+- No production parent-chain reinsertion of the H05-aware runners.
+- No workflow topology/test suppression.
 - No H06, T10, S03 directed runtime binding, 12D or later-phase work.
 
 ### Blockers / deferred known work
 - **No user-action blocker.**
-- 12C remains intentionally incomplete.
-- Runtime truth for Increment 100 is pending the existing `organism-cargo/godot-headless` workflow triggered by this checkpoint.
-- Heat/Contamination H05 production composition is temporarily disconnected from the established top-level runner by this repair; the standalone H05 implementation and acceptance tests remain so the next run can repair the exact compile-safe composition boundary from observable evidence.
-- Stress-field H05 is likewise not connected through the top-level stress-response chain.
+- 12C remains incomplete.
+- Heat/Contamination and Stress H05 production composition is still intentionally disconnected from the known-good top-level inherited runner chain after Increment 100.
+- Runtime truth for Increment 101 is pending the existing headless workflow. Its focused H05 production test should now reach actual functional assertions instead of stopping at these parse errors.
 
 ### Canonical contradictions
-- **NONE discovered.** This checkpoint restores known-good composition only and leaves frozen H05/A–I semantics unchanged.
+- **NONE discovered.** This is compile-safety only.
 
 ## NEXT ACTION
-At the start of the next run, first query current `main` and the latest `organism-cargo/godot-headless` status for this Increment-100 checkpoint.
+At the start of the next run, first query current `main` and the latest `organism-cargo/godot-headless` status for Increment 101.
 
-- If the workflow still fails before `h05_transit_integration_test_runner.gd`, inspect the first concrete compile/runtime failure and make **one focused repair batch only** for that failure class.
-- If the prior regression suite becomes green and the workflow reaches `h05_transit_integration_test_runner.gd`, use that exact test/log as the composition boundary: repair H05 Heat/Contamination and Stress integration through a compile-safe composition path that does not replace the known-good inherited parent chain blindly, does not modify restored stress-response behavior, and does not weaken the H05 acceptance test.
-- If the complete workflow is green, close the H05 integration gate by confirming Heat, Contamination and Stress H05 acceptance plus the prior H01/H02/H03/S03/S05/T06/T07/contamination/stress regressions, then select the next still-missing 12C subsystem from repository evidence.
+- If the workflow fails before functional H05 assertions, inspect the first concrete compile/runtime failure and make one focused repair batch only for that failure class.
+- If `h05_transit_integration_test_runner.gd` runs and fails because H05 is not present in the restored top-level production path, use the exact failing Heat/Contamination/Stress assertions as the composition boundary. Implement one compile-safe H05 production composition layer that preserves the known-good pre-H05 inherited chain and restored stress-response behavior rather than blindly replacing their parents again.
+- If the complete workflow becomes green, close the H05 integration gate by confirming Heat, Contamination and Stress H05 acceptance plus all prior regressions, then select the next still-missing 12C subsystem from repository evidence.
 
 Do not begin 12D, 12E or later phases until the full 12C exit gate is satisfied and recorded.

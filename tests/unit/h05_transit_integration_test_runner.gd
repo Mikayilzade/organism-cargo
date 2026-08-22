@@ -66,8 +66,14 @@ func _test_stress_phase_d_h05_changes_field_and_evidence() -> void:
 func _test_inactive_future_h05_is_byte_equivalent() -> void:
 	var runner: TransitPowerIntegratedRunner = TransitPowerIntegratedRunnerScript.new()
 	var future: Dictionary = _contamination_defs(false)
-	future["hazards_by_id"]["h05-future"] = _h05("contamination", 2)
-	future["route_profile"]["events"].append({"tick": 3, "duration_ticks": 1, "hazard_id": "h05-future", "authored_order": 9})
+	var future_hazards: Dictionary = future["hazards_by_id"]
+	future_hazards["h05-future"] = _h05("contamination", 2)
+	future["hazards_by_id"] = future_hazards
+	var future_route: Dictionary = future["route_profile"]
+	var future_events: Array = future_route["events"]
+	future_events.append({"tick": 3, "duration_ticks": 1, "hazard_id": "h05-future", "authored_order": 9})
+	future_route["events"] = future_events
+	future["route_profile"] = future_route
 	var future_result: Dictionary = runner.simulate(_record("route-contamination"), 1, future)
 	var baseline: Dictionary = runner.simulate(_record("route-contamination"), 1, _contamination_defs(false))
 	_expect_true(bool(future_result.get("ok", false)) and bool(baseline.get("ok", false)), "inactive future H05 and baseline both resolve")
