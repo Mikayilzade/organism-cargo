@@ -97,7 +97,7 @@ func _test_production_s04_precedes_h02_wake_and_is_checksum_visible() -> void:
 	_expect_equal(s04_events.size(), 1, "production snapshot retains S04 transition evidence")
 	_expect_equal(wake_events.size(), 1, "same-tick explicit H02 wake observes the S04 sleeper")
 	_expect_equal(String(response_events[0]["kind"]), "S04_SLEEP_ENTER_APPLIED", "S04 is first at the composed Phase-B boundary")
-	_expect_equal(String(response_events[1]["kind"]), "H02_WAKE_APPLIED", "H02 wake follows S04 in the same Phase-B boundary")
+	_expect_equal(String(response_events[1]["kind"]), "H02_WAKE_REQUEST_APPLIED", "H02 wake follows S04 in the same Phase-B boundary")
 	_expect_true(String(with_sleep["tick_checksums"][0]) != String(without_sleep["tick_checksums"][0]), "S04 transition evidence is production-checksum visible even when final state matches")
 
 func _production_record() -> Dictionary:

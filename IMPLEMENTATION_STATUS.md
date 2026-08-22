@@ -55,24 +55,30 @@ Increments 40-75 established and iteratively verified blocked growth/T08, Browno
 ### Increment 87 — focused S04 Godot constant-expression repair
 - Replaced only the invalid `PackedStringArray(...)` constant constructor with a literal constant Array for `VALID_STATES`.
 - No S04, sleep, wake, timing, capacity, eligibility, checksum or gameplay semantics were changed.
+- Checkpoint `f34b10c8df12ace7927bafa6a4b624349e113718` passed project import and every preceding contract through sleep/wake, but the dedicated S04 production fixture failed under workflow run `32548965077` because the fixture expected stale event kind `H02_WAKE_APPLIED` while the established `SleepWakeKernel` authority emits `H02_WAKE_REQUEST_APPLIED`.
+
+### Increment 88 — focused S04/H02 acceptance-fixture repair
+- Updated only the stale production S04 acceptance expectation to the already-established canonical runtime event kind `H02_WAKE_REQUEST_APPLIED`.
+- No S04 or H02 mechanics, ordering, state transition, checksum, capacity, eligibility or production composition semantics were changed.
 
 ## Checks performed this run
 - Read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, and `PHASE11_FINAL_FREEZE.md` first.
-- Queried latest `main` and confirmed Increment 86 checkpoint `d58d5a92b41d1d58d6647ce786202a09a0d94c6c` was red via `organism-cargo/godot-headless`, workflow run `32546536270`.
-- Inspected the failing job/log and isolated the first concrete failure to `src/sim/s04_nest_pad_kernel.gd:4`: `Assigned value for constant VALID_STATES isn't a constant expression.`
-- Applied one focused compatibility repair only, per the anti-spam/failure policy.
+- Queried latest `main` and confirmed Increment 87 checkpoint `f34b10c8df12ace7927bafa6a4b624349e113718` was red via `organism-cargo/godot-headless`, workflow run `32548965077`.
+- Inspected the failing job/log: project import and all earlier contracts were green; the first concrete failure was the S04 fixture mismatch `expected=H02_WAKE_APPLIED actual=H02_WAKE_REQUEST_APPLIED`.
+- Re-read the current `SleepWakeKernel` implementation and confirmed `H02_WAKE_REQUEST_APPLIED` is the established event kind produced by the explicit H02 wake-request authority.
+- Applied one focused test repair only, per the anti-spam/failure policy.
 - Local Godot execution is unavailable in this environment; GitHub Actions / Godot 4.7.1 remains the executable validation gate for this checkpoint.
 - Anti-spam rule preserved: one coherent repair checkpoint; no speculative second CI fix in this run.
 
 ## Current blockers
-- Increment 87 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first concrete parser/type/test failure on the next run.
+- Increment 88 must be observed under Godot 4.7.1 on `main`; if it fails, repair only the first concrete parser/type/test failure on the next run.
 - S04 production composition currently lives at the reconstructed stress-response boundary; S04 behavior on runs without an H02 stress-field path and same-tick sleep-gated outputs in lower Phase-C/E trait layers still need one unified per-tick composition boundary rather than wrapper-order shortcuts.
 - The authored `s04_transition_schedule` source is now production-consumable, but full launch content still needs concrete schedule data in Phase 12D; no sleep duration/recovery numbers were invented.
 - S03 Baffle, S05 Feed Cartridge, H05 Vent Cycle, H06 Zone Isolation, simultaneous multi-growth conflict semantics, finite T10 reactive triggers and remaining simultaneous multi-parent ancestry remain Phase 12C scope.
 - Production roster/campaign remains Phase 12D; full accessibility/controller/Deck and player-facing Monitor presentation remain Phase 12E.
 
 ## NEXT ACTION
-**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 87. If failure, repair only the first concrete parser/type/test failure. If success, re-read the exact S03 Baffle transmission/directed-relation authority and current stress/direct-interaction kernels, then implement the minimum deterministic S03 primitive at its canonical boundary without broadening S04 or inventing modifier values.**
+**Continue Phase 12C — inspect `organism-cargo/godot-headless` on Increment 88. If failure, repair only the first concrete parser/type/test failure. If success, re-read the exact S03 Baffle transmission/directed-relation authority and current stress/direct-interaction kernels, then implement the minimum deterministic S03 primitive at its canonical boundary without broadening S04 or inventing modifier values.**
 
 Next run:
 1. query latest `main` and `organism-cargo/godot-headless` first;
