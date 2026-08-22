@@ -24,7 +24,8 @@ func _test_panicked_once_per_run_and_ancestry() -> void:
 		return
 	var pulses: Array = first.get("t10_pulse_events", [])
 	_expect_equal(pulses.size(), 1, "once-per-run PANICKED-entry emits exactly one production T10 pulse")
-	var counts: Dictionary = first.get("t10_runtime_state", {}).get("trigger_count_by_key", {})
+	var t10_state: Dictionary = first.get("t10_runtime_state", {})
+	var counts: Dictionary = t10_state.get("trigger_count_by_key", {})
 	_expect_equal(int(counts.get("cargo-a|panic-pulse", 0)), 1, "once-per-run production guard persists exact count")
 	var snapshot: Dictionary = first["end_tick_snapshots"][0]
 	var triggers: Array = snapshot.get("t10_trigger_events", [])
@@ -51,7 +52,8 @@ func _test_wake_episode_and_finite_max_guards() -> void:
 	var capped_pulses: Array = _events_for_trait(pulses, "wake-capped-pulse")
 	_expect_equal(episode_pulses.size(), 3, "once-per-episode guard permits one pulse for each distinct production wake episode")
 	_expect_equal(capped_pulses.size(), 2, "max-triggers-per-run guard exhausts after authored finite cap")
-	var counts: Dictionary = first.get("t10_runtime_state", {}).get("trigger_count_by_key", {})
+	var t10_state: Dictionary = first.get("t10_runtime_state", {})
+	var counts: Dictionary = t10_state.get("trigger_count_by_key", {})
 	_expect_equal(int(counts.get("cargo-a|wake-episode-pulse", 0)), 3, "episode-scoped production count tracks all distinct wake episodes")
 	_expect_equal(int(counts.get("cargo-a|wake-capped-pulse", 0)), 2, "finite production max count stops at two")
 	var seen_episode_ids: Dictionary = {}
