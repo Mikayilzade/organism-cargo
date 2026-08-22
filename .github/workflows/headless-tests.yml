@@ -77,6 +77,7 @@ jobs:
             "H02 stress-field generation and Phase-D propagation contract test|--headless --path . --script tests/unit/stress_field_environment_kernel_test_runner.gd"
             "H05 Vent Cycle Phase-D vent modifier contract test|--headless --path . --script tests/unit/h05_vent_cycle_kernel_test_runner.gd"
             "H05 Vent Cycle production transit integration contract test|--headless --path . --script tests/unit/h05_transit_integration_test_runner.gd"
+            "T10 Reactive Pulse finite-trigger guard contract test|--headless --path . --script tests/unit/t10_reactive_pulse_kernel_test_runner.gd"
           )
 
           for entry in "${cases[@]}"; do

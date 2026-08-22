@@ -17,10 +17,10 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 106
+## Current implementation checkpoint — Increment 107
 
 ### Phase / subsystem
-**12C Core Systems — H05 Stress-field production composition through a sibling pre-response boundary**
+**12C Core Systems — close H05 and establish deterministic T10 Reactive Pulse finite-trigger guard authority**
 
 ### Repository truth read before work
 This run re-read the mandatory recovery chain before implementation:
@@ -30,54 +30,65 @@ This run re-read the mandatory recovery chain before implementation:
 - `DESIGN_STATUS.md`
 - `PHASE11_FINAL_FREEZE.md`
 
-For the exact H05/stress subsystem it also re-read the relevant frozen authority in `GAME_BIBLE.md` and `MECHANICS.md`, plus the established production runners for stress-field generation and downstream stress response. Frozen behavior remains unchanged: H05 modifies only existing Phase-D environmental decay/venting and the corrected Stress-field exposure must be what downstream Phase-E/F/G stress response consumes.
+For the exact next subsystem it also re-read the relevant frozen authority in `GAME_BIBLE.md`, `PHASE11_FREEZE.md`, `MECHANICS.md`, and `CONTENT_ARCHITECTURE.md`.
+
+Frozen T10 requirements used here:
+- T10 is a bounded Reactive Pulse resolved as an end-of-tick consequence in Phase H;
+- every T10 definition declares exactly one finite trigger guard: `once_per_run`, `once_per_episode`, or explicit finite `max_triggers_per_run`;
+- recursive same-tick positive/self-sustaining trigger loops are invalid content;
+- material trigger ancestry must remain explicit and deterministic;
+- pulse effect families remain authored data rather than hard-coded species-specific logic.
 
 ### Entry validation
-- Repository `main` at start: `9dade83e22a479bded71128a881d4985afe5426b` (`12C: repair H05 sibling compile safety`).
-- Explicit `organism-cargo/godot-headless` status for that head: **FAILURE**, workflow run `32576279264`.
-- Project import and every regression before the focused H05 production integration test passed.
-- H05 Heat, H05 Contamination, inactive-future equivalence and the standalone H05 Phase-D primitive all passed.
-- The only remaining focused failures were Stress-field H05: expected Phase-D field value `2` but production returned `4`, and the production snapshot lacked channel-specific `H05_VENT_MODIFIED` evidence for `stress_field`.
-- Repository inspection confirmed the existing `transit_h05_stress_field_integrated_runner.gd` already computes the corrected H05 Phase-D field/evidence, but the production chain still routed `transit_power_integrated_runner.gd -> transit_stress_response_integrated_runner.gd -> transit_stress_field_integrated_runner.gd`, so the H05-aware sibling was never consumed by downstream stress response.
+- Repository `main` at start: `a00925c55e352cf3c4b19dedf8bedac50977f842` (`12C: connect H05 stress field before response`).
+- Explicit `organism-cargo/godot-headless` status for that head: **SUCCESS**, workflow run `32578796239`.
+- Therefore the full H05 gate is now closed: project import and all prior regressions remained green, and the focused H05 production integration test passed Heat, Contamination, Stress-field and inactive-future equivalence.
+- Repository/canonical review identified T10 finite-trigger authority as the next explicit still-missing 12C acceptance obligation. H06 Zone Isolation also remains unimplemented and is deferred until after the bounded T10 primitive is established.
 
-### Implemented in Increment 106
-- Added `src/sim/transit_h05_stress_response_integrated_runner.gd` as a compile-safe sibling composition layer above the known-good `transit_stress_response_integrated_runner.gd`.
-- The new layer preserves the established S04, sleep/wake, Stress-field sampling, Phase-F meter application, Phase-G state transition, event, checksum and persistence logic, but obtains its pre-response environmental snapshots from `transit_h05_stress_field_integrated_runner.gd` instead of the non-H05 Stress-field parent.
-- Therefore active Stress-field H05 is applied in Phase D before the existing downstream stress-response logic samples the field, while non-H05 runs still inherit the H05 sibling's fallback to the known-good Stress-field implementation.
-- Updated the tiny production entry `transit_power_integrated_runner.gd` to extend this H05-aware stress-response composition layer rather than replacing any established lower-level parent.
-- No frozen formula, phase order, H05 event schema, S03/S04 behavior, H02 generation rule or stress-response rule was redesigned.
+### Implemented in Increment 107
+- Added `src/sim/t10_reactive_pulse_kernel.gd` as a deterministic Phase-H primitive for T10 Reactive Pulse trigger ownership and finite guard state.
+- Definitions are data-driven by source instance, trait ID, trigger-event kind, finite guard and authored effect records.
+- The validator rejects missing/invalid guards, invalid finite maxima, duplicate definition identities, malformed effects and direct same-source same-tick self-recursion.
+- Runtime resolution sorts definitions and trigger events deterministically, preserves material trigger ancestry, records trigger counts/episode consumption, emits stable Phase-H pulse/effect event IDs, and exposes replay-sensitive authority payload/checksum evidence.
+- `once_per_run`, `once_per_episode`, and explicit `max_triggers_per_run` semantics are all covered without hard-coding any one species pulse outcome.
+- Added focused headless contract coverage for each guard family, episode reset behavior, finite same-run caps, deterministic reordering equivalence, ancestry, recursive-definition rejection and mandatory-guard rejection.
+- Added the focused T10 test to the existing notification-safe headless workflow; no additional workflow or email-producing failure path was introduced.
 
 ### Files changed
-- `src/sim/transit_h05_stress_response_integrated_runner.gd` — new production composition layer that feeds H05-corrected Stress-field snapshots into the existing downstream response semantics.
-- `src/sim/transit_power_integrated_runner.gd` — production entry now selects the H05-aware stress-response layer.
-- `IMPLEMENTATION_STATUS.md` — Increment-106 checkpoint and exact continuation instruction.
+- `src/sim/t10_reactive_pulse_kernel.gd` — new deterministic T10 Phase-H finite-trigger authority primitive.
+- `tests/unit/t10_reactive_pulse_kernel_test_runner.gd` — focused frozen-guard/determinism/ancestry/recursion acceptance coverage.
+- `.github/workflows/headless-tests.yml` — adds the T10 contract to the existing single headless suite.
+- `IMPLEMENTATION_STATUS.md` — Increment-107 checkpoint and exact continuation instruction.
 
 ### Validation performed / available
-- Workflow run `32576279264` was inspected at job/log level before implementation.
-- All tests before the focused H05 production integration contract were green on Increment 105; only the two Stress-field H05 assertions failed.
-- The repaired composition was checked against the actual inheritance/delegation chain and the existing H05 stress runner so the corrected field is produced before downstream response rather than patched afterward.
-- A local Godot execution environment is not available from this automation runtime; one coherent checkpoint only is pushed. The existing notification-safe headless workflow is the authoritative post-push runtime validation.
+- Pre-change head `a00925c55e352cf3c4b19dedf8bedac50977f842` is fully green under `organism-cargo/godot-headless`, which closes H05 and confirms all existing regressions before this increment.
+- The new T10 kernel and focused tests were checked against the repository's existing Godot 4.7.1 typing/style patterns and the frozen Phase-H/finite-trigger rules.
+- A local Godot runtime is not available from this automation environment, so this run intentionally makes one coherent checkpoint only. The existing notification-safe workflow is the authoritative post-push runtime validation.
 
 ### Deliberately not changed
 - No canonical gameplay/design files.
-- No H05 Heat/Contamination implementation that is already passing.
-- No H05 formulas, effective vent/decay semantics, event/checksum schema or A–I ordering.
-- No test weakening/suppression.
-- No H06, T10, later 12C subsystem, 12D or later-phase work.
+- No H05 implementation after its green closure.
+- No species-specific T10 pulse application into Heat/Stress/Contamination/Satiety yet; this increment establishes the bounded trigger/evidence authority first.
+- No H06 Zone Isolation implementation.
+- No test weakening/suppression and no additional notification-producing workflow.
+- No 12D or later-phase work.
 
 ### Blockers / deferred known work
 - **No user-action blocker.**
 - 12C remains incomplete.
-- Runtime truth for Increment 106 must be taken from the single notification-safe `organism-cargo/godot-headless` workflow for this checkpoint.
+- Post-push runtime truth for Increment 107 must be taken from the single notification-safe `organism-cargo/godot-headless` status.
+- T10 still requires production composition: feed actual eligible transition/wake/recovery triggers into this Phase-H guard authority, then apply authored bounded pulse effects through the already-frozen channel/resource systems while preserving same-tick recursion rejection and causal ancestry.
+- H06 Zone Isolation remains a separate missing 12C hazard subsystem.
 
 ### Canonical contradictions
-- **NONE discovered.** This increment connects an already-implemented H05 Stress-field Phase-D authority to the existing downstream response path without changing frozen behavior.
+- **NONE discovered.** The new kernel implements frozen finite-trigger and Phase-H ownership semantics without adding a new trait family or species-specific gameplay rule.
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and the explicit `organism-cargo/godot-headless` status for Increment 106.
+At the start of the next run, query current `main` and the explicit `organism-cargo/godot-headless` status for Increment 107.
 
-- If the workflow fails before `h05_transit_integration_test_runner.gd`, inspect and repair only the first concrete compile/runtime failure class.
-- If the focused H05 production test still fails, inspect the exact Stress-field returned value/evidence and repair only this new sibling composition boundary; do not weaken the test or replace the known-good lower inheritance chain.
-- If the complete H05 gate is green, confirm all prior regressions remain green, record H05 as closed, and select the next still-missing 12C subsystem from repository evidence and canonical acceptance obligations.
+- If the workflow fails, inspect the first concrete T10 compile/runtime failure and make one focused repair batch only; do not weaken the T10 contract.
+- If the workflow is green, connect `T10ReactivePulseKernel` to the production transit Phase-H boundary using existing state-transition, wake/recovery and other named trigger events. Preserve the existing A–I order and make authored effect application data-driven through existing Heat/Stress-field/Contamination/Satiety authorities rather than adding species-specific branches.
+- Add production acceptance proving at least: PANICKED-entry bounded pulse, once-per-episode wake pulse, finite max-trigger behavior, parent ancestry, deterministic replay/checksum stability, and no repeated pulse after guard exhaustion.
+- After production T10 is green, implement the next still-missing 12C obligation, with H06 Zone Isolation currently the clearest remaining hazard gap.
 
 Do not begin 12D, 12E or later phases until the full 12C exit gate is satisfied and recorded.
