@@ -1,5 +1,6 @@
 extends "res://src/sim/transit_shared_resource_runner_base.gd"
 
+const TransitH05SharedResourceRunnerBaseScript := preload("res://src/sim/transit_h05_shared_resource_runner_base.gd")
 const S05_SOURCE_KIND := "S05"
 
 func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dictionary = {}) -> Dictionary:
@@ -9,7 +10,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 	var base_run: Dictionary = authority["base_run"]
 	var base_defs: Dictionary = authority["simulation_defs"]
 	var initial_states: Array = authority["initial_states"]
-	var result: Dictionary = super.simulate(base_run, total_ticks, base_defs)
+	var result: Dictionary = TransitH05SharedResourceRunnerBaseScript.new().simulate(base_run, total_ticks, base_defs)
 	if not bool(result.get("ok", false)):
 		return result
 	return _integrate_s05_evidence(result, initial_states)
