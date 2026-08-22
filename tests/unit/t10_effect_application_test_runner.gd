@@ -16,7 +16,7 @@ func _init() -> void:
 		quit(1)
 
 func _test_all_effect_authorities_clamp_carry_and_ancestry() -> void:
-	var runner = TransitT10EffectIntegratedRunnerScript.new()
+	var runner: Variant = TransitT10EffectIntegratedRunnerScript.new()
 	var base_result: Dictionary = {
 		"ok": true,
 		"tick_checksums": PackedStringArray(["base-1", "base-2"]),
