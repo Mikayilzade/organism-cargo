@@ -1,4 +1,4 @@
-extends "res://src/sim/transit_h05_stress_field_integrated_runner.gd"
+extends "res://src/sim/transit_stress_field_integrated_runner.gd"
 
 const StressFieldResponseKernelScript := preload("res://src/sim/stress_field_response_kernel.gd")
 const SleepWakeKernelScript := preload("res://src/sim/sleep_wake_kernel.gd")
@@ -89,12 +89,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		var base_runtime: Array = runtime_value
 		var stress_field_by_cell: Dictionary = field_value
 
-		var composed_result: Dictionary = _compose_pre_field_runtime(
-			base_runtime,
-			persisted_stress_by_id,
-			persisted_state_by_id,
-			previous_base_stress_by_id
-		)
+		var composed_result: Dictionary = _compose_pre_field_runtime(base_runtime, persisted_stress_by_id, persisted_state_by_id, previous_base_stress_by_id)
 		if not bool(composed_result.get("ok", false)):
 			return composed_result
 		var pre_field_runtime: Array = composed_result["organisms"]
@@ -107,13 +102,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 			if not bool(sleep_eligibility_result.get("ok", false)):
 				return sleep_eligibility_result
 			pre_field_runtime = sleep_eligibility_result["organisms"]
-			var s04_result: Dictionary = s04_kernel.resolve_phase_b(
-				tick,
-				pre_field_runtime,
-				s04_supports,
-				support_definitions_by_id,
-				s04_transition_schedule
-			)
+			var s04_result: Dictionary = s04_kernel.resolve_phase_b(tick, pre_field_runtime, s04_supports, support_definitions_by_id, s04_transition_schedule)
 			if not bool(s04_result.get("ok", false)):
 				return {"ok": false, "error": "phase_b_s04:%s" % String(s04_result.get("error", "unknown"))}
 			pre_field_runtime = s04_result["organisms"]
@@ -143,11 +132,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		var phase_f: Dictionary = kernel.apply_phase_f(tick, pre_field_runtime, sampled["observations"])
 		if not bool(phase_f.get("ok", false)):
 			return {"ok": false, "error": "phase_f_stress_field:%s" % String(phase_f.get("error", "unknown"))}
-		var phase_g: Dictionary = kernel.evaluate_phase_g(
-			tick,
-			phase_f["organisms"],
-			phase_f["phase_f_event_id_by_instance_id"]
-		)
+		var phase_g: Dictionary = kernel.evaluate_phase_g(tick, phase_f["organisms"], phase_f["phase_f_event_id_by_instance_id"])
 		if not bool(phase_g.get("ok", false)):
 			return {"ok": false, "error": "phase_g_stress_field:%s" % String(phase_g.get("error", "unknown"))}
 		final_runtime = phase_g["organisms"]
@@ -193,10 +178,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		snapshot["stress_field_upstream_stress_delta_by_id"] = upstream_delta_by_id.duplicate(true)
 		snapshot["stress_field_response_events"] = tick_events.duplicate(true)
 		integrated_snapshots.append(snapshot)
-		var checksum_material: String = "%s|stress_field_response=%s" % [
-			String(base_checksums[index]),
-			_serialize_stress_field_response(final_runtime, upstream_delta_by_id, tick_events),
-		]
+		var checksum_material: String = "%s|stress_field_response=%s" % [String(base_checksums[index]), _serialize_stress_field_response(final_runtime, upstream_delta_by_id, tick_events)]
 		integrated_checksums.append(checksum_material.sha256_text())
 
 	base_result["end_tick_snapshots"] = integrated_snapshots
@@ -244,14 +226,7 @@ func _prepare_s04_authority(committed_run: Dictionary, simulation_defs: Dictiona
 	var base_input: Dictionary = committed_input.duplicate(true)
 	base_input["supports"] = retained_supports
 	base_run["canonical_committed_input"] = base_input
-	return {
-		"ok": true,
-		"error": "",
-		"base_run": base_run,
-		"s04_supports": s04_supports,
-		"support_definitions_by_id": support_definitions_by_id.duplicate(true),
-		"transition_schedule": transition_schedule.duplicate(true),
-	}
+	return {"ok": true, "error": "", "base_run": base_run, "s04_supports": s04_supports, "support_definitions_by_id": support_definitions_by_id.duplicate(true), "transition_schedule": transition_schedule.duplicate(true)}
 
 func _with_sleep_eligibility(organisms: Array, organism_definitions: Dictionary) -> Dictionary:
 	var results: Array = []
@@ -262,88 +237,48 @@ func _with_sleep_eligibility(organisms: Array, organism_definitions: Dictionary)
 		var instance_id: String = String(organism.get("instance_id", ""))
 		if instance_id.is_empty() or not organism_definitions.has(instance_id) or not organism_definitions[instance_id] is Dictionary:
 			return {"ok": false, "error": "missing_organism_definition:%s" % instance_id}
+		var next_organism: Dictionary = organism.duplicate(true)
 		var definition: Dictionary = organism_definitions[instance_id]
-		var next: Dictionary = organism.duplicate(true)
-		next["can_sleep"] = bool(definition.get("can_sleep", false))
-		results.append(next)
+		next_organism["sleep_eligible"] = bool(definition.get("sleep_eligible", false))
+		results.append(next_organism)
 	return {"ok": true, "error": "", "organisms": results}
 
-func _initial_stress_authority(base_runtime: Array, organism_definitions: Dictionary) -> Dictionary:
+func _initial_stress_authority(organisms: Array, organism_definitions: Dictionary) -> Dictionary:
 	var stress_by_id: Dictionary = {}
 	var state_by_id: Dictionary = {}
-	for raw_organism: Variant in base_runtime:
+	for raw_organism: Variant in organisms:
 		if not raw_organism is Dictionary:
 			return {"ok": false, "error": "invalid_organism_runtime_snapshot"}
 		var organism: Dictionary = raw_organism
 		var instance_id: String = String(organism.get("instance_id", ""))
-		if instance_id.is_empty() or stress_by_id.has(instance_id):
-			return {"ok": false, "error": "invalid_organism_runtime_identity"}
-		if not organism_definitions.has(instance_id) or not organism_definitions[instance_id] is Dictionary:
+		if instance_id.is_empty() or not organism_definitions.has(instance_id) or not organism_definitions[instance_id] is Dictionary:
 			return {"ok": false, "error": "missing_organism_definition:%s" % instance_id}
 		var definition: Dictionary = organism_definitions[instance_id]
-		var profile_value: Variant = organism.get("stress_profile", null)
-		if not profile_value is Dictionary:
-			return {"ok": false, "error": "missing_stress_profile:%s" % instance_id}
-		var profile: Dictionary = profile_value
-		var stress_min: int = int(profile.get("stress_min", 0))
-		var stress_max: int = int(profile.get("stress_max", stress_min - 1))
-		var initial_stress: int = int(definition.get("initial_stress", 0))
-		if initial_stress < stress_min or initial_stress > stress_max:
-			return {"ok": false, "error": "initial_stress_out_of_range:%s" % instance_id}
-		var initial_state: String = String(definition.get("initial_state", "CALM"))
-		if not initial_state in ["CALM", "AGITATED", "PANICKED", "ASLEEP"]:
-			return {"ok": false, "error": "stress_field_initial_state_not_implemented:%s" % initial_state}
-		stress_by_id[instance_id] = initial_stress
-		state_by_id[instance_id] = initial_state
+		stress_by_id[instance_id] = int(definition.get("initial_stress", organism.get("stress", 0)))
+		state_by_id[instance_id] = String(definition.get("initial_state", organism.get("state", "NORMAL")))
 	return {"ok": true, "error": "", "stress_by_id": stress_by_id, "state_by_id": state_by_id}
 
-func _compose_pre_field_runtime(
-		base_runtime: Array,
-		persisted_stress_by_id: Dictionary,
-		persisted_state_by_id: Dictionary,
-		previous_base_stress_by_id: Dictionary
-) -> Dictionary:
+func _compose_pre_field_runtime(base_runtime: Array, persisted_stress_by_id: Dictionary, persisted_state_by_id: Dictionary, previous_base_stress_by_id: Dictionary) -> Dictionary:
 	var results: Array = []
 	var upstream_delta_by_id: Dictionary = {}
-	var base_stress_by_id: Dictionary = {}
+	var next_base_stress_by_id: Dictionary = {}
 	for raw_organism: Variant in base_runtime:
 		if not raw_organism is Dictionary:
 			return {"ok": false, "error": "invalid_organism_runtime_snapshot"}
 		var organism: Dictionary = raw_organism
 		var instance_id: String = String(organism.get("instance_id", ""))
-		if not persisted_stress_by_id.has(instance_id) or not persisted_state_by_id.has(instance_id) or not previous_base_stress_by_id.has(instance_id):
-			return {"ok": false, "error": "stress_field_runtime_identity_mismatch:%s" % instance_id}
-		var profile_value: Variant = organism.get("stress_profile", null)
-		if not profile_value is Dictionary:
-			return {"ok": false, "error": "missing_stress_profile:%s" % instance_id}
-		var profile: Dictionary = profile_value
-		var stress_min: int = int(profile.get("stress_min", 0))
-		var stress_max: int = int(profile.get("stress_max", stress_min - 1))
-		if stress_min > stress_max:
-			return {"ok": false, "error": "invalid_stress_profile:%s" % instance_id}
-		var base_stress: int = int(organism.get("stress", stress_min - 1))
-		var previous_base_stress: int = int(previous_base_stress_by_id[instance_id])
-		var upstream_delta: int = base_stress - previous_base_stress
-		var persisted_stress: int = int(persisted_stress_by_id[instance_id])
-		var composed_stress: int = clampi(persisted_stress + upstream_delta, stress_min, stress_max)
-		var next: Dictionary = organism.duplicate(true)
-		next["stress"] = composed_stress
-		next["primary_state"] = String(persisted_state_by_id[instance_id])
-		results.append(next)
+		if instance_id.is_empty() or not persisted_stress_by_id.has(instance_id):
+			return {"ok": false, "error": "missing_stress_authority:%s" % instance_id}
+		var current_base_stress: int = int(organism.get("stress", 0))
+		var previous_base_stress: int = int(previous_base_stress_by_id.get(instance_id, current_base_stress))
+		var upstream_delta: int = current_base_stress - previous_base_stress
+		var next_organism: Dictionary = organism.duplicate(true)
+		next_organism["stress"] = int(persisted_stress_by_id[instance_id]) + upstream_delta
+		next_organism["state"] = String(persisted_state_by_id.get(instance_id, organism.get("state", "NORMAL")))
+		results.append(next_organism)
 		upstream_delta_by_id[instance_id] = upstream_delta
-		base_stress_by_id[instance_id] = base_stress
-	if results.size() != persisted_stress_by_id.size():
-		return {"ok": false, "error": "incomplete_stress_field_runtime"}
-	results.sort_custom(func(left: Dictionary, right: Dictionary) -> bool:
-		return String(left.get("instance_id", "")) < String(right.get("instance_id", ""))
-	)
-	return {
-		"ok": true,
-		"error": "",
-		"organisms": results,
-		"upstream_stress_delta_by_id": upstream_delta_by_id,
-		"base_stress_by_id": base_stress_by_id,
-	}
+		next_base_stress_by_id[instance_id] = current_base_stress
+	return {"ok": true, "error": "", "organisms": results, "upstream_stress_delta_by_id": upstream_delta_by_id, "base_stress_by_id": next_base_stress_by_id}
 
 func _capture_persisted_stress(organisms: Array) -> Dictionary:
 	var stress_by_id: Dictionary = {}
@@ -353,45 +288,21 @@ func _capture_persisted_stress(organisms: Array) -> Dictionary:
 			return {"ok": false, "error": "invalid_stress_field_response_runtime"}
 		var organism: Dictionary = raw_organism
 		var instance_id: String = String(organism.get("instance_id", ""))
-		if instance_id.is_empty() or stress_by_id.has(instance_id):
-			return {"ok": false, "error": "invalid_stress_field_response_identity"}
+		if instance_id.is_empty():
+			return {"ok": false, "error": "missing_instance_id"}
 		stress_by_id[instance_id] = int(organism.get("stress", 0))
-		state_by_id[instance_id] = String(organism.get("primary_state", ""))
+		state_by_id[instance_id] = String(organism.get("state", "NORMAL"))
 	return {"ok": true, "error": "", "stress_by_id": stress_by_id, "state_by_id": state_by_id}
 
-func _serialize_stress_field_response(runtime: Array, upstream_delta_by_id: Dictionary, events: Array) -> String:
+func _serialize_stress_field_response(organisms: Array, upstream_delta_by_id: Dictionary, events: Array) -> String:
 	var parts: PackedStringArray = PackedStringArray()
-	for raw_organism: Variant in runtime:
-		if not raw_organism is Dictionary:
-			continue
-		var organism: Dictionary = raw_organism
-		var instance_id: String = String(organism.get("instance_id", ""))
-		parts.append("organism=%s:%d:%s:%d" % [
-			instance_id,
-			int(organism.get("stress", 0)),
-			String(organism.get("primary_state", "")),
-			int(upstream_delta_by_id.get(instance_id, 0)),
-		])
+	for raw_organism: Variant in organisms:
+		if raw_organism is Dictionary:
+			var organism: Dictionary = raw_organism
+			var instance_id: String = String(organism.get("instance_id", ""))
+			parts.append("%s:%d:%s:%d" % [instance_id, int(organism.get("stress", 0)), String(organism.get("state", "")), int(upstream_delta_by_id.get(instance_id, 0))])
 	for raw_event: Variant in events:
-		if not raw_event is Dictionary:
-			continue
-		var event: Dictionary = raw_event
-		var parents_value: Variant = event.get("parent_event_ids", PackedStringArray())
-		var parents: PackedStringArray = PackedStringArray()
-		if parents_value is Array or parents_value is PackedStringArray:
-			for raw_parent: Variant in parents_value:
-				parents.append(String(raw_parent))
-		parents.sort()
-		parts.append("event=%s:%s:%s:%s:%s:%s:%s:%s:%d:%s" % [
-			String(event.get("event_id", "")),
-			String(event.get("phase", "")),
-			String(event.get("kind", "")),
-			String(event.get("instance_id", "")),
-			String(event.get("support_instance_id", "")),
-			String(event.get("target_instance_id", "")),
-			String(event.get("state_before", "")),
-			String(event.get("state_after", "")),
-			int(event.get("stress_delta", event.get("stress_field_exposure", 0))),
-			",".join(parents),
-		])
+		if raw_event is Dictionary:
+			var event: Dictionary = raw_event
+			parts.append("%s:%s:%s:%d" % [String(event.get("event_id", "")), String(event.get("phase", "")), String(event.get("instance_id", "")), int(event.get("delta", event.get("stress_delta", 0)))])
 	return "|".join(parts)
