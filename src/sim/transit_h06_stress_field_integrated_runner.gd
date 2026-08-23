@@ -5,7 +5,7 @@ extends "res://src/sim/transit_h05_stress_field_integrated_runner.gd"
 # scheduled H06 boundary authority reaches the common Phase-D resolver.
 func _has_relevant_h05_stress_route_event(simulation_defs: Dictionary, total_ticks: int) -> bool:
 	return super._has_relevant_h05_stress_route_event(simulation_defs, total_ticks) \
-		or _has_relevant_h06_route_event(simulation_defs, total_ticks)
+		or (_has_h02(simulation_defs) and _has_relevant_h06_route_event(simulation_defs, total_ticks))
 
 func _scoped_h05_stress_authority(active_hazards: PackedStringArray, hazards_by_id: Dictionary) -> Dictionary:
 	var scoped: Dictionary = super._scoped_h05_stress_authority(active_hazards, hazards_by_id)
