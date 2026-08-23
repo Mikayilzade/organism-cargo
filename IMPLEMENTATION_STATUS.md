@@ -9,60 +9,62 @@ Branch: `main`
 - Canonical implementation authority: **`PHASE11_FINAL_FREEZE.md` + frozen authority chain**
 - 12A Technical Bootstrap: **COMPLETE**
 - 12B Vertical Slice: **COMPLETE**
-- 12C Core Systems: **IN PROGRESS — FINAL EXIT-GATE CI REPAIR PENDING**
-- 12D Content Population: **NO**
+- 12C Core Systems: **COMPLETE**
+- 12D Content Population: **IN PROGRESS**
 - 12E UX / Accessibility / Controller / Deck: **NO**
 - 12F Adversarial QA: **NO**
 - 12G Empirical Gates: **NO**
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 148
+## Current implementation checkpoint — Increment 149
 
 ### Phase / subsystem
-**12C Core Systems — focused repair of final production-closure test compile failure**
+**12C exit closure + 12D frozen content-schema/validator bootstrap**
 
-### Repository truth / entry validation
-- Start head: `e75b424e64d11eae8b484d68c4af92c70dbb23ab` (`12C: close final trait production proof gaps`).
-- Mandatory recovery chain re-read: `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`.
-- Exact mechanical authority rechecked in `MECHANICS.md`; no gameplay change is required for this repair.
-- GitHub Actions run `32664436012` completed at the workflow level, but the explicit `organism-cargo/godot-headless` status is **FAILURE** as intended by the hardened log guard.
+### Entry validation
+- Increment 148 head `a202ed2f0ca8cb4a04f1d62a34ba5126b8ce1c5b` has explicit `organism-cargo/godot-headless` **SUCCESS**, Actions run `32667598768`.
+- `CORE_SYSTEMS_COVERAGE.md` was re-read against `PHASE11_FINAL_FREEZE.md` and the frozen authority chain; no remaining 12C production-proof gap was found.
+- Therefore the 12C exit gate is now explicitly closed.
 
-### Exact failure found
-The first new closure runner did not compile under warnings-as-errors because four array-index expressions were inferred as `Variant` before `.get()` calls:
-- `tests/unit/core_trait_production_closure_test_runner.gd:34`
-- `tests/unit/core_trait_production_closure_test_runner.gd:35`
-- `tests/unit/core_trait_production_closure_test_runner.gd:61`
-- `tests/unit/core_trait_production_closure_test_runner.gd:62`
+### 12C closure
+- T01–T10 production authority/proof: complete.
+- S01–S06 production authority/proof: complete.
+- H01–H06 environmental/route authority: complete.
+- deterministic A–I phase semantics, Brownout, growth, blocked-growth episodes, sleep gates, replay/checksums: complete.
+- Launch/persistence/reconstruction/Results/Retry/Causal Review production contracts: complete.
+- `CORE_SYSTEMS_COVERAGE.md` now records **EXIT GATE COMPLETE**.
 
-The CI guard correctly caught the `SCRIPT ERROR` / failed script load even though the surrounding workflow job itself continued to publish status.
+### 12D started
+Added `ContentPopulationValidator` as the first data-driven content-population boundary. It encodes frozen structural invariants before bulk authoring:
+- launch species ceiling 22, O01–O22 identity grammar, B01–B04 body plans, T01–T10 trait references and 1–3 significant traits;
+- exactly six launch supports S01–S06;
+- exact C01–C48 campaign node set and exact Bronze prerequisite graph;
+- mandatory post-launch dynamic-significance marker for C05–C48;
+- generated challenge ceiling and certified-Bronze/dynamic-significance/static-t0 rejection gates;
+- exact public-demo freeze: 10 species = 9 documented + 1 discovery, supports S01/S02/S03/S05, 10 authored contracts, 3 challenge templates, 1 discovery contract.
 
-### Implemented in Increment 148
-- Repaired only the exact strict-typing failure in `core_trait_production_closure_test_runner.gd`.
-- Phase-C environment event array entries are now extracted into explicitly typed `Dictionary` values before `.get()` access.
-- T09 buffer event array entry is likewise extracted into an explicitly typed `Dictionary` before evidence assertions.
-- No production runner/kernel behavior, numeric mechanics, ordering, targeting, contamination semantics, frozen content, or design files were changed.
+Focused validator tests cover a valid 22/6/48 frozen fixture plus rejection of a 23rd species, altered C16 prerequisites, static challenge content and the obsolete 8+2 demo split.
 
-### Files changed
-- `tests/unit/core_trait_production_closure_test_runner.gd`
+### Files changed in this broad checkpoint
+- `CORE_SYSTEMS_COVERAGE.md`
 - `IMPLEMENTATION_STATUS.md`
+- `src/content/content_population_validator.gd`
+- `tests/unit/content_population_validator_test_runner.gd`
+- `.github/workflows/headless-tests.yml` (validator contract registration)
 
-### Validation performed / available
-- Inspected the authoritative run logs for `32664436012`; all earlier tests through T06/T09/T07/S05 were green before the closure test load failure.
-- The failure class is compile-time Variant typing only; the new patch removes all four exact invalid `.get()` calls reported by Godot 4.7.1.
-- Static review confirms the assertions and expected gameplay values are unchanged.
-- Per anti-spam policy this run makes one focused repair checkpoint only and does not start 12D or stack speculative CI pushes.
-
-### Blockers
-- **No user-action blocker.**
-- 12C still cannot be marked COMPLETE until the repaired checkpoint receives an explicit green `organism-cargo/godot-headless` status.
+### Blockers / cautions
+- No user-action blocker.
+- 12D is not complete; this increment establishes the validator/schema boundary only.
+- Bulk content must now be authored through frozen data rather than adding one-off simulation mechanics.
 
 ### Canonical contradictions
-- **NONE discovered.** This increment is test-language typing repair only.
+- **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 148.
+At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 149.
 
-- If CI fails, inspect the first exact compile/runtime/assertion failure and make one focused repair batch only; do not start 12D.
-- If CI is green, re-read `CORE_SYSTEMS_COVERAGE.md` once against the frozen authority. If no new gap appears, mark **12C Core Systems = COMPLETE** with explicit exit-gate evidence.
-- Only after that recorded closure may the same broad run begin **12D Content Population**, starting from the frozen exact data schema/validator layer for the 22-species ceiling, six supports, C01–C48 graph, challenge/demo constraints and data-driven content definitions rather than ad-hoc authored content.
+- If red, inspect only the first exact validator/test compile or assertion failure and make one focused repair.
+- If green, continue 12D with a broad population batch: create canonical data-driven launch definitions for the six supports and the O01–O22 species roster (including profile/trait/body-plan references and bounded special-definition payloads), then extend the validator/registry tests to load those files rather than only synthetic fixtures.
+- After that, populate the exact C01–C48 campaign graph and launch hold/route/challenge/demo metadata in subsequent broad batches, preserving the frozen graph and dynamic-content gates.
+- Do not begin 12E until 12D content counts, cross-references and validators are complete and green.
