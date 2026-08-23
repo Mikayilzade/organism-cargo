@@ -17,10 +17,10 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 132
+## Current implementation checkpoint — Increment 133
 
 ### Phase / subsystem
-**12C Core Systems — normalize dormant contamination authority before T10 internal raw-snapshot capture**
+**12C Core Systems — establish deterministic H06 Zone Isolation Phase-D propagation authority**
 
 ### Repository truth read before work
 This run re-read the mandatory recovery chain:
@@ -30,57 +30,61 @@ This run re-read the mandatory recovery chain:
 - `DESIGN_STATUS.md`
 - `PHASE11_FINAL_FREEZE.md`
 
-For the exact T10 internal-effect failure it also re-read `GAME_BIBLE.md`, `MECHANICS.md`, the T10 Phase-H kernel/integration/effect layers, one-boundary carry, internal FOOD/CLEANSE replay, dormant contamination authority, contamination/T09 reconsumption, and the canonical contamination Phase-E/F/G implementation. Frozen behavior remains unchanged: Phase-H T10 effects are finite, their end-of-tick state is authoritative, and the following tick's consumers must observe that state exactly once.
+For H06 it also re-read the applicable canonical authority in `GAME_BIBLE.md`, `MECHANICS.md`, `PHASE11_FREEZE.md`, `CONTENT_ARCHITECTURE.md`, and `TECHNICAL_SPEC.md`, plus the existing Phase-D Heat/Stress/Contamination kernels and shared Phase-D resolver. Frozen behavior remains unchanged: H06 Zone Isolation changes propagation across a declared boundary without moving geometry, and authoritative environmental propagation remains discrete, deterministic, orthogonal and Phase-D owned.
 
 ### Entry validation
-- Repository `main` at start: `abd24097a924cd5684fa9d586f33d522b6e2f7a7` (`12C: single-owner T10 internal next-tick state`).
-- Explicit `organism-cargo/godot-headless` status for Increment 131: **FAILURE**, workflow run `32649014441`.
-- The notification-safe Actions job itself concluded **SUCCESS** while publishing the authoritative custom failure status.
-- Import and every contract before the focused internal replay test were green, including H05, T10 primitive/transit, T10 effect application, Stress/Heat/Contamination channel reconsumption and one-boundary carry lifetime.
-- The only failure remained `t10_internal_reconsumption_test_runner.gd`: `cleanse-adjusted load is authoritative at tick-2 Phase-F | expected=1 actual=0`.
-- Increment 131 therefore correctly narrowed ownership but did not remove the duplicate CLEANSE in the dormant-contamination case.
-- Composition tracing identified the remaining boundary mismatch: `transit_t10_internal_reconsumption_integrated_runner.gd` captures `raw_snapshots` before delegating to `transit_t10_once_carry_integrated_runner.gd`, while that lower layer may synthesize dormant contamination runtime/field authority through `_ensure_dormant_contamination_authority`.
-- In a run where T10 CLEANSE is the only reason contamination authority exists, the pre-normalization raw snapshot can lack `contamination_load`. The internal replay's tick-1 raw-field restore then has nothing to restore, so it can reapply the same current-tick CLEANSE to the already-cleaned synthesized runtime. This exactly explains the surviving `4 -> 1 -> 0` result while preserving the expected application/reconsumption evidence.
+- Repository `main` at start: `8084e806a4dfd3a8b69b3548a2bef0869d465707` (`12C: align T10 internal dormant authority`).
+- Explicit `organism-cargo/godot-headless` status for Increment 132: **SUCCESS**, workflow run `32651970681`.
+- Therefore T10 core semantics are now closed: primitive/transit guard, Phase-H effect application, Stress/Heat/Contamination channel reconsumption, one-boundary carry lifetime, and internal FOOD/CLEANSE next-tick reconsumption are green together.
+- H06 Zone Isolation is the next missing core hazard family named by the frozen mechanics.
 
-### Implemented in Increment 132
-- Added a narrow `integrate_effects` override at the existing production internal-effect guard layer.
-- The override calls `_ensure_dormant_contamination_authority` before delegating to the internal reconsumption implementation, so its `raw_snapshots` are captured from the same normalized pre-effect authority used by the lower one-boundary T10 layer.
-- The lower normalization remains idempotent, so existing non-dormant contamination paths are preserved byte-for-byte at that boundary.
-- The authored-tick guard and single-owner suppression for generic `satiety` / `contamination_load` carry remain unchanged.
-- No T10 trigger, magnitude, target rule, FOOD allocation, contamination intake formula, hysteresis threshold, channel carry, event schema, or A–I phase order was changed.
+### Implemented in Increment 133
+- Added `H06ZoneIsolationKernel`, a pure deterministic Phase-D modifier that consumes active H06 hazards with explicitly authored orthogonal `isolated_edges` boundaries.
+- H06 removes only propagation transfer edges that cross an active declared boundary; it does not mutate hold geometry, occupancy, sources, decay/vent values, or any organism state.
+- Isolation is direction-independent at the boundary level, while retained transfer edges preserve their authored direction and amount.
+- Multiple active H06 hazards compose deterministically; hazard order is normalized and evidence retains the full sorted hazard set responsible for each isolated boundary.
+- Added typed rejection for missing hazard definitions, invalid/non-orthogonal boundaries, duplicate boundary declarations within one hazard, invalid channel rule containers, and invalid transfer-edge containers.
+- Integrated H06 into the shared `PhaseDEnvironmentResolver` alongside H05. H05 remains the vent/decay modifier; H06 independently transforms transfer-edge authority before the existing Heat, Stress-field and Contamination kernels execute.
+- Added deterministic H06 evidence, authority payload/checksum, isolated-edge authority and combined Phase-D checksum material.
+- Added focused H06 tests covering all three frozen channels, reverse-direction blocking, inactive byte-equivalent pass-through, invalid-boundary rejection and shared Phase-D resolver integration.
+- Added the focused H06 contract to the existing notification-safe headless suite.
 
 ### Files changed
-- `src/sim/transit_t10_internal_once_guard_integrated_runner.gd` — normalizes dormant contamination authority before internal raw-snapshot capture while retaining the prior finite-effect guards.
-- `IMPLEMENTATION_STATUS.md` — records Increment 132, validation evidence, and exact continuation.
+- `src/sim/h06_zone_isolation_kernel.gd` — new deterministic H06 Phase-D boundary-isolation primitive.
+- `src/sim/phase_d_environment_resolver.gd` — composes H06 transfer-edge authority with existing H05 vent authority and the three environmental propagation kernels.
+- `tests/unit/h06_zone_isolation_kernel_test_runner.gd` — focused deterministic H06 primitive/resolver coverage.
+- `.github/workflows/headless-tests.yml` — runs the new H06 contract after the already-green T10 regression chain.
+- `IMPLEMENTATION_STATUS.md` — closes validated T10 semantics and records Increment 133 plus exact continuation.
 
 ### Validation performed / available
-- Workflow run `32649014441` was inspected at job/log level. Every prior contract was green; only the tick-2 CLEANSE load assertion failed.
-- Static execution tracing confirmed `ContaminationResponseKernel.apply_phase_f` cannot reduce the fixture's corrected load `1` to `0` because tick-2 exposure is zero; the duplicate reduction must occur before/around internal replay authority reconstruction.
-- Static tracing confirmed `_ensure_dormant_contamination_authority` can create the contamination profile/load state below the point where the internal layer previously captured its raw reset snapshots.
-- Static tracing confirmed `_restore_raw_internal_field` only restores a field when the raw organism actually has that field, making the pre-normalization capture insufficient in the dormant case.
-- Local Git/Godot execution is unavailable in this runtime because outbound container DNS is unavailable. The existing notification-safe GitHub headless workflow is the authoritative post-push validation.
-- Per anti-spam policy this run creates exactly one coherent checkpoint commit/push. Any remaining CI failure is deferred to the next run's first exact failure boundary.
+- Increment 132 custom headless status was verified green before starting H06.
+- Static composition review verified that H06 changes only `transfer_edges`; source fields, vent/decay maps, channel bounds and geometry are passed unchanged.
+- Static review verified the same undirected isolated boundary blocks either directional authored transfer crossing it and does not suppress unrelated transfer edges.
+- Static review verified inactive/non-H06 route hazards return duplicated rules without H06 evidence.
+- Local Godot execution remains unavailable because this runtime cannot resolve GitHub from the container. The single notification-safe GitHub workflow triggered by this checkpoint is the authoritative compile/runtime validation.
+- Per anti-spam policy this run creates exactly one coherent checkpoint commit/push. Any compile/runtime failure from the new H06 contract is the next run's first repair boundary.
 
 ### Deliberately not changed
 - No canonical gameplay/design files.
-- No H06 Zone Isolation implementation yet.
-- No workflow notification behavior changes.
+- No hold geometry or occupancy semantics.
+- No H05/T10 behavior.
+- No direct production transit runner binding for H06 outside the shared Phase-D resolver yet.
 - No 12D or later-phase work.
 
 ### Blockers / deferred known work
 - **No user-action blocker.**
 - 12C remains incomplete.
-- Increment 132 requires authoritative headless validation before T10 can be marked closed.
-- H06 Zone Isolation remains the next separate missing 12C hazard subsystem after T10 closes.
+- Increment 133 requires authoritative headless validation.
+- After the primitive/shared Phase-D gate is green, H06 must be bound through the production transit composition paths that currently perform Heat/Contamination and Stress-field propagation in separate runner layers, with regression coverage proving active route H06 reaches real transit snapshots/checksums.
 
 ### Canonical contradictions
-- **NONE discovered.** This repair aligns two implementation layers to the same pre-effect authority; it does not change frozen gameplay semantics.
+- **NONE discovered.** The implementation gives the frozen “changes propagation across a declared boundary without moving geometry” rule a deterministic data representation and does not add a new gameplay channel or mechanic.
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 132.
+At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 133.
 
-- If the workflow still fails before or at `t10_internal_reconsumption_test_runner.gd`, inspect the first exact compile/runtime/assertion failure and make one focused repair batch only. Preserve the already-green channel reconsumption, one-boundary channel carry and T10 trigger contracts.
-- If the complete workflow is green, mark T10 core semantics closed in status after confirming internal FOOD/CLEANSE, channel-pulse reconsumption and carry-lifetime regressions are green together.
-- Then read the H06 authority chain and implement H06 Zone Isolation as the next clearest missing 12C hazard obligation in a subsequent substantial increment.
+- If the workflow fails before or at `h06_zone_isolation_kernel_test_runner.gd`, inspect the first exact compile/runtime/assertion failure and make one focused repair batch only.
+- If the workflow is green, preserve this H06 primitive/shared Phase-D authority and bind it into the production transit composition paths: Heat/Contamination in the shared-resource chain and Stress-field in the stress-field integration layer. Add a focused production-transit H06 test proving an active scheduled H06 changes real Phase-D exposure/snapshots/checksums while an inactive/future H06 remains byte-equivalent.
+- After production H06 is green, audit the remaining frozen 12C core-system obligations from repository evidence before selecting the next subsystem.
 
 Do not begin 12D, 12E or later phases until the full 12C exit gate is satisfied and recorded.

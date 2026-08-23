@@ -2,6 +2,7 @@ class_name PhaseDEnvironmentResolver
 extends RefCounted
 
 const H05VentCycleKernelScript := preload("res://src/sim/h05_vent_cycle_kernel.gd")
+const H06ZoneIsolationKernelScript := preload("res://src/sim/h06_zone_isolation_kernel.gd")
 const ThermalResponseKernelScript := preload("res://src/sim/thermal_response_kernel.gd")
 const ContaminationEnvironmentKernelScript := preload("res://src/sim/contamination_environment_kernel.gd")
 const StressFieldEnvironmentKernelScript := preload("res://src/sim/stress_field_environment_kernel.gd")
@@ -28,13 +29,21 @@ func resolve_phase_d(
 	if not bool(h05_result.get("ok", false)):
 		return _failure("h05:%s" % String(h05_result.get("error", "unknown")))
 
+	var h06_kernel: H06ZoneIsolationKernel = H06ZoneIsolationKernelScript.new()
+	var h06_result: Dictionary = h06_kernel.resolve_phase_d(
+		tick, cell_order, active_hazards, hazards_by_id, rules_by_channel
+	)
+	if not bool(h06_result.get("ok", false)):
+		return _failure("h06:%s" % String(h06_result.get("error", "unknown")))
+
 	var effective_vent_by_channel: Dictionary = h05_result["vent_by_channel"]
+	var h06_rules_by_channel: Dictionary = h06_result["rules_by_channel"]
 	var effective_rules: Dictionary = {}
 	var environment: Dictionary = {}
 
 	if generated_by_channel.has("heat"):
 		var generated_heat: Dictionary = generated_by_channel["heat"]
-		var source_heat_rules: Dictionary = rules_by_channel["heat"]
+		var source_heat_rules: Dictionary = h06_rules_by_channel["heat"]
 		var heat_rules: Dictionary = source_heat_rules.duplicate(true)
 		var effective_heat_vent: Dictionary = effective_vent_by_channel["heat"]
 		heat_rules["vent_by_cell"] = effective_heat_vent.duplicate(true)
@@ -46,7 +55,7 @@ func resolve_phase_d(
 
 	if generated_by_channel.has("stress_field"):
 		var generated_stress: Dictionary = generated_by_channel["stress_field"]
-		var source_stress_rules: Dictionary = rules_by_channel["stress_field"]
+		var source_stress_rules: Dictionary = h06_rules_by_channel["stress_field"]
 		var stress_rules: Dictionary = source_stress_rules.duplicate(true)
 		var effective_stress_decay: Dictionary = effective_vent_by_channel["stress_field"]
 		stress_rules["decay_by_cell"] = effective_stress_decay.duplicate(true)
@@ -58,7 +67,7 @@ func resolve_phase_d(
 
 	if generated_by_channel.has("contamination"):
 		var generated_contamination: Dictionary = generated_by_channel["contamination"]
-		var source_contamination_rules: Dictionary = rules_by_channel["contamination"]
+		var source_contamination_rules: Dictionary = h06_rules_by_channel["contamination"]
 		var contamination_rules: Dictionary = source_contamination_rules.duplicate(true)
 		var effective_contamination_vent: Dictionary = effective_vent_by_channel["contamination"]
 		contamination_rules["vent_by_cell"] = effective_contamination_vent.duplicate(true)
@@ -69,7 +78,10 @@ func resolve_phase_d(
 		environment["contamination"] = contamination_result["contamination_by_cell"]
 
 	var h05_events: Array = h05_result["events"]
-	var authority_payload: String = String(h05_result["authority_payload"]) + "|environment=" + _serialize_environment(environment, cell_order)
+	var h06_events: Array = h06_result["events"]
+	var authority_payload: String = String(h05_result["authority_payload"]) \
+		+ "|" + String(h06_result["authority_payload"]) \
+		+ "|environment=" + _serialize_environment(environment, cell_order)
 	return {
 		"ok": true,
 		"error": "",
@@ -79,6 +91,10 @@ func resolve_phase_d(
 		"h05_events": h05_events.duplicate(true),
 		"h05_authority_payload": String(h05_result["authority_payload"]),
 		"h05_authority_checksum": String(h05_result["authority_checksum"]),
+		"h06_events": h06_events.duplicate(true),
+		"h06_isolated_edges": (h06_result["isolated_edges"] as Dictionary).duplicate(true),
+		"h06_authority_payload": String(h06_result["authority_payload"]),
+		"h06_authority_checksum": String(h06_result["authority_checksum"]),
 		"authority_payload": authority_payload,
 		"authority_checksum": authority_payload.sha256_text(),
 	}
@@ -140,6 +156,10 @@ func _failure(error: String) -> Dictionary:
 		"h05_events": [],
 		"h05_authority_payload": "",
 		"h05_authority_checksum": "",
+		"h06_events": [],
+		"h06_isolated_edges": {},
+		"h06_authority_payload": "",
+		"h06_authority_checksum": "",
 		"authority_payload": "",
 		"authority_checksum": "",
 	}
