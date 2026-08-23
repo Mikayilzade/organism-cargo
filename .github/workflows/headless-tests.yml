@@ -64,6 +64,7 @@ jobs:
             "Phase-B growth legality integration contract test|--headless --path . --script tests/unit/phase_b_growth_test_runner.gd"
             "T08 qualifying-duration and Phase-B queue contract test|--headless --path . --script tests/unit/t08_growth_qualifier_test_runner.gd"
             "Phase-A Brownout power authority contract test|--headless --path . --script tests/unit/phase_a_power_resolver_test_runner.gd"
+            "T01 Heat Emitter Phase-C source and sleep-gating contract test|--headless --path . --script tests/unit/t01_heat_emitter_kernel_test_runner.gd"
             "S01 Cooler Phase-C effect contract test|--headless --path . --script tests/unit/s01_cooler_kernel_test_runner.gd"
             "S02 Filter Phase-C effect contract test|--headless --path . --script tests/unit/s02_filter_kernel_test_runner.gd"
             "H03 contamination field and Phase-D propagation contract test|--headless --path . --script tests/unit/contamination_environment_kernel_test_runner.gd"
