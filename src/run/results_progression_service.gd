@@ -17,7 +17,11 @@ func apply_authoritative_result(
 	var validation: Dictionary = _validate_application(record, authoritative_result, medal, documented_fact_ids)
 	if not bool(validation.get("ok", false)):
 		return validation
-	if not bool(authoritative_result["delivery_result"].get("success", false)):
+	var delivery_value: Variant = authoritative_result.get("delivery_result", null)
+	if not delivery_value is Dictionary:
+		return _failure("missing_delivery_result")
+	var delivery_result: Dictionary = delivery_value
+	if not bool(delivery_result.get("success", false)):
 		return {
 			"ok": true,
 			"error": "",
@@ -52,7 +56,11 @@ func apply_authoritative_result(
 		profile["best_medal_by_contract"] = best_medals
 
 		var facts: PackedStringArray = _normalized_strings(profile.get("documented_fact_ids", []))
-		for fact_id: String in validation["documented_fact_ids"]:
+		var validated_facts_value: Variant = validation.get("documented_fact_ids", PackedStringArray())
+		if not (validated_facts_value is Array or validated_facts_value is PackedStringArray):
+			return _failure("invalid_validated_documented_fact_ids")
+		for raw_fact: Variant in validated_facts_value:
+			var fact_id: String = String(raw_fact)
 			if not fact_id in facts:
 				facts.append(fact_id)
 		facts.sort()
@@ -144,9 +152,10 @@ func _mark_session_applied(record: Dictionary, completion_id: String, final_chec
 		return _failure("session_load_failed:%s" % String(loaded.get("error", "unknown")))
 	var envelope: SaveEnvelope = loaded["envelope"]
 	var payload: Dictionary = envelope.payload.duplicate(true)
-	if not payload.get("committed_run", null) is Dictionary:
+	var persisted_value: Variant = payload.get("committed_run", null)
+	if not persisted_value is Dictionary:
 		return _failure("missing_committed_run")
-	var persisted: Dictionary = payload["committed_run"]
+	var persisted: Dictionary = persisted_value
 	if String(persisted.get("run_id", "")) != String(record["run_id"]):
 		return _failure("session_run_id_mismatch")
 	if String(persisted.get("profile_uuid", "")) != String(record["profile_uuid"]):

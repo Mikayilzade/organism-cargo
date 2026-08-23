@@ -1,7 +1,7 @@
-extends "res://src/sim/transit_h05_stress_field_integrated_runner.gd"
+extends "res://src/sim/transit_t03_stress_field_integrated_runner.gd"
 
 # Production Phase-D bridge for H06 on the stress-field path. The parent owns
-# H02 generation, S03 transformation and H05 decay; this layer only ensures
+# H02/T03 generation, S03 transformation and H05 decay; this layer only ensures
 # scheduled H06 boundary authority reaches the common Phase-D resolver.
 func _has_relevant_h05_stress_route_event(simulation_defs: Dictionary, total_ticks: int) -> bool:
 	return super._has_relevant_h05_stress_route_event(simulation_defs, total_ticks) \
