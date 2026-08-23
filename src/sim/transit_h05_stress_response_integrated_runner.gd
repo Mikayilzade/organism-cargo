@@ -1,6 +1,6 @@
 extends "res://src/sim/transit_stress_response_integrated_runner.gd"
 
-const H05StressFieldIntegratedRunnerScript := preload("res://src/sim/transit_h05_stress_field_integrated_runner.gd")
+const H05StressFieldIntegratedRunnerScript := preload("res://src/sim/transit_h06_stress_field_integrated_runner.gd")
 const H05StressFieldResponseKernelScript := preload("res://src/sim/stress_field_response_kernel.gd")
 const H05SleepWakeKernelScript := preload("res://src/sim/sleep_wake_kernel.gd")
 const H05S04NestPadKernelScript := preload("res://src/sim/s04_nest_pad_kernel.gd")

@@ -1,6 +1,6 @@
 extends "res://src/sim/transit_shared_resource_runner_base.gd"
 
-const TransitH05SharedResourceRunnerBaseScript := preload("res://src/sim/transit_h05_shared_resource_runner_base.gd")
+const TransitH05SharedResourceRunnerBaseScript := preload("res://src/sim/transit_h06_shared_resource_runner_base.gd")
 const S05_SOURCE_KIND := "S05"
 
 func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dictionary = {}) -> Dictionary:
