@@ -1,7 +1,5 @@
 extends "res://src/sim/transit_t10_authority_guard_integrated_runner.gd"
 
-const StressFieldResponseKernelScript := preload("res://src/sim/stress_field_response_kernel.gd")
-
 const STRESS_RESPONSE_EVENT_KINDS := [
 	"STRESS_FIELD_EXPOSURE",
 	"STRESS_FIELD_INTERNAL_STRESS",
@@ -102,18 +100,41 @@ func _reconsume_stress_field_tick(
 	if not bool(pre_runtime_result.get("ok", false)):
 		return pre_runtime_result
 	var pre_runtime: Array = pre_runtime_result["organisms"] as Array
-	var sampled: Dictionary = StressFieldResponseKernelScript.new().sample_phase_e(tick, pre_runtime, field_value as Dictionary)
+	var kernel_script_value: Variant = load("res://src/sim/stress_field_response_kernel.gd")
+	if not kernel_script_value is Script:
+		return _failure("missing_t10_stress_response_kernel")
+	var kernel: Variant = (kernel_script_value as Script).new()
+	if kernel == null:
+		return _failure("invalid_t10_stress_response_kernel")
+
+	var sampled_value: Variant = kernel.call("sample_phase_e", tick, pre_runtime, field_value as Dictionary)
+	if not sampled_value is Dictionary:
+		return _failure("invalid_phase_e_t10_reconsumption_result")
+	var sampled: Dictionary = sampled_value as Dictionary
 	if not bool(sampled.get("ok", false)):
 		return _failure("phase_e_t10_reconsumption:%s" % String(sampled.get("error", "unknown")))
-	var sample_events: Array = sampled.get("events", []) as Array
+	var sample_events_value: Variant = sampled.get("events", [])
+	if not sample_events_value is Array:
+		return _failure("invalid_phase_e_t10_reconsumption_events")
+	var sample_events: Array = sample_events_value as Array
 	var ancestry_result: Dictionary = _attach_t10_stress_ancestry(sample_events, pre_runtime, application_events)
 	if not bool(ancestry_result.get("ok", false)):
 		return ancestry_result
 	sample_events = ancestry_result["events"] as Array
-	var phase_f: Dictionary = StressFieldResponseKernelScript.new().apply_phase_f(tick, pre_runtime, sampled["observations"] as Array)
+
+	var observations_value: Variant = sampled.get("observations", [])
+	if not observations_value is Array:
+		return _failure("invalid_phase_e_t10_reconsumption_observations")
+	var phase_f_value: Variant = kernel.call("apply_phase_f", tick, pre_runtime, observations_value as Array)
+	if not phase_f_value is Dictionary:
+		return _failure("invalid_phase_f_t10_reconsumption_result")
+	var phase_f: Dictionary = phase_f_value as Dictionary
 	if not bool(phase_f.get("ok", false)):
 		return _failure("phase_f_t10_reconsumption:%s" % String(phase_f.get("error", "unknown")))
-	var phase_f_events: Array = phase_f.get("events", []) as Array
+	var phase_f_events_value: Variant = phase_f.get("events", [])
+	if not phase_f_events_value is Array:
+		return _failure("invalid_phase_f_t10_reconsumption_events")
+	var phase_f_events: Array = phase_f_events_value as Array
 	var upstream_by_id: Dictionary = pre_runtime_result["upstream_by_id"] as Dictionary
 	for index: int in range(phase_f_events.size()):
 		var raw_event: Variant = phase_f_events[index]
@@ -123,11 +144,20 @@ func _reconsume_stress_field_tick(
 		var instance_id: String = String(event.get("instance_id", ""))
 		event["upstream_stress_delta"] = int(upstream_by_id.get(instance_id, 0))
 		phase_f_events[index] = event
-	var phase_g: Dictionary = StressFieldResponseKernelScript.new().evaluate_phase_g(
+
+	var phase_f_organisms_value: Variant = phase_f.get("organisms", [])
+	var phase_f_ids_value: Variant = phase_f.get("phase_f_event_id_by_instance_id", {})
+	if not phase_f_organisms_value is Array or not phase_f_ids_value is Dictionary:
+		return _failure("invalid_phase_f_t10_reconsumption_authority")
+	var phase_g_value: Variant = kernel.call(
+		"evaluate_phase_g",
 		tick,
-		phase_f["organisms"] as Array,
-		phase_f["phase_f_event_id_by_instance_id"] as Dictionary
+		phase_f_organisms_value as Array,
+		phase_f_ids_value as Dictionary
 	)
+	if not phase_g_value is Dictionary:
+		return _failure("invalid_phase_g_t10_reconsumption_result")
+	var phase_g: Dictionary = phase_g_value as Dictionary
 	if not bool(phase_g.get("ok", false)):
 		return _failure("phase_g_t10_reconsumption:%s" % String(phase_g.get("error", "unknown")))
 
@@ -140,16 +170,24 @@ func _reconsume_stress_field_tick(
 			continue
 		preserved_events.append(event.duplicate(true))
 	var replacement_events: Array = []
-	var phase_g_events: Array = phase_g.get("events", []) as Array
-	for batch: Array in [sample_events, phase_f_events, phase_g_events]:
-		for raw_event: Variant in batch:
+	var phase_g_events_value: Variant = phase_g.get("events", [])
+	if not phase_g_events_value is Array:
+		return _failure("invalid_phase_g_t10_reconsumption_events")
+	var event_batches: Array = [sample_events, phase_f_events, phase_g_events_value as Array]
+	for raw_batch: Variant in event_batches:
+		if not raw_batch is Array:
+			return _failure("invalid_t10_reconsumption_event_batch")
+		for raw_event: Variant in raw_batch as Array:
 			if not raw_event is Dictionary:
 				return _failure("invalid_t10_reconsumption_event")
 			replacement_events.append((raw_event as Dictionary).duplicate(true))
 			preserved_events.append((raw_event as Dictionary).duplicate(true))
 
+	var phase_g_organisms_value: Variant = phase_g.get("organisms", [])
+	if not phase_g_organisms_value is Array:
+		return _failure("invalid_phase_g_t10_reconsumption_organisms")
 	var next_snapshot: Dictionary = snapshot.duplicate(true)
-	next_snapshot["organism_runtime"] = (phase_g["organisms"] as Array).duplicate(true)
+	next_snapshot["organism_runtime"] = (phase_g_organisms_value as Array).duplicate(true)
 	next_snapshot["stress_field_response_events"] = preserved_events
 	return {"ok": true, "error": "", "snapshot": next_snapshot, "events": replacement_events}
 
