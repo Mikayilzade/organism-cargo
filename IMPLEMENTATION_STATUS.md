@@ -17,72 +17,67 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 138
+## Current implementation checkpoint — Increment 139
 
 ### Phase / subsystem
-**12C Core Systems — establish T01 Heat Emitter Phase-C primitive authority**
+**12C Core Systems — bind T01 Heat Emitter into production Phase-C transit composition**
 
 ### Repository truth read before work
-This run re-read the mandatory recovery chain:
+Mandatory recovery chain re-read:
 - `IMPLEMENTATION_START_HERE.md`
 - `IMPLEMENTATION_STATUS.md`
 - `AUTONOMY_RULES.md`
 - `DESIGN_STATUS.md`
 - `PHASE11_FINAL_FREEZE.md`
 
-For this exact trait subsystem it also re-read the applicable authority in `GAME_BIBLE.md`, `MECHANICS.md`, `CONTENT_ARCHITECTURE.md`, and `TECHNICAL_SPEC.md`.
+Exact subsystem authority additionally checked in `GAME_BIBLE.md`, `MECHANICS.md`, `CONTENT_ARCHITECTURE.md`, `TECHNICAL_SPEC.md`, the current shared-resource/H05 transit composition, Phase-B runtime preparation and S01 production coverage.
 
 ### Entry validation
-- Repository `main` at start: `abb4bfc489f4481117372118184e5bc8a9410d86`.
-- Explicit `organism-cargo/godot-headless` status for the strict-typing repair after Increment 137: **SUCCESS**, workflow run `32658617818`.
-- Therefore deterministic transit reconstruction and idempotent Results/progression are green after their compile fixes.
-- Audit of `src/sim` and the headless suite confirmed T05–T10 exist while foundation T01–T04 were still absent. T01 is the first missing foundation family in canonical order.
+- Repository `main` at start: `61761de660670efb226b8ffa513768bce6afee47` (`12C: establish T01 heat emitter primitive`).
+- Explicit `organism-cargo/godot-headless` status for Increment 138: **SUCCESS**, workflow run `32659041748`.
+- Therefore the standalone T01 primitive is green and the exact recorded NEXT ACTION was production binding before T02.
 
-### Implemented in Increment 138
-- Added `T01HeatEmitterKernel`, a deterministic Phase-C organism heat-source primitive.
-- T01 writes only to the existing Heat channel and does not add any new environmental mechanic.
-- Continuous output is constrained to the frozen weak/standard/strong source band `2/3/4` from `CONTENT_ARCHITECTURE.md`.
-- Source processing is stable by `instance_id`, and multi-cell bodies emit in stable sorted cell order.
-- T01 supports explicit awake-state gating while preserving the frozen sleep rule: `ASLEEP` does **not** suppress passive heat output unless that trait definition explicitly sets `sleep_gated = true`.
-- Every applied cell delta emits deterministic Phase-C causal evidence with stable event identity and before/after heat values.
-- Invalid runtime identity, invalid state, invalid continuous-output magnitude, duplicate cells, and cells outside the authoritative Heat field fail with typed errors rather than being silently accepted.
-- Added focused headless coverage for stable multi-source ordering, multi-cell emission, non-implicit sleep suppression, explicit sleep gating, state gating, and source-band rejection.
-- Wired the T01 contract into the existing notification-safe Godot headless suite.
+### Implemented in Increment 139
+- Bound authored `t01_definitions` into the real production Phase-C transit loop rather than leaving T01 as an isolated unit kernel.
+- T01 now reads the current organism runtime after Phase-B growth/state authority, emits heat into current occupied source cells, and writes its causal events into the existing `phase_c_environment_events` stream.
+- T01 heat is generated before S01 support mitigation, so a Phase-A-authorized Cooler can consume T01 heat in the same Phase-C boundary while a Brownout-disabled Cooler still has no same-tick authority.
+- The resulting heat then flows through the existing Phase-D propagation/H05 vent authority and Phase-E organism thermal response; no new heat channel, ordering rule or special-case response path was introduced.
+- Existing H05 implementation was preserved byte-for-byte as `transit_h05_shared_resource_runner_legacy.gd`; the canonical H05 base runner now uses the expanded loop only when T01 is present or an in-window H05 event already required it, and otherwise retains the prior fast path.
+- T01 requires existing thermal rules and organism runtime definitions; invalid/missing production authority fails closed instead of silently degrading to presentation-only heat.
+- Added focused production headless coverage for direct T01 Phase-C heat/exposure/checksum authority, same-tick S01 mitigation, H05 Phase-D interaction, and deterministic replay.
 
 ### Files changed
-- `src/sim/t01_heat_emitter_kernel.gd` — new T01 Phase-C primitive authority.
-- `tests/unit/t01_heat_emitter_kernel_test_runner.gd` — deterministic T01 contract coverage.
-- `.github/workflows/headless-tests.yml` — runs the T01 contract in the canonical headless suite.
-- `IMPLEMENTATION_STATUS.md` — records Increment 138 and exact continuation.
+- `src/sim/transit_h05_shared_resource_runner_base.gd` — T01-aware production Phase-C composition loop layered over preserved H05 behavior.
+- `src/sim/transit_h05_shared_resource_runner_legacy.gd` — exact prior H05 implementation retained as inherited fallback/helper authority.
+- `tests/unit/t01_transit_integration_test_runner.gd` — focused T01 production composition regressions.
+- `.github/workflows/headless-tests.yml` — adds the T01 production transit contract to the notification-safe suite.
+- `IMPLEMENTATION_STATUS.md` — records this checkpoint and exact continuation.
 
 ### Validation performed / available
-- Increment 137 strict-typing repair checkpoint was explicitly verified green before selecting new work.
-- Repository audit confirms no existing T01/T02/T03/T04 kernel files were present, while T05–T10 and support/hazard primitives are already represented.
-- Static review confirms T01 acts in Phase C, writes integers only, uses the existing Heat channel, preserves deterministic identity/order, and does not suppress asleep passive emission without an explicit sleep gate.
-- Static review confirms the output band exactly uses the frozen `2/3/4` continuous environmental magnitude values rather than inventing a new balance domain.
-- Local Godot execution is unavailable in this runtime; the single checkpoint push from this run triggers the authoritative headless suite.
-- Per anti-spam policy, this run batches the coherent T01 kernel/test/workflow/status changes into one checkpoint commit/push.
+- Increment 138 explicit custom headless status was verified green before work.
+- Static ordering review verified T01 executes after Phase B and before S01 in Phase C, then feeds the existing Phase-D/Phase-E heat pipeline.
+- Static evidence review verified T01 events join the existing checksum-visible Phase-C environmental event stream and the heat field itself remains part of canonical tick serialization.
+- Static compatibility review verified non-T01/non-H05 runs retain the previous inherited production path unchanged.
+- This checkpoint requires one authoritative GitHub Godot 4.7.1 headless run; no speculative second push is stacked in this run.
 
 ### Deliberately not changed
-- No canonical design/gameplay files.
-- No production transit composition yet; this increment establishes and tests the missing T01 primitive before binding it into the shared Phase-C Heat path.
-- No T02/T03/T04 implementation yet.
-- No campaign/content population, UX/accessibility, QA, empirical or release-phase work.
+- No frozen gameplay/design files.
+- No new channel, trait family, support, hazard, species, campaign content or progression rule.
+- T02/T03/T04 remain the next foundation-trait obligations; 12D remains closed.
 
 ### Blockers / deferred known work
 - **No user-action blocker.**
 - 12C remains incomplete.
-- Increment 138 requires authoritative headless validation.
-- T01 still requires production transit composition after this primitive checkpoint is green.
-- T02 Heat Sink, T03 Alarm Emitter and T04 Soother remain missing foundation families after T01.
+- Increment 139 requires authoritative headless validation.
+- Remaining core work includes T02 Heat Sink production authority, T03 Alarm Emitter and T04 Soother foundation coverage plus remaining persistence/core acceptance obligations before the 12C exit gate can be claimed.
 
 ### Canonical contradictions
-- **NONE discovered.** T01 maps directly onto the frozen Phase-C Heat grammar and source magnitude bands.
+- **NONE discovered.** T01 is composed into the already-frozen C→D→E heat path with existing S01/H05 authority and no gameplay reinterpretation.
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 138.
+At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 139.
 
-- If the workflow fails, inspect the first exact compile/runtime/assertion failure caused by this checkpoint and make one focused repair batch only.
-- If the workflow is green, preserve the T01 primitive and bind T01 definitions into the production shared-resource Phase-C Heat path so T01 output participates in same-tick Heat propagation, support mitigation, organism response and authoritative checksum evidence. Add focused production transit coverage without redesigning existing Heat/S01/H01 behavior.
-- After production T01 is green, continue the missing foundation-family audit in canonical order with T02, then T03 and T04.
-- Do not begin 12D, 12E or later phases until the full 12C exit gate is satisfied and recorded.
+- If the workflow fails, inspect the first exact compile/runtime/assertion failure in the T01 production contract and make one focused repair batch only.
+- If the workflow is green, preserve T01 production composition and implement the next missing foundation trait: **T02 Heat Sink**, first as deterministic current-runtime/local-capacity authority and then bind it into the same production Phase-C heat composition without changing S01/H01/H05 semantics.
+- After T02 is green, continue the frozen foundation gap in order with T03 Alarm Emitter and T04 Soother.
+- Do not begin 12D, 12E or later phases until the complete 12C exit gate is satisfied and recorded.

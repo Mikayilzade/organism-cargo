@@ -1,17 +1,11 @@
-extends "res://src/sim/transit_h05_shared_resource_runner_legacy.gd"
+extends "res://src/sim/transit_shared_resource_runner_base.gd"
 
-const T01HeatEmitterKernelScript := preload("res://src/sim/t01_heat_emitter_kernel.gd")
+const PhaseDEnvironmentResolverScript := preload("res://src/sim/phase_d_environment_resolver.gd")
 
-# T01 uses the existing H05-aware production loop as its Phase-C composition
-# home. The untouched legacy implementation remains the fast path whenever
-# neither T01 nor an in-window H05 event requires this expanded loop.
+const H05_ENVIRONMENT_CHANNELS := ["heat", "contamination"]
+
 func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dictionary = {}) -> Dictionary:
-	var t01_value: Variant = simulation_defs.get("t01_definitions", [])
-	if not t01_value is Array:
-		return {"ok": false, "error": "invalid_t01_definitions"}
-	var t01_definitions: Array = t01_value
-	var has_t01: bool = not t01_definitions.is_empty()
-	if not has_t01 and not _has_relevant_h05_route_event(simulation_defs, total_ticks, PackedStringArray(H05_ENVIRONMENT_CHANNELS)):
+	if not _has_relevant_h05_route_event(simulation_defs, total_ticks, PackedStringArray(H05_ENVIRONMENT_CHANNELS)):
 		return super.simulate(committed_run, total_ticks, simulation_defs)
 	if total_ticks <= 0:
 		return {"ok": false, "error": "invalid_total_ticks"}
@@ -51,10 +45,6 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 	var t08_trigger_definitions: Array = prepared["t08_trigger_definitions"]
 	var t08_qualification_by_tick: Dictionary = prepared["t08_qualification_by_tick"]
 	var t08_qualification_state: Dictionary = {}
-	if has_t01 and not thermal_enabled:
-		return {"ok": false, "error": "t01_requires_thermal_rules"}
-	if has_t01 and organism_state.is_empty():
-		return {"ok": false, "error": "t01_requires_organism_runtime"}
 
 	var route_profile: Dictionary = prepare_power["route_profile"]
 	var all_hazards_by_id: Dictionary = prepare_power["hazards_by_id"]
@@ -88,7 +78,6 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 	var thermal_kernel: ThermalResponseKernel = ThermalResponseKernelScript.new()
 	var growth_resolver: PhaseBGrowthResolver = PhaseBGrowthResolverScript.new()
 	var t08_qualifier: T08GrowthQualifier = T08GrowthQualifierScript.new()
-	var t01_kernel: T01HeatEmitterKernel = T01HeatEmitterKernelScript.new()
 	var t05_kernel: T05SporeShedderKernel = T05SporeShedderKernelScript.new()
 	var t06_kernel: T06FilterFeederKernel = T06FilterFeederKernelScript.new()
 	var t07_kernel: T07FeedingKernel = T07FeedingKernelScript.new()
@@ -156,19 +145,6 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 			environment_state, active_base_hazards, base_hazards_by_id, cell_order
 		)
 		var tick_phase_c_environment_events: Array = []
-		if has_t01:
-			var t01_result: Dictionary = t01_kernel.apply_phase_c(
-				tick, generated_environment.get("heat", {}), organism_state, t01_definitions
-			)
-			if not bool(t01_result.get("ok", false)):
-				return {"ok": false, "error": "phase_c:%s" % String(t01_result.get("error", "unknown"))}
-			generated_environment["heat"] = t01_result["heat_by_cell"]
-			for raw_t01_event: Variant in t01_result["events"]:
-				if not raw_t01_event is Dictionary:
-					return {"ok": false, "error": "invalid_t01_event"}
-				var t01_event: Dictionary = raw_t01_event
-				tick_phase_c_environment_events.append(t01_event.duplicate(true))
-				all_phase_c_environment_events.append(t01_event.duplicate(true))
 		if contamination_enabled:
 			var contamination_source_field: Dictionary = environment_state.get("contamination", _zero_channel(cell_order))
 			if not t05_definitions.is_empty():
@@ -245,7 +221,12 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 			if not bool(scoped_h05.get("ok", false)):
 				return scoped_h05
 			var phase_d_result: Dictionary = phase_d_resolver.resolve_phase_d(
-				tick, cell_order, scoped_h05["active_hazards"], scoped_h05["hazards_by_id"], phase_d_generated, phase_d_rules
+				tick,
+				cell_order,
+				scoped_h05["active_hazards"],
+				scoped_h05["hazards_by_id"],
+				phase_d_generated,
+				phase_d_rules
 			)
 			if not bool(phase_d_result.get("ok", false)):
 				return {"ok": false, "error": "phase_d:%s" % String(phase_d_result.get("error", "unknown"))}
@@ -422,3 +403,134 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		"final_tick": total_ticks,
 		"completed": true,
 	}
+
+func _defs_without_integrated_hazards(simulation_defs: Dictionary) -> Dictionary:
+	var stripped: Dictionary = super._defs_without_integrated_hazards(simulation_defs)
+	var route_value: Variant = stripped.get("route_profile", {})
+	var hazards_value: Variant = stripped.get("hazards_by_id", {})
+	if route_value is Dictionary and hazards_value is Dictionary:
+		var route_profile: Dictionary = route_value
+		var hazards: Dictionary = hazards_value
+		var retained_events: Array = []
+		for raw_event: Variant in route_profile.get("events", []):
+			if not raw_event is Dictionary:
+				continue
+			var route_event: Dictionary = raw_event
+			var hazard_id: String = String(route_event.get("hazard_id", ""))
+			var hazard_value: Variant = hazards.get(hazard_id, {})
+			if hazard_value is Dictionary and String((hazard_value as Dictionary).get("family", "")) == "H05":
+				continue
+			retained_events.append(route_event.duplicate(true))
+		route_profile["events"] = retained_events
+		var retained_hazards: Dictionary = {}
+		for raw_id: Variant in hazards.keys():
+			var hazard_id: String = String(raw_id)
+			var hazard_value: Variant = hazards[raw_id]
+			if hazard_value is Dictionary and String((hazard_value as Dictionary).get("family", "")) == "H05":
+				continue
+			retained_hazards[hazard_id] = (hazard_value as Dictionary).duplicate(true) if hazard_value is Dictionary else hazard_value
+		stripped["route_profile"] = route_profile
+		stripped["hazards_by_id"] = retained_hazards
+	return stripped
+
+func _has_relevant_h05_route_event(
+		simulation_defs: Dictionary,
+		total_ticks: int,
+		channels: PackedStringArray
+) -> bool:
+	var route_value: Variant = simulation_defs.get("route_profile", {})
+	var hazards_value: Variant = simulation_defs.get("hazards_by_id", {})
+	if not route_value is Dictionary or not hazards_value is Dictionary:
+		return false
+	var route_profile: Dictionary = route_value
+	var hazards: Dictionary = hazards_value
+	for raw_event: Variant in route_profile.get("events", []):
+		if not raw_event is Dictionary:
+			continue
+		var route_event: Dictionary = raw_event
+		var start_tick: int = int(route_event.get("tick", 0))
+		var duration_ticks: int = int(route_event.get("duration_ticks", 0))
+		if duration_ticks <= 0 or start_tick > total_ticks or start_tick + duration_ticks <= 1:
+			continue
+		var hazard_id: String = String(route_event.get("hazard_id", ""))
+		var hazard_value: Variant = hazards.get(hazard_id, null)
+		if not hazard_value is Dictionary:
+			continue
+		var hazard: Dictionary = hazard_value
+		if String(hazard.get("family", "")) != "H05":
+			continue
+		var delta_value: Variant = hazard.get("vent_delta_by_channel", {})
+		if not delta_value is Dictionary:
+			return true
+		var delta_by_channel: Dictionary = delta_value
+		for channel: String in channels:
+			if delta_by_channel.has(channel):
+				return true
+	return false
+
+func _validate_h05_environment_channels(
+		simulation_defs: Dictionary,
+		total_ticks: int,
+		thermal_enabled: bool,
+		contamination_enabled: bool
+) -> Dictionary:
+	var route_value: Variant = simulation_defs.get("route_profile", {})
+	var hazards_value: Variant = simulation_defs.get("hazards_by_id", {})
+	if not route_value is Dictionary or not hazards_value is Dictionary:
+		return {"ok": false, "error": "missing_h05_route_authority"}
+	var route_profile: Dictionary = route_value
+	var hazards: Dictionary = hazards_value
+	for raw_event: Variant in route_profile.get("events", []):
+		if not raw_event is Dictionary:
+			continue
+		var route_event: Dictionary = raw_event
+		var start_tick: int = int(route_event.get("tick", 0))
+		var duration_ticks: int = int(route_event.get("duration_ticks", 0))
+		if duration_ticks <= 0 or start_tick > total_ticks or start_tick + duration_ticks <= 1:
+			continue
+		var hazard_id: String = String(route_event.get("hazard_id", ""))
+		var hazard_value: Variant = hazards.get(hazard_id, null)
+		if not hazard_value is Dictionary:
+			return {"ok": false, "error": "missing_hazard_definition:%s" % hazard_id}
+		var hazard: Dictionary = hazard_value
+		if String(hazard.get("family", "")) != "H05":
+			continue
+		var delta_value: Variant = hazard.get("vent_delta_by_channel", null)
+		if not delta_value is Dictionary:
+			return {"ok": false, "error": "invalid_h05_vent_delta_by_channel:%s" % hazard_id}
+		var delta_by_channel: Dictionary = delta_value
+		if delta_by_channel.has("heat") and not thermal_enabled:
+			return {"ok": false, "error": "h05_channel_not_enabled:%s:heat" % hazard_id}
+		if delta_by_channel.has("contamination") and not contamination_enabled:
+			return {"ok": false, "error": "h05_channel_not_enabled:%s:contamination" % hazard_id}
+	return {"ok": true, "error": ""}
+
+func _scoped_h05_authority(
+		active_hazards: PackedStringArray,
+		hazards_by_id: Dictionary,
+		channels: PackedStringArray
+) -> Dictionary:
+	var scoped_active: PackedStringArray = PackedStringArray()
+	var scoped_hazards: Dictionary = {}
+	for hazard_id: String in active_hazards:
+		if not hazards_by_id.has(hazard_id) or not hazards_by_id[hazard_id] is Dictionary:
+			return {"ok": false, "error": "missing_hazard_definition:%s" % hazard_id}
+		var hazard: Dictionary = hazards_by_id[hazard_id]
+		if String(hazard.get("family", "")) != "H05":
+			continue
+		var delta_value: Variant = hazard.get("vent_delta_by_channel", null)
+		if not delta_value is Dictionary:
+			return {"ok": false, "error": "invalid_h05_vent_delta_by_channel:%s" % hazard_id}
+		var delta_by_channel: Dictionary = delta_value
+		var scoped_delta: Dictionary = {}
+		for channel: String in channels:
+			if delta_by_channel.has(channel):
+				scoped_delta[channel] = (delta_by_channel[channel] as Dictionary).duplicate(true) if delta_by_channel[channel] is Dictionary else delta_by_channel[channel]
+		if scoped_delta.is_empty():
+			continue
+		var scoped_hazard: Dictionary = hazard.duplicate(true)
+		scoped_hazard["vent_delta_by_channel"] = scoped_delta
+		scoped_active.append(hazard_id)
+		scoped_hazards[hazard_id] = scoped_hazard
+	scoped_active.sort()
+	return {"ok": true, "error": "", "active_hazards": scoped_active, "hazards_by_id": scoped_hazards}
