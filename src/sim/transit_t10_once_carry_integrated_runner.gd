@@ -66,7 +66,18 @@ func integrate_effects(base_result: Dictionary, simulation_defs: Dictionary = {}
 	result["tick_checksums"] = integrated_checksums
 	result["t10_effect_application_events"] = all_application_events
 	result["t10_effect_carry_state"] = carry.duplicate(true)
-	return result
+
+	# This override intentionally replaces the inherited effect-application loop so
+	# it can reset carry after consumption. Re-run the already validated inherited
+	# consumer passes explicitly, in their original order, instead of calling
+	# super.integrate_effects() and reintroducing the stale-carry bug.
+	var stress_reconsumed: Dictionary = _reconsume_stress_field_carry(result)
+	if not bool(stress_reconsumed.get("ok", false)):
+		return stress_reconsumed
+	var heat_reconsumed: Dictionary = _reconsume_heat_carry(stress_reconsumed)
+	if not bool(heat_reconsumed.get("ok", false)):
+		return heat_reconsumed
+	return _reconsume_contamination_carry(heat_reconsumed, simulation_defs)
 
 func _empty_t10_carry() -> Dictionary:
 	return {
