@@ -17,6 +17,9 @@ func _init() -> void:
 		push_error("results_progression_test_runner: %d failure(s)" % failures)
 		quit(1)
 
+func _dict(value: Variant) -> Dictionary:
+	return value if value is Dictionary else {}
+
 func _test_success_applies_exactly_once_and_repairs_session() -> void:
 	var store: AtomicSaveStore = _fresh_store("results_once")
 	var record: Dictionary = _record("run-1", "C01")
@@ -33,12 +36,13 @@ func _test_success_applies_exactly_once_and_repairs_session() -> void:
 	_expect_true(bool(duplicate.get("duplicate", false)), "reopened Results is idempotent duplicate")
 	_expect_equal(String(duplicate.get("completion_id", "")), completion_id, "duplicate recomputes identical completion id")
 	var profile: Dictionary = _load_payload(store, &"profile")
+	var best_medals: Dictionary = _dict(profile.get("best_medal_by_contract", {}))
 	_expect_equal(profile.get("cleared_bronze_contract_ids", []), ["C01"], "success stores Bronze clear as set membership")
-	_expect_equal(profile.get("best_medal_by_contract", {}).get("C01", ""), "SILVER", "best medal stored as maximum")
+	_expect_equal(best_medals.get("C01", ""), "SILVER", "best medal stored as maximum")
 	_expect_equal(profile.get("documented_fact_ids", []), ["fact-heat"], "documented knowledge is union state")
 	_expect_equal((profile.get("applied_completion_ids", []) as Array).size(), 1, "completion ledger contains exactly one id")
 	var session: Dictionary = _load_payload(store, &"session")
-	var persisted: Dictionary = session.get("committed_run", {})
+	var persisted: Dictionary = _dict(session.get("committed_run", {}))
 	_expect_equal(String(persisted.get("lifecycle_state", "")), "COMPLETION_APPLIED", "profile durability precedes applied session lifecycle")
 	_expect_equal(String(persisted.get("completion_id", "")), completion_id, "session records deterministic completion id")
 
@@ -54,14 +58,16 @@ func _test_medal_and_knowledge_merge_monotonically() -> void:
 	var bronze: Dictionary = service.apply_authoritative_result(second_record, _result(true, "result-b"), "BRONZE", ["fact-b"])
 	_expect_true(bool(bronze.get("ok", false)), "later bronze result applies as distinct run")
 	var profile_after_bronze: Dictionary = _load_payload(store, &"profile")
-	_expect_equal(profile_after_bronze.get("best_medal_by_contract", {}).get("C02", ""), "SILVER", "weaker replay cannot lower best medal")
+	var bronze_medals: Dictionary = _dict(profile_after_bronze.get("best_medal_by_contract", {}))
+	_expect_equal(bronze_medals.get("C02", ""), "SILVER", "weaker replay cannot lower best medal")
 	_expect_equal(profile_after_bronze.get("documented_fact_ids", []), ["fact-a", "fact-b"], "knowledge merges by union")
 	var third_record: Dictionary = _record("run-c", "C02")
 	_seed_session(store, third_record)
 	var gold: Dictionary = service.apply_authoritative_result(third_record, _result(true, "result-c"), "GOLD", ["fact-c"])
 	_expect_true(bool(gold.get("ok", false)), "gold replay applies")
 	var profile_after_gold: Dictionary = _load_payload(store, &"profile")
-	_expect_equal(profile_after_gold.get("best_medal_by_contract", {}).get("C02", ""), "GOLD", "stronger medal replaces weaker maximum")
+	var gold_medals: Dictionary = _dict(profile_after_gold.get("best_medal_by_contract", {}))
+	_expect_equal(gold_medals.get("C02", ""), "GOLD", "stronger medal replaces weaker maximum")
 	_expect_equal((profile_after_gold.get("cleared_bronze_contract_ids", []) as Array).size(), 1, "repeat successes do not duplicate Bronze membership")
 	_expect_equal((profile_after_gold.get("applied_completion_ids", []) as Array).size(), 3, "distinct successful run identities have distinct completion ids")
 
@@ -84,10 +90,12 @@ func _test_crash_boundary_repairs_session_without_reaward() -> void:
 	_expect_true(bool(repaired.get("duplicate", false)), "already durable completion is recognized")
 	_expect_true(not bool(repaired.get("applied", true)), "crash repair does not award again")
 	var profile: Dictionary = _load_payload(store, &"profile")
-	_expect_equal(profile.get("best_medal_by_contract", {}).get("C03", ""), "GOLD", "crash repair cannot downgrade durable profile")
+	var medals: Dictionary = _dict(profile.get("best_medal_by_contract", {}))
+	_expect_equal(medals.get("C03", ""), "GOLD", "crash repair cannot downgrade durable profile")
 	_expect_equal((profile.get("applied_completion_ids", []) as Array).size(), 1, "crash repair keeps one completion ledger entry")
 	var session: Dictionary = _load_payload(store, &"session")
-	_expect_equal(String(session.get("committed_run", {}).get("lifecycle_state", "")), "COMPLETION_APPLIED", "crash repair advances only session lifecycle")
+	var persisted: Dictionary = _dict(session.get("committed_run", {}))
+	_expect_equal(String(persisted.get("lifecycle_state", "")), "COMPLETION_APPLIED", "crash repair advances only session lifecycle")
 
 func _test_failed_delivery_never_creates_completion() -> void:
 	var store: AtomicSaveStore = _fresh_store("results_failure")
@@ -101,24 +109,14 @@ func _test_failed_delivery_never_creates_completion() -> void:
 	var profile_load: Dictionary = store.load(&"profile")
 	_expect_true(not bool(profile_load.get("ok", false)), "failed delivery does not create profile progression save")
 	var session: Dictionary = _load_payload(store, &"session")
-	_expect_equal(String(session.get("committed_run", {}).get("lifecycle_state", "")), "REVIEWABLE", "failed delivery does not mark completion applied")
+	var persisted: Dictionary = _dict(session.get("committed_run", {}))
+	_expect_equal(String(persisted.get("lifecycle_state", "")), "REVIEWABLE", "failed delivery does not mark completion applied")
 
 func _record(run_id: String, contract_id: String) -> Dictionary:
-	return {
-		"profile_uuid": "profile-1",
-		"run_id": run_id,
-		"contract_id": contract_id,
-		"rules_version": "rules-r1",
-		"content_version": "content-r1",
-		"lifecycle_state": "REVIEWABLE",
-	}
+	return {"profile_uuid": "profile-1", "run_id": run_id, "contract_id": contract_id, "rules_version": "rules-r1", "content_version": "content-r1", "lifecycle_state": "REVIEWABLE"}
 
 func _result(success: bool, checksum: String) -> Dictionary:
-	return {
-		"ok": true,
-		"completion_checksum": checksum,
-		"delivery_result": {"success": success},
-	}
+	return {"ok": true, "completion_checksum": checksum, "delivery_result": {"success": success}}
 
 func _seed_session(store: AtomicSaveStore, record: Dictionary) -> void:
 	_expect_true(bool(store.write(&"session", {"committed_run": record.duplicate(true)}).get("ok", false)), "seed reviewable session")
