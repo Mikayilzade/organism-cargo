@@ -1,5 +1,17 @@
 extends "res://src/sim/transit_t10_internal_reconsumption_integrated_runner.gd"
 
+# The internal reconsumption layer needs a true pre-effect snapshot as its reset
+# authority. When contamination exists only because T10 needs the otherwise
+# dormant channel, that authority is synthesized below this layer by the
+# one-boundary runner. Normalize it before the parent captures raw snapshots so
+# CONTAMINATION_CLEANSE is not applied once to a synthesized load and then again
+# because the older raw snapshot had no contamination_load field to restore.
+func integrate_effects(base_result: Dictionary, simulation_defs: Dictionary = {}) -> Dictionary:
+	var prepared: Dictionary = _ensure_dormant_contamination_authority(base_result, simulation_defs)
+	if not bool(prepared.get("ok", false)):
+		return prepared
+	return super.integrate_effects(prepared, simulation_defs)
+
 # Internal Phase-H effects are regenerated after next-tick consumer replay. Only
 # records authored for the snapshot's own tick may be applied here. Lower T10
 # layers can retain prior-tick record evidence while rebuilding carry/consumer
