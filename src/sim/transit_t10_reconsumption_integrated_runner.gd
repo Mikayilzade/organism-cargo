@@ -100,17 +100,15 @@ func _reconsume_stress_field_tick(
 	if not bool(pre_runtime_result.get("ok", false)):
 		return pre_runtime_result
 	var pre_runtime: Array = pre_runtime_result["organisms"] as Array
-	var kernel_script_value: Variant = load("res://src/sim/stress_field_response_kernel.gd")
-	if not kernel_script_value is Script:
-		return _failure("missing_t10_stress_response_kernel")
-	var kernel: Variant = (kernel_script_value as Script).new()
-	if kernel == null:
-		return _failure("invalid_t10_stress_response_kernel")
 
-	var sampled_value: Variant = kernel.call("sample_phase_e", tick, pre_runtime, field_value as Dictionary)
-	if not sampled_value is Dictionary:
-		return _failure("invalid_phase_e_t10_reconsumption_result")
-	var sampled: Dictionary = sampled_value as Dictionary
+	# Reuse the compile-proven Stress-field kernel script already owned by the
+	# inherited H05 stress-response production layer instead of creating a new
+	# preload/dynamic Script boundary in this derived T10 composition layer.
+	var sampled: Dictionary = H05StressFieldResponseKernelScript.new().sample_phase_e(
+		tick,
+		pre_runtime,
+		field_value as Dictionary
+	)
 	if not bool(sampled.get("ok", false)):
 		return _failure("phase_e_t10_reconsumption:%s" % String(sampled.get("error", "unknown")))
 	var sample_events_value: Variant = sampled.get("events", [])
@@ -125,10 +123,11 @@ func _reconsume_stress_field_tick(
 	var observations_value: Variant = sampled.get("observations", [])
 	if not observations_value is Array:
 		return _failure("invalid_phase_e_t10_reconsumption_observations")
-	var phase_f_value: Variant = kernel.call("apply_phase_f", tick, pre_runtime, observations_value as Array)
-	if not phase_f_value is Dictionary:
-		return _failure("invalid_phase_f_t10_reconsumption_result")
-	var phase_f: Dictionary = phase_f_value as Dictionary
+	var phase_f: Dictionary = H05StressFieldResponseKernelScript.new().apply_phase_f(
+		tick,
+		pre_runtime,
+		observations_value as Array
+	)
 	if not bool(phase_f.get("ok", false)):
 		return _failure("phase_f_t10_reconsumption:%s" % String(phase_f.get("error", "unknown")))
 	var phase_f_events_value: Variant = phase_f.get("events", [])
@@ -149,15 +148,11 @@ func _reconsume_stress_field_tick(
 	var phase_f_ids_value: Variant = phase_f.get("phase_f_event_id_by_instance_id", {})
 	if not phase_f_organisms_value is Array or not phase_f_ids_value is Dictionary:
 		return _failure("invalid_phase_f_t10_reconsumption_authority")
-	var phase_g_value: Variant = kernel.call(
-		"evaluate_phase_g",
+	var phase_g: Dictionary = H05StressFieldResponseKernelScript.new().evaluate_phase_g(
 		tick,
 		phase_f_organisms_value as Array,
 		phase_f_ids_value as Dictionary
 	)
-	if not phase_g_value is Dictionary:
-		return _failure("invalid_phase_g_t10_reconsumption_result")
-	var phase_g: Dictionary = phase_g_value as Dictionary
 	if not bool(phase_g.get("ok", false)):
 		return _failure("phase_g_t10_reconsumption:%s" % String(phase_g.get("error", "unknown")))
 

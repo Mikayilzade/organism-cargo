@@ -17,10 +17,10 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 117
+## Current implementation checkpoint — Increment 118
 
 ### Phase / subsystem
-**12C Core Systems — second focused compile-safety repair for T10 next-tick Stress-field reconsumption**
+**12C Core Systems — reduce T10 next-tick Stress-field reconsumption to the existing compile-proven inherited kernel seam**
 
 ### Repository truth read before work
 This run re-read the mandatory recovery chain:
@@ -30,46 +30,48 @@ This run re-read the mandatory recovery chain:
 - `DESIGN_STATUS.md`
 - `PHASE11_FINAL_FREEZE.md`
 
-For the exact failing T10 subsystem it also re-read `GAME_BIBLE.md`, `MECHANICS.md`, `transit_t10_authority_guard_integrated_runner.gd`, `transit_t10_effect_integrated_runner.gd`, `stress_field_response_kernel.gd`, the reconsumption runner and the Increment-116 CI evidence.
+For the exact failing T10 subsystem it also re-read `GAME_BIBLE.md`, `MECHANICS.md`, `transit_t10_integrated_runner.gd`, `transit_t10_authority_guard_integrated_runner.gd`, `transit_t10_effect_integrated_runner.gd`, `transit_h05_stress_response_integrated_runner.gd`, `transit_stress_response_integrated_runner.gd`, `stress_field_response_kernel.gd`, the reconsumption runner and `t10_reconsumption_test_runner.gd`.
 
 Frozen requirements remain unchanged: T10 pulses resolve in Phase H only; finite trigger guards are mandatory; tick-N Phase-E/F/G authority cannot be retroactively changed; a carried Stress-field effect may influence tick N+1 only through the legitimate deterministic Stress-field consumer path and must retain causal ancestry.
 
 ### Entry validation
-- Repository `main` at start: `6aa70bc343ec60e9e65666dafd5304fc69ea6e8d` (`12C: repair T10 reconsumption class resolution`).
-- Explicit `organism-cargo/godot-headless` status for Increment 116: **FAILURE**, workflow run `32607928158`.
-- The notification-safe Actions job itself concluded successfully and published the explicit custom failure status, preserving the anti-spam behavior.
-- The same first actionable failure remains during project import: `Could not resolve class res://src/sim/transit_t10_reconsumption_integrated_runner.gd` from `transit_power_integrated_runner.gd`.
-- No focused T10 reconsumption gameplay assertion was reached; downstream delivery/bootstrap failures are secondary to this unresolved script.
-- The previous removal of the explicit `StressFieldResponseKernel` global-class annotation was insufficient, so the remaining compile-risk boundary is the static preload/method-resolution and typed batch expression inside the new layer rather than observed gameplay behavior.
+- Repository `main` at start: `724a5f8ce7746da6084c30e0c4777eb3f6accc85` (`12C: isolate T10 reconsumption compile boundary`).
+- Explicit `organism-cargo/godot-headless` status for Increment 117: **FAILURE**, workflow run `32610494522`.
+- The notification-safe Actions job itself concluded **SUCCESS** and published the explicit custom failure status, so the anti-spam workflow behavior remains intact.
+- Project import now exposes the exact static errors inside `transit_t10_reconsumption_integrated_runner.gd` rather than only the dependent unresolved-class message:
+  - line 106: `new()` is not statically available on inferred `Script`;
+  - lines 110, 128 and 152: `call()` is not statically available on inferred `Variant`.
+- These four warning-as-error failures occur before `t10_reconsumption_test_runner.gd`; no gameplay assertion was reached.
+- All earlier production/regression contracts remain green up to this new T10 layer, so the repair scope is the composition seam only.
 
-### Implemented in Increment 117
-- Removed the compile-time preload dependency on `stress_field_response_kernel.gd` from the reconsumption layer.
-- The layer now loads the already-existing kernel dynamically at the exact next-tick reconsumption boundary, validates the loaded Script/instance, and invokes the canonical `sample_phase_e`, `apply_phase_f` and `evaluate_phase_g` consumers through runtime calls.
-- Added explicit validation of every dynamic return container before use, preserving the same consumer data, ordering and failure visibility.
-- Replaced the typed inline event-batch loop with an explicitly validated Variant/Array batch loop to reduce Godot 4.7.1 static-resolution ambiguity.
-- Kept the existing Stress-field ancestry rewriting, prior-event preservation, deterministic checksum material and final-runtime rebuilding unchanged in intent.
-- No T10 magnitude, clamp, trigger policy, channel semantics, phase timing, carry semantics or canonical gameplay rule changed.
+### Implemented in Increment 118
+- Removed the dynamic `load()` / generic `Script.new()` / `Variant.call()` path that Godot 4.7.1 rejects under warning-as-error static analysis.
+- Reused `H05StressFieldResponseKernelScript`, which is already preloaded and instantiated successfully by the inherited `transit_h05_stress_response_integrated_runner.gd` production layer.
+- The T10 reconsumption layer now calls the same canonical `sample_phase_e`, `apply_phase_f` and `evaluate_phase_g` methods through that compile-proven inherited script constant.
+- Kept the explicit return-container validation added in Increment 117, the Stress-field ancestry rewrite, non-Stress event preservation, checksum material and final-runtime rebuild intact.
+- No T10 magnitude, clamp, finite-trigger policy, channel semantics, phase timing, carry semantics, event IDs or canonical gameplay rule changed.
 
 ### Files changed
-- `src/sim/transit_t10_reconsumption_integrated_runner.gd` — dynamic canonical Stress-field kernel binding plus explicit return/batch validation to isolate the unresolved-class compile boundary.
-- `IMPLEMENTATION_STATUS.md` — Increment-117 CI evidence, repair scope and exact continuation instruction.
+- `src/sim/transit_t10_reconsumption_integrated_runner.gd` — replaces the rejected dynamic Script/Variant seam with the inherited compile-proven Stress-field kernel script boundary.
+- `IMPLEMENTATION_STATUS.md` — Increment-118 failure evidence, repair scope and exact continuation instruction.
 
 ### Validation performed / available
-- Workflow run `32607928158` was inspected at full job/log level before implementation.
-- The first actionable error remains class resolution of the new reconsumption script before any focused gameplay assertion.
-- This run makes one coherent checkpoint only, per anti-spam policy. The existing single Godot 4.7.1 headless workflow is the authoritative post-push validation.
+- Workflow run `32610494522` was inspected at full job/log level.
+- The complete prior contract chain through H05 and earlier T10 layers was green; the first actionable errors are the four static-resolution failures listed above.
+- The focused `t10_reconsumption_test_runner.gd` remains the authoritative functional regression once this layer compiles.
+- Per anti-spam policy, this run makes one coherent checkpoint only; the single existing Godot 4.7.1 workflow is the authoritative post-push runtime validation.
 
 ### Deliberately not changed
 - No canonical gameplay/design files.
 - No focused T10 acceptance weakening or suppression.
-- No Heat/Contamination/Satiety/contamination-load carry expansion in this repair run.
+- No Heat/Contamination/Satiety/contamination-load carry expansion in this compile-repair run.
 - No H06 implementation.
 - No 12D or later-phase work.
 
 ### Blockers / deferred known work
 - **No user-action blocker.**
 - 12C remains incomplete.
-- Increment 117 must first prove that the reconsumption layer now resolves and allows `t10_reconsumption_test_runner.gd` to execute.
+- Increment 118 must first prove that the inherited-kernel seam resolves and allows `t10_reconsumption_test_runner.gd` to execute.
 - Heat and Contamination channel carry still require legitimate next-tick environmental/organism consumer proof.
 - Satiety and contamination-load carry still require legitimate next-tick feeding/contamination consumer proof.
 - Carry lifetime beyond one subsequent tick still needs explicit persistence/decay validation.
@@ -79,11 +81,11 @@ Frozen requirements remain unchanged: T10 pulses resolve in Phase H only; finite
 - **NONE discovered.** This checkpoint changes only compile/binding mechanics around already-frozen Phase-H-to-next-tick semantics.
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and the explicit `organism-cargo/godot-headless` status for Increment 117.
+At the start of the next run, query current `main` and the explicit `organism-cargo/godot-headless` status for Increment 118.
 
-- If the workflow still fails before `t10_reconsumption_test_runner.gd`, inspect the first concrete parse/static-resolution error and make one focused repair batch only; if the same script is still unresolved, reduce the layer to the smallest compile-proven composition seam without weakening the production-path, finite-trigger, ancestry or reconsumption acceptance.
+- If the workflow still fails before `t10_reconsumption_test_runner.gd`, inspect the first concrete parse/static-resolution error and make one focused repair batch only; do not weaken the production path, finite-trigger, ancestry or reconsumption acceptance.
 - If the focused reconsumption test executes and fails functionally, repair only the exact observed Stress-field Phase-E/F/G reconsumption mismatch.
-- If Increment 117 is green, extend the same next-tick consumer principle to carried Heat and Contamination through their real environmental/organism response path, then Satiety/contamination-load through existing consumers; add deterministic ancestry regressions and validate carry lifetime beyond one tick.
+- If Increment 118 is green, extend the same next-tick consumer principle to carried Heat and Contamination through their real environmental/organism response path, then Satiety/contamination-load through existing consumers; add deterministic ancestry regressions and validate carry lifetime beyond one tick.
 - Once the complete T10 effect path is green, mark T10 core semantics closed and implement H06 Zone Isolation as the next clearest missing 12C hazard obligation.
 
 Do not begin 12D, 12E or later phases until the full 12C exit gate is satisfied and recorded.
