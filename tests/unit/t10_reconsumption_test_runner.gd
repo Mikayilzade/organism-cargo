@@ -106,7 +106,7 @@ func _test_phase_h_contamination_pulse_reconsumes_with_t09_and_ancestry() -> voi
 	var result: Dictionary = runner.simulate(_contamination_record(), 2, defs)
 	var replay: Dictionary = runner.simulate(_contamination_record(), 2, defs)
 	var baseline: Dictionary = runner.simulate(_contamination_record(), 2, baseline_defs)
-	_expect_true(bool(result.get("ok", false)), "T10 contamination reconsumption production run resolves")
+	_expect_true(bool(result.get("ok", false)), "T10 contamination reconsumption production run resolves | error=%s" % String(result.get("error", "")))
 	_expect_equal(result, replay, "T10 contamination reconsumption replay is deterministic")
 	_expect_true(bool(baseline.get("ok", false)), "T10 contamination baseline resolves")
 	if not bool(result.get("ok", false)) or not bool(baseline.get("ok", false)):
