@@ -1,0 +1,216 @@
+class_name ContentPopulationValidator
+extends RefCounted
+
+const SPECIES_MAX: int = 22
+const SUPPORT_IDS := PackedStringArray(["S01", "S02", "S03", "S04", "S05", "S06"])
+const DEMO_SUPPORT_IDS := PackedStringArray(["S01", "S02", "S03", "S05"])
+const TRAIT_IDS := PackedStringArray(["T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08", "T09", "T10"])
+const CAMPAIGN_IDS := PackedStringArray([
+	"C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08",
+	"C09", "C10", "C11", "C12", "C13", "C14", "C15", "C16",
+	"C17", "C18", "C19", "C20", "C21", "C22", "C23", "C24",
+	"C25", "C26", "C27", "C28", "C29", "C30", "C31", "C32",
+	"C33", "C34", "C35", "C36", "C37", "C38", "C39", "C40",
+	"C41", "C42", "C43", "C44", "C45", "C46", "C47", "C48",
+])
+const CAMPAIGN_PREREQUISITES := {
+	"C01": [], "C02": ["C01"], "C03": ["C01"], "C04": ["C02"],
+	"C05": ["C03"], "C06": ["C04"], "C07": ["C05", "C06"], "C08": ["C07"],
+	"C09": ["C08"], "C10": ["C08"], "C11": ["C09", "C10"], "C12": ["C11"],
+	"C13": ["C11"], "C14": ["C12", "C13"], "C15": ["C14"], "C16": ["C14", "C15"],
+	"C17": ["C16"], "C18": ["C16"], "C19": ["C17", "C18"], "C20": ["C17"],
+	"C21": ["C20"], "C22": ["C18", "C19"], "C23": ["C20", "C21"], "C24": ["C22", "C23"],
+	"C25": ["C24"], "C26": ["C24"], "C27": ["C25"], "C28": ["C26"],
+	"C29": ["C27", "C28"], "C30": ["C29"], "C31": ["C29"], "C32": ["C30", "C31"],
+	"C33": ["C32"], "C34": ["C33"], "C35": ["C34"], "C36": ["C33"],
+	"C37": ["C36"], "C38": ["C35", "C37"], "C39": ["C38"], "C40": ["C39"],
+	"C41": ["C40"], "C42": ["C40"], "C43": ["C41", "C42"], "C44": ["C43"],
+	"C45": ["C43"], "C46": ["C44", "C45"], "C47": ["C46"], "C48": ["C47"],
+}
+
+func validate_launch_population(population: Dictionary) -> Dictionary:
+	for field_name: String in ["species", "supports", "campaign", "challenges", "demo"]:
+		if not population.has(field_name):
+			return _failure("missing_population_field:%s" % field_name)
+
+	var species_result: Dictionary = _validate_species(population["species"])
+	if not bool(species_result.get("ok", false)):
+		return species_result
+	var support_result: Dictionary = _validate_supports(population["supports"])
+	if not bool(support_result.get("ok", false)):
+		return support_result
+	var campaign_result: Dictionary = _validate_campaign(population["campaign"])
+	if not bool(campaign_result.get("ok", false)):
+		return campaign_result
+	var challenge_result: Dictionary = _validate_challenges(population["challenges"])
+	if not bool(challenge_result.get("ok", false)):
+		return challenge_result
+	var demo_result: Dictionary = _validate_demo(population["demo"])
+	if not bool(demo_result.get("ok", false)):
+		return demo_result
+
+	return {
+		"ok": true,
+		"error": "",
+		"species_count": int(species_result["count"]),
+		"support_count": int(support_result["count"]),
+		"campaign_count": int(campaign_result["count"]),
+		"challenge_count": int(challenge_result["count"]),
+	}
+
+func _validate_species(value: Variant) -> Dictionary:
+	if not value is Array:
+		return _failure("invalid_species_population")
+	var species: Array = value
+	if species.is_empty() or species.size() > SPECIES_MAX:
+		return _failure("invalid_launch_species_count:%d" % species.size())
+	var seen: Dictionary = {}
+	for raw_species: Variant in species:
+		if not raw_species is Dictionary:
+			return _failure("invalid_species_definition")
+		var definition: Dictionary = raw_species
+		var species_id: String = String(definition.get("id", ""))
+		if not _valid_numbered_id(species_id, "O", 1, SPECIES_MAX) or seen.has(species_id):
+			return _failure("invalid_species_id:%s" % species_id)
+		seen[species_id] = true
+		var body_plan: String = String(definition.get("body_plan", ""))
+		if body_plan not in ["B01", "B02", "B03", "B04"]:
+			return _failure("invalid_species_body_plan:%s" % species_id)
+		var traits_value: Variant = definition.get("traits", null)
+		if not (traits_value is Array or traits_value is PackedStringArray):
+			return _failure("invalid_species_traits:%s" % species_id)
+		var traits: PackedStringArray = PackedStringArray()
+		for raw_trait: Variant in traits_value:
+			var trait_id: String = String(raw_trait)
+			if trait_id not in TRAIT_IDS or trait_id in traits:
+				return _failure("invalid_species_trait:%s:%s" % [species_id, trait_id])
+			traits.append(trait_id)
+		if traits.is_empty() or traits.size() > 3:
+			return _failure("invalid_species_trait_count:%s" % species_id)
+		if not definition.has("stress_profile") or not definition.has("contamination_profile"):
+			return _failure("missing_species_profiles:%s" % species_id)
+	return {"ok": true, "error": "", "count": species.size()}
+
+func _validate_supports(value: Variant) -> Dictionary:
+	if not value is Array:
+		return _failure("invalid_support_population")
+	var supports: Array = value
+	if supports.size() != SUPPORT_IDS.size():
+		return _failure("invalid_launch_support_count:%d" % supports.size())
+	var seen: Dictionary = {}
+	for raw_support: Variant in supports:
+		if not raw_support is Dictionary:
+			return _failure("invalid_support_definition")
+		var support: Dictionary = raw_support
+		var support_id: String = String(support.get("id", ""))
+		if support_id not in SUPPORT_IDS or seen.has(support_id):
+			return _failure("invalid_support_id:%s" % support_id)
+		seen[support_id] = true
+		if String(support.get("family", "")) != support_id:
+			return _failure("invalid_support_family:%s" % support_id)
+	for support_id: String in SUPPORT_IDS:
+		if not seen.has(support_id):
+			return _failure("missing_support:%s" % support_id)
+	return {"ok": true, "error": "", "count": supports.size()}
+
+func _validate_campaign(value: Variant) -> Dictionary:
+	if not value is Array:
+		return _failure("invalid_campaign_population")
+	var campaign: Array = value
+	if campaign.size() != CAMPAIGN_IDS.size():
+		return _failure("invalid_campaign_count:%d" % campaign.size())
+	var by_id: Dictionary = {}
+	for raw_contract: Variant in campaign:
+		if not raw_contract is Dictionary:
+			return _failure("invalid_campaign_contract")
+		var contract: Dictionary = raw_contract
+		var contract_id: String = String(contract.get("id", ""))
+		if contract_id not in CAMPAIGN_IDS or by_id.has(contract_id):
+			return _failure("invalid_campaign_id:%s" % contract_id)
+		by_id[contract_id] = contract
+	for contract_id: String in CAMPAIGN_IDS:
+		if not by_id.has(contract_id):
+			return _failure("missing_campaign_contract:%s" % contract_id)
+		var contract: Dictionary = by_id[contract_id]
+		var prerequisites_result: Dictionary = _normalized_string_array(contract.get("prerequisites", []), "campaign_prerequisites:%s" % contract_id)
+		if not bool(prerequisites_result.get("ok", false)):
+			return prerequisites_result
+		var prerequisites: PackedStringArray = prerequisites_result["values"]
+		var expected: PackedStringArray = PackedStringArray(CAMPAIGN_PREREQUISITES[contract_id])
+		expected.sort()
+		if prerequisites != expected:
+			return _failure("campaign_prerequisite_mismatch:%s" % contract_id)
+		if contract_id >= "C05" and not bool(contract.get("has_dynamic_post_launch_change", false)):
+			return _failure("missing_dynamic_post_launch_change:%s" % contract_id)
+	return {"ok": true, "error": "", "count": campaign.size()}
+
+func _validate_challenges(value: Variant) -> Dictionary:
+	if not value is Array:
+		return _failure("invalid_challenge_population")
+	var challenges: Array = value
+	if challenges.size() > 24:
+		return _failure("launch_challenge_template_ceiling_exceeded:%d" % challenges.size())
+	var seen: Dictionary = {}
+	for raw_challenge: Variant in challenges:
+		if not raw_challenge is Dictionary:
+			return _failure("invalid_challenge_definition")
+		var challenge: Dictionary = raw_challenge
+		var challenge_id: String = String(challenge.get("id", ""))
+		if challenge_id.is_empty() or seen.has(challenge_id):
+			return _failure("invalid_challenge_id:%s" % challenge_id)
+		seen[challenge_id] = true
+		if not bool(challenge.get("certified_bronze_solution", false)):
+			return _failure("challenge_missing_certified_bronze:%s" % challenge_id)
+		if not bool(challenge.get("dynamic_significance", false)):
+			return _failure("challenge_missing_dynamic_significance:%s" % challenge_id)
+		if bool(challenge.get("static_t0_solution_only", false)):
+			return _failure("challenge_static_t0_only:%s" % challenge_id)
+	return {"ok": true, "error": "", "count": challenges.size()}
+
+func _validate_demo(value: Variant) -> Dictionary:
+	if not value is Dictionary:
+		return _failure("invalid_demo_definition")
+	var demo: Dictionary = value
+	if int(demo.get("species_total", -1)) != 10:
+		return _failure("demo_species_total_mismatch")
+	if int(demo.get("documented_species", -1)) != 9 or int(demo.get("discovery_species", -1)) != 1:
+		return _failure("demo_species_split_mismatch")
+	if int(demo.get("authored_contracts", -1)) != 10:
+		return _failure("demo_contract_count_mismatch")
+	if int(demo.get("challenge_templates", -1)) != 3:
+		return _failure("demo_challenge_count_mismatch")
+	if int(demo.get("discovery_contracts", -1)) != 1:
+		return _failure("demo_discovery_count_mismatch")
+	var supports_result: Dictionary = _normalized_string_array(demo.get("support_ids", []), "demo_support_ids")
+	if not bool(supports_result.get("ok", false)):
+		return supports_result
+	var support_ids: PackedStringArray = supports_result["values"]
+	var expected_support_ids: PackedStringArray = DEMO_SUPPORT_IDS.duplicate()
+	expected_support_ids.sort()
+	if support_ids != expected_support_ids:
+		return _failure("demo_support_set_mismatch")
+	return {"ok": true, "error": ""}
+
+func _normalized_string_array(value: Variant, label: String) -> Dictionary:
+	if not (value is Array or value is PackedStringArray):
+		return _failure("invalid_%s" % label)
+	var values: PackedStringArray = PackedStringArray()
+	for raw_value: Variant in value:
+		var text: String = String(raw_value)
+		if text.is_empty() or text in values:
+			return _failure("invalid_%s" % label)
+		values.append(text)
+	values.sort()
+	return {"ok": true, "error": "", "values": values}
+
+func _valid_numbered_id(value: String, prefix: String, minimum: int, maximum: int) -> bool:
+	if value.length() != 3 or not value.begins_with(prefix):
+		return false
+	var suffix: String = value.substr(1, 2)
+	if not suffix.is_valid_int():
+		return false
+	var number: int = int(suffix)
+	return number >= minimum and number <= maximum and value == "%s%02d" % [prefix, number]
+
+func _failure(error: String) -> Dictionary:
+	return {"ok": false, "error": error}
