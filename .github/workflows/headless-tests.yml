@@ -46,6 +46,7 @@ jobs:
             "File-backed content and atomic storage tests|--headless --path . --script tests/unit/storage_content_test_runner.gd"
             "Content registry and app state composition tests|--headless --path . --script tests/unit/composition_test_runner.gd"
             "Exactly-once launch commit tests|--headless --path . --script tests/unit/launch_commit_test_runner.gd"
+            "Deterministic transit reconstruction and mismatch policy tests|--headless --path . --script tests/unit/transit_reconstruction_test_runner.gd"
             "Planning validation to durable launch flow tests|--headless --path . --script tests/unit/planning_launch_flow_test_runner.gd"
             "Real-data current-footprint planning tests|--headless --path . --script tests/unit/planning_structural_resolver_test_runner.gd"
             "Deterministic transit slice tests|--headless --path . --script tests/unit/transit_slice_test_runner.gd"

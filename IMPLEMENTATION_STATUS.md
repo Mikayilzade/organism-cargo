@@ -17,48 +17,70 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 135
+## Current implementation checkpoint — Increment 136
 
 ### Phase / subsystem
-**12C Core Systems — focused repair of H06 production transit binding after CI failure**
+**12C Core Systems — deterministic transit reconstruction/resume and checksum-mismatch quarantine**
+
+### Repository truth read before work
+This run re-read the mandatory recovery chain:
+- `IMPLEMENTATION_START_HERE.md`
+- `IMPLEMENTATION_STATUS.md`
+- `AUTONOMY_RULES.md`
+- `DESIGN_STATUS.md`
+- `PHASE11_FINAL_FREEZE.md`
+
+For this subsystem it also re-read the higher persistence authority in `PHASE11_TECH_PERSISTENCE.md`, the relevant deterministic simulation contract in `TECHNICAL_SPEC.md`, the current durable launch transaction, atomic save store, and Phase-I completion runner.
 
 ### Entry validation
-- Repository `main` at start: `f9d0d2cd2e67b94e111eea26ffb4ae29b35a498e` (`12C: bind H06 into transit propagation`).
-- Explicit `organism-cargo/godot-headless` status for Increment 134: **FAILURE**, workflow run `32655754389`.
-- The workflow job itself completed, and all pre-H06 contracts were green. The first failing boundary was the expanded H06 test: contamination-only H06 production fixture failed to resolve, and the out-of-window H06 fixture was invalid under the route tick-count contract.
+- Repository `main` at start: `168d8e37795675a30cd7f9254c830235a03b515e` (`12C: repair H06 production binding`).
+- Explicit `organism-cargo/godot-headless` status for Increment 135: **SUCCESS**, workflow run `32657456246`.
+- Therefore the repaired production H06 binding is green.
+- Core-system audit then compared the 12C exit gate and Phase-11 persistence contract against repository evidence. `src/run` had durable Launch and Targeted Retry ownership, while `src/save` had atomic envelopes/generation fallback, but there was no deterministic committed-run reconstruction/resume service. That was the next clear frozen 12C gap.
 
-### Root cause and focused repair
-- The H06 stress-field bridge treated any active H06 as stress-field relevant. In a contamination-only route this entered the parent H05 stress path, which correctly rejects stress-field processing when H02 is not enabled. H06 stress relevance is now gated by existing H02 authority; contamination/heat-only H06 stays in the shared-resource Phase-D path.
-- The prior “future H06 outside simulated window” fixture authored a route event beyond `route_profile.tick_count`, which violates the already-frozen route validation contract. The regression is now expressed as a valid dormant/unscheduled H06 definition inside a one-tick route and must remain byte-equivalent to baseline.
-- Production assertions now include returned error text on resolve failures so any future CI regression exposes the exact typed failure rather than only a generic assertion.
+### Implemented in Increment 136
+- Added `TransitReconstructionService` as the authoritative resume boundary for persisted committed runs.
+- Resume always validates the durable committed-input checksum and exact rules/content/contract-definition compatibility before any replay.
+- The service reconstructs from time zero through the real `DeliveryCompletionRunner`, recomputes the full tick checksum sequence and final completion/result checksum, and compares any stored authoritative traces instead of trusting mutable mid-run state.
+- A valid `COMMITTED` run advances durably only to `SIMULATED`; existing `REVIEWABLE` / `COMPLETION_APPLIED` lifecycle is preserved.
+- Presentation cursor is explicitly non-authoritative: an out-of-range cursor follows frozen recovery class A, resets to tick 0 during transit (or the final Review boundary for already-reviewable/completed runs), and does not alter authoritative checksums.
+- Stored authoritative checksum divergence follows frozen recovery class C: continuation is rejected, lifecycle becomes `RECONSTRUCTION_MISMATCH`, and both stored/reconstructed traces are durably retained in diagnostics.
+- Missing/wrong exact compatibility follows the frozen class-D boundary and never fabricates or silently replays an outcome under another version.
+- Added focused headless coverage for successful full reconstruction/persistence, class-C checksum quarantine, class-A cursor-only repair, and exact-compatibility rejection.
 
 ### Files changed
-- `src/sim/transit_h06_stress_field_integrated_runner.gd` — restricts H06 stress-field activation to routes that actually have H02 stress-field authority.
-- `tests/unit/h06_zone_isolation_kernel_test_runner.gd` — replaces invalid future-event fixture with valid dormant H06 equivalence coverage and improves typed failure diagnostics while preserving active contamination/stress snapshot/checksum/determinism coverage.
-- `IMPLEMENTATION_STATUS.md` — records the exact CI failure, root cause and repair boundary.
+- `src/run/transit_reconstruction_service.gd` — new deterministic committed-run reconstruction/resume authority.
+- `tests/unit/transit_reconstruction_test_runner.gd` — focused persistence/reconstruction/mismatch contract tests using the real deterministic Phase-I runner.
+- `.github/workflows/headless-tests.yml` — adds the reconstruction contract to the existing notification-safe suite.
+- `IMPLEMENTATION_STATUS.md` — records the audit result, Increment 136 and exact continuation.
 
-### Validation state
-- Static review confirms the contamination-only H06 route no longer activates the stress-field layer.
-- Static review confirms active H06+H02 still reaches the stress-field Phase-D resolver path.
-- Static review confirms the dormant H06 fixture keeps `tick_count == total_ticks` and contains no invalid out-of-range event.
-- This checkpoint requires one authoritative notification-safe GitHub headless run. No speculative second repair is stacked before that result.
+### Validation performed / available
+- Increment 135 explicit custom headless status was verified green before this work.
+- Static review verified reconstruction uses immutable committed input plus exact compatibility and always restarts simulation from time zero.
+- Static review verified stored tick/final checksums are comparison evidence only and are never used as simulation authority.
+- Static review verified class-C mismatch persistence cannot advance the run to Results/progression.
+- Static review verified class-A cursor repair changes only presentation position.
+- The new tests exercise real `DeliveryCompletionRunner` output rather than a fake simulator.
+- This checkpoint requires one authoritative notification-safe GitHub headless run. Any first compile/runtime/assertion failure from this checkpoint is the next run's focused repair boundary.
 
 ### Deliberately not changed
-- No canonical design/gameplay files.
-- No H06 primitive semantics, H05 semantics, H02/H03 source semantics, hold geometry, occupancy, T10 or support behavior.
+- No canonical gameplay/design files.
+- No H01–H06, T05–T10, support, growth, sleep, contamination, stress or H06 behavior.
+- No Results/progression award semantics yet.
 - No 12D or later-phase work.
 
 ### Blockers / deferred known work
 - **No user-action blocker.**
 - 12C remains incomplete.
-- Increment 135 requires authoritative headless validation.
+- Increment 136 requires authoritative headless validation.
+- The same audit still shows additional 12C obligations after reconstruction, notably idempotent Results/progression application and remaining unimplemented foundation trait families/interaction coverage; these must be handled before 12D.
 
 ### Canonical contradictions
-- **NONE discovered.** The failure was composition/test-fixture scope, not a design contradiction.
+- **NONE discovered.** The new service implements the already-frozen persistence rule that mutable mid-phase state is never sole authority and resume defaults to full deterministic reconstruction.
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 135.
+At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 136.
 
-- If the workflow fails, inspect the first exact compile/runtime/assertion failure and make one focused repair batch only.
-- If the workflow is green, preserve the production H06 binding and audit the remaining frozen 12C core-system obligations against `PHASE11_FINAL_FREEZE.md`, `MECHANICS.md`, `TECHNICAL_SPEC.md`, current tests and implementation evidence. Select the next missing 12C subsystem strictly from that audit and implement one coherent increment.
+- If the workflow fails, inspect the first exact compile/runtime/assertion failure in the new reconstruction contract and make one focused repair batch only.
+- If the workflow is green, preserve reconstruction authority and implement the next audited 12C persistence gap: deterministic `completion_id` plus idempotent atomic Results/progression application with duplicate/reopen/crash-boundary regression coverage, following `PHASE11_TECH_PERSISTENCE.md` exactly.
 - Do not begin 12D, 12E or later phases until the full 12C exit gate is satisfied and recorded.
