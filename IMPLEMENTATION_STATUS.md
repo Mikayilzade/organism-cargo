@@ -17,59 +17,67 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 140
+## Current implementation checkpoint — Increment 141
 
 ### Phase / subsystem
-**12C Core Systems — establish deterministic T02 Heat Sink primitive**
+**12C Core Systems — bind T02 Heat Sink into production Phase-C transit composition**
+
+### Repository truth read before work
+Mandatory recovery chain re-read:
+- `IMPLEMENTATION_START_HERE.md`
+- `IMPLEMENTATION_STATUS.md`
+- `AUTONOMY_RULES.md`
+- `DESIGN_STATUS.md`
+- `PHASE11_FINAL_FREEZE.md`
+
+Exact subsystem authority additionally checked in `MECHANICS.md`, `CONTENT_ARCHITECTURE.md`, the green T02 primitive, current T01/H05 shared production runner and existing T01 production integration coverage.
 
 ### Entry validation
-- Repository `main` at start: `dfd52f07fd5013f59946d236784aadbe4e4501c9` (`12C: bind T01 into production transit`).
-- Explicit `organism-cargo/godot-headless` status for Increment 139: **SUCCESS**, workflow run `32659850883`.
-- T01 production composition is therefore preserved as green authority.
+- Repository `main` at start: `3c876e54ec593db7aaaa6ca8fb8d92b80b1077ce` (`12C: establish T02 heat sink primitive`).
+- Explicit `organism-cargo/godot-headless` status for Increment 140: **SUCCESS**, workflow run `32660092803`.
+- Therefore the deterministic T02 primitive is green and the exact recorded NEXT ACTION was production binding before T03.
 
-### Implemented in Increment 140
-- Added `T02HeatSinkKernel` as deterministic Phase-C living heat-sink authority.
-- T02 removes heat only from the organism's current occupied cells and never below zero.
-- Each organism has one total per-tick sink capacity across its entire current footprint; larger footprints do not multiply authored capacity.
-- Capacity is restricted to frozen sink bands `2/3/4` (weak/standard/strong).
-- Multiple T02 organisms resolve in stable `instance_id` order; occupied cells resolve in stable cell-key order, making finite-capacity allocation deterministic and replayable.
-- Sleep does not implicitly disable the sink. Only definitions with explicit `sleep_gated=true` turn T02 off while `ASLEEP`, matching frozen sleep semantics.
-- State gates use only canonical awake states and invalid definitions/runtime identities fail closed.
-- Causal evidence records exact cell, before/after heat, removed amount, tick, phase and stable event ID.
-- Added focused headless contract coverage for local capacity, multi-cell shared capacity, ordering determinism, explicit sleep gating and invalid capacity rejection.
-- Added the T02 primitive contract to the existing notification-safe headless suite.
+### Implemented in Increment 141
+- Bound authored `t02_definitions` into the same real production Phase-C heat composition already used by T01.
+- The production runner now activates its expanded heat path for T01, T02 or relevant in-window H05 authority; legacy non-living-heat/non-H05 runs retain the previous fast path.
+- T02 reads the current post-Phase-B organism runtime and therefore follows current occupied cells after growth/state authority rather than launch-only placement.
+- Phase-C order is now frozen explicitly as base environmental generation -> T01 living heat source -> T02 living bounded heat sink -> powered S01 support mitigation, with contamination/support work otherwise unchanged.
+- T02 causal events are written to the existing checksum-visible `phase_c_environment_events` stream; it is not misclassified as support evidence.
+- T02 output then passes through the existing Phase-D H05/thermal propagation and Phase-E organism thermal response without creating a second heat channel or alternate response path.
+- Added focused production coverage proving direct H01->T02 removal, same-boundary T01/T02 interaction, T02 plus powered S01 stacking, H05 application after T02, checksum visibility and deterministic replay.
+- Added the T02 production transit contract to the existing notification-safe Godot headless suite.
 
 ### Files changed
-- `src/sim/t02_heat_sink_kernel.gd`
-- `tests/unit/t02_heat_sink_kernel_test_runner.gd`
-- `.github/workflows/headless-tests.yml`
-- `IMPLEMENTATION_STATUS.md`
+- `src/sim/transit_h05_shared_resource_runner_base.gd` — T02-aware production Phase-C living-heat composition.
+- `tests/unit/t02_transit_integration_test_runner.gd` — focused production interaction and replay regressions.
+- `.github/workflows/headless-tests.yml` — adds the T02 production transit contract.
+- `IMPLEMENTATION_STATUS.md` — records this checkpoint and exact continuation.
 
 ### Validation performed / available
-- Increment 139 explicit custom headless status verified **SUCCESS** before work.
-- Static review confirms the primitive is Phase-C only, local, bounded, integer-only and deterministic.
-- Static review confirms multi-cell sinks share one total capacity instead of multiplying it per occupied cell.
-- This checkpoint requires one authoritative GitHub Godot 4.7.1 headless run; no second speculative push is stacked in this increment.
+- Increment 140 explicit custom headless status verified **SUCCESS** before work.
+- Static ordering review confirms T02 runs after T01 and before S01, then feeds the unchanged Phase-D H05/thermal authority.
+- Static evidence review confirms T02 living-sink events join the same checksum-visible environmental event stream as T01 rather than powered-support evidence.
+- Static compatibility review confirms the legacy fast path remains selected when T01/T02 are absent and no in-window H05 event requires the expanded loop.
+- This checkpoint requires one authoritative GitHub Godot 4.7.1 headless run; no speculative second push is stacked in this run.
 
 ### Deliberately not changed
 - No frozen gameplay/design files.
-- No T01/S01/H01/H05 production ordering changes.
-- T02 is not yet bound into the production transit composition in this increment.
+- No T01 primitive semantics, S01 powered-support semantics, H01 source semantics or H05 Phase-D semantics were redesigned.
 - No T03/T04 implementation and no 12D+ work.
 
 ### Blockers / deferred known work
 - **No user-action blocker.**
 - 12C remains incomplete.
-- Increment 140 requires authoritative headless validation.
+- Increment 141 requires authoritative headless validation.
+- Remaining foundation gap starts with T03 Alarm Emitter, then T04 Soother, followed by remaining core/persistence acceptance obligations before the 12C exit gate can be claimed.
 
 ### Canonical contradictions
-- **NONE discovered.** T02 maps directly to frozen `removes heat locally up to capacity` semantics and source/sink magnitude bands.
+- **NONE discovered.** T02 is composed as the frozen local bounded living heat sink inside the existing C->D->E heat path and remains distinct from powered S01 mitigation.
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 140.
+At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 141.
 
-- If the workflow fails, inspect the first exact compile/runtime/assertion failure in `t02_heat_sink_kernel_test_runner.gd` and make one focused repair batch only.
-- If the workflow is green, bind authored `t02_definitions` into the same production Phase-C heat composition as T01, before powered S01 mitigation and before Phase-D H05/thermal propagation, while preserving existing T01/S01/H01/H05 behavior.
-- Production T02 integration must read current post-Phase-B organism runtime, write causal events into the checksum-visible Phase-C environmental event stream, and prove deterministic interaction with T01, S01 and H05.
-- After T02 production binding is green, continue the frozen foundation gap with T03 Alarm Emitter, then T04 Soother.
+- If the workflow fails, inspect the first exact compile/runtime/assertion failure in the T02 production contract and make one focused repair batch only.
+- If the workflow is green, preserve T01/T02/S01/H05 heat composition and implement the next missing foundation trait: **T03 Alarm Emitter**, first as deterministic state-gated stress-field source authority and then bind it into the existing production stress-field Phase-C/Phase-D path without changing H02/S03/H05 semantics.
+- After T03 production binding is green, continue with T04 Soother.
 - Do not begin 12D, 12E or later phases until the complete 12C exit gate is satisfied and recorded.

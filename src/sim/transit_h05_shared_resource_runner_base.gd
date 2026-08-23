@@ -1,17 +1,24 @@
 extends "res://src/sim/transit_h05_shared_resource_runner_legacy.gd"
 
 const T01HeatEmitterKernelScript := preload("res://src/sim/t01_heat_emitter_kernel.gd")
+const T02HeatSinkKernelScript := preload("res://src/sim/t02_heat_sink_kernel.gd")
 
-# T01 uses the existing H05-aware production loop as its Phase-C composition
-# home. The untouched legacy implementation remains the fast path whenever
-# neither T01 nor an in-window H05 event requires this expanded loop.
+# T01/T02 use the existing H05-aware production loop as their Phase-C
+# composition home. The untouched legacy implementation remains the fast path
+# whenever neither living heat trait nor an in-window H05 event requires this
+# expanded loop.
 func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dictionary = {}) -> Dictionary:
 	var t01_value: Variant = simulation_defs.get("t01_definitions", [])
 	if not t01_value is Array:
 		return {"ok": false, "error": "invalid_t01_definitions"}
 	var t01_definitions: Array = t01_value
+	var t02_value: Variant = simulation_defs.get("t02_definitions", [])
+	if not t02_value is Array:
+		return {"ok": false, "error": "invalid_t02_definitions"}
+	var t02_definitions: Array = t02_value
 	var has_t01: bool = not t01_definitions.is_empty()
-	if not has_t01 and not _has_relevant_h05_route_event(simulation_defs, total_ticks, PackedStringArray(H05_ENVIRONMENT_CHANNELS)):
+	var has_t02: bool = not t02_definitions.is_empty()
+	if not has_t01 and not has_t02 and not _has_relevant_h05_route_event(simulation_defs, total_ticks, PackedStringArray(H05_ENVIRONMENT_CHANNELS)):
 		return super.simulate(committed_run, total_ticks, simulation_defs)
 	if total_ticks <= 0:
 		return {"ok": false, "error": "invalid_total_ticks"}
@@ -51,10 +58,10 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 	var t08_trigger_definitions: Array = prepared["t08_trigger_definitions"]
 	var t08_qualification_by_tick: Dictionary = prepared["t08_qualification_by_tick"]
 	var t08_qualification_state: Dictionary = {}
-	if has_t01 and not thermal_enabled:
-		return {"ok": false, "error": "t01_requires_thermal_rules"}
-	if has_t01 and organism_state.is_empty():
-		return {"ok": false, "error": "t01_requires_organism_runtime"}
+	if (has_t01 or has_t02) and not thermal_enabled:
+		return {"ok": false, "error": "living_heat_traits_require_thermal_rules"}
+	if (has_t01 or has_t02) and organism_state.is_empty():
+		return {"ok": false, "error": "living_heat_traits_require_organism_runtime"}
 
 	var route_profile: Dictionary = prepare_power["route_profile"]
 	var all_hazards_by_id: Dictionary = prepare_power["hazards_by_id"]
@@ -89,6 +96,7 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 	var growth_resolver: PhaseBGrowthResolver = PhaseBGrowthResolverScript.new()
 	var t08_qualifier: T08GrowthQualifier = T08GrowthQualifierScript.new()
 	var t01_kernel: T01HeatEmitterKernel = T01HeatEmitterKernelScript.new()
+	var t02_kernel: T02HeatSinkKernel = T02HeatSinkKernelScript.new()
 	var t05_kernel: T05SporeShedderKernel = T05SporeShedderKernelScript.new()
 	var t06_kernel: T06FilterFeederKernel = T06FilterFeederKernelScript.new()
 	var t07_kernel: T07FeedingKernel = T07FeedingKernelScript.new()
@@ -169,6 +177,19 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 				var t01_event: Dictionary = raw_t01_event
 				tick_phase_c_environment_events.append(t01_event.duplicate(true))
 				all_phase_c_environment_events.append(t01_event.duplicate(true))
+		if has_t02:
+			var t02_result: Dictionary = t02_kernel.apply_phase_c(
+				tick, generated_environment.get("heat", {}), organism_state, t02_definitions
+			)
+			if not bool(t02_result.get("ok", false)):
+				return {"ok": false, "error": "phase_c:%s" % String(t02_result.get("error", "unknown"))}
+			generated_environment["heat"] = t02_result["heat_by_cell"]
+			for raw_t02_event: Variant in t02_result["events"]:
+				if not raw_t02_event is Dictionary:
+					return {"ok": false, "error": "invalid_t02_event"}
+				var t02_event: Dictionary = raw_t02_event
+				tick_phase_c_environment_events.append(t02_event.duplicate(true))
+				all_phase_c_environment_events.append(t02_event.duplicate(true))
 		if contamination_enabled:
 			var contamination_source_field: Dictionary = environment_state.get("contamination", _zero_channel(cell_order))
 			if not t05_definitions.is_empty():
