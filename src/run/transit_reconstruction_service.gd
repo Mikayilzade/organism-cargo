@@ -23,7 +23,9 @@ func resume_current(compatibility: Dictionary) -> Dictionary:
 		if String(reconstructed.get("recovery_class", "")) == "C":
 			var mismatch_record: Dictionary = record.duplicate(true)
 			mismatch_record["lifecycle_state"] = "RECONSTRUCTION_MISMATCH"
-			mismatch_record["reconstruction_diagnostics"] = reconstructed.get("diagnostics", {}).duplicate(true)
+			var diagnostics_value: Variant = reconstructed.get("diagnostics", {})
+			var diagnostics: Dictionary = diagnostics_value if diagnostics_value is Dictionary else {}
+			mismatch_record["reconstruction_diagnostics"] = diagnostics.duplicate(true)
 			payload["committed_run"] = mismatch_record
 			var mismatch_write: Dictionary = _save_store.write(&"session", payload)
 			if not bool(mismatch_write.get("ok", false)):
