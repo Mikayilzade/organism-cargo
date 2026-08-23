@@ -17,10 +17,10 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 136
+## Current implementation checkpoint — Increment 137
 
 ### Phase / subsystem
-**12C Core Systems — deterministic transit reconstruction/resume and checksum-mismatch quarantine**
+**12C Core Systems — deterministic completion identity and idempotent Results/progression application**
 
 ### Repository truth read before work
 This run re-read the mandatory recovery chain:
@@ -30,57 +30,55 @@ This run re-read the mandatory recovery chain:
 - `DESIGN_STATUS.md`
 - `PHASE11_FINAL_FREEZE.md`
 
-For this subsystem it also re-read the higher persistence authority in `PHASE11_TECH_PERSISTENCE.md`, the relevant deterministic simulation contract in `TECHNICAL_SPEC.md`, the current durable launch transaction, atomic save store, and Phase-I completion runner.
+For the exact persistence/progression subsystem it also re-read `PHASE11_TECH_PERSISTENCE.md` and `PHASE11_PROGRESSION.md`.
 
 ### Entry validation
-- Repository `main` at start: `168d8e37795675a30cd7f9254c830235a03b515e` (`12C: repair H06 production binding`).
-- Explicit `organism-cargo/godot-headless` status for Increment 135: **SUCCESS**, workflow run `32657456246`.
-- Therefore the repaired production H06 binding is green.
-- Core-system audit then compared the 12C exit gate and Phase-11 persistence contract against repository evidence. `src/run` had durable Launch and Targeted Retry ownership, while `src/save` had atomic envelopes/generation fallback, but there was no deterministic committed-run reconstruction/resume service. That was the next clear frozen 12C gap.
+- Repository `main` at start: `8e0fd59f75463e0fd5dd9eafc0d91268266eadef` (`12C: add deterministic transit reconstruction`).
+- Explicit `organism-cargo/godot-headless` status for Increment 136: **SUCCESS**, workflow run `32657729065`.
+- Therefore deterministic committed-run reconstruction and mismatch quarantine are green, and the exact recorded NEXT ACTION was the remaining idempotent Results/progression persistence gap.
 
-### Implemented in Increment 136
-- Added `TransitReconstructionService` as the authoritative resume boundary for persisted committed runs.
-- Resume always validates the durable committed-input checksum and exact rules/content/contract-definition compatibility before any replay.
-- The service reconstructs from time zero through the real `DeliveryCompletionRunner`, recomputes the full tick checksum sequence and final completion/result checksum, and compares any stored authoritative traces instead of trusting mutable mid-run state.
-- A valid `COMMITTED` run advances durably only to `SIMULATED`; existing `REVIEWABLE` / `COMPLETION_APPLIED` lifecycle is preserved.
-- Presentation cursor is explicitly non-authoritative: an out-of-range cursor follows frozen recovery class A, resets to tick 0 during transit (or the final Review boundary for already-reviewable/completed runs), and does not alter authoritative checksums.
-- Stored authoritative checksum divergence follows frozen recovery class C: continuation is rejected, lifecycle becomes `RECONSTRUCTION_MISMATCH`, and both stored/reconstructed traces are durably retained in diagnostics.
-- Missing/wrong exact compatibility follows the frozen class-D boundary and never fabricates or silently replays an outcome under another version.
-- Added focused headless coverage for successful full reconstruction/persistence, class-C checksum quarantine, class-A cursor-only repair, and exact-compatibility rejection.
+### Implemented in Increment 137
+- Added `ResultsProgressionService`, the atomic Results-side authority for successful campaign completion application.
+- Deterministic `completion_id` is derived from the frozen tuple `(profile_uuid, run_id, contract_id, committed_result_checksum, rules_version, content_version)` using a canonical separator and SHA-256.
+- Mandatory delivery failure returns a completed non-award result and creates no profile progression/completion ledger entry.
+- Successful application performs only monotonic profile merges: Bronze cleared-contract set union, per-contract best-medal maximum, documented-fact union, and durable `applied_completion_ids` ledger append.
+- Duplicate Results/reopen callbacks recompute the same completion ID, detect it in the durable ledger, award nothing again, and only ensure session lifecycle is repaired to `COMPLETION_APPLIED`.
+- Profile write occurs before session lifecycle advancement. This implements the frozen crash boundary: if the process dies after the durable profile transaction but before session update, reopening detects the existing completion ledger entry and repairs the session without re-award.
+- No independent campaign-node/challenge unlock counters are persisted; this checkpoint preserves the frozen rule that availability must be derived later from Bronze source truth and the authored graph.
+- Added focused headless coverage for exactly-once application/reopen, monotonic medal and knowledge merge, simulated crash-after-profile-before-session repair, and mandatory-failure no-award behavior.
 
 ### Files changed
-- `src/run/transit_reconstruction_service.gd` — new deterministic committed-run reconstruction/resume authority.
-- `tests/unit/transit_reconstruction_test_runner.gd` — focused persistence/reconstruction/mismatch contract tests using the real deterministic Phase-I runner.
-- `.github/workflows/headless-tests.yml` — adds the reconstruction contract to the existing notification-safe suite.
-- `IMPLEMENTATION_STATUS.md` — records the audit result, Increment 136 and exact continuation.
+- `src/run/results_progression_service.gd` — deterministic completion identity and idempotent monotonic profile/session application authority.
+- `tests/unit/results_progression_test_runner.gd` — duplicate/reopen, crash-boundary, medal/knowledge monotonicity and failure coverage.
+- `.github/workflows/headless-tests.yml` — wires the Results progression contract into the notification-safe suite.
+- `IMPLEMENTATION_STATUS.md` — records Increment 137 and exact continuation.
 
 ### Validation performed / available
-- Increment 135 explicit custom headless status was verified green before this work.
-- Static review verified reconstruction uses immutable committed input plus exact compatibility and always restarts simulation from time zero.
-- Static review verified stored tick/final checksums are comparison evidence only and are never used as simulation authority.
-- Static review verified class-C mismatch persistence cannot advance the run to Results/progression.
-- Static review verified class-A cursor repair changes only presentation position.
-- The new tests exercise real `DeliveryCompletionRunner` output rather than a fake simulator.
-- This checkpoint requires one authoritative notification-safe GitHub headless run. Any first compile/runtime/assertion failure from this checkpoint is the next run's focused repair boundary.
+- Increment 136 explicit custom headless status was verified green before this work.
+- Static review verified the completion-id material exactly matches the Phase-11 persistence tuple and excludes presentation state.
+- Static review verified permanent progression merges only set-union/max fields and never decrements Bronze, medals or knowledge.
+- Static review verified duplicate completion callbacks cannot append a second ledger entry or downgrade an existing best medal.
+- Static review verified profile durability precedes `COMPLETION_APPLIED` session persistence, and the regression fixture models the canonical crash boundary by pre-seeding the completion ledger while leaving session lifecycle at `REVIEWABLE`.
+- This checkpoint requires one authoritative notification-safe GitHub headless run. Per anti-spam policy no speculative second push is stacked in this run.
 
 ### Deliberately not changed
 - No canonical gameplay/design files.
-- No H01–H06, T05–T10, support, growth, sleep, contamination, stress or H06 behavior.
-- No Results/progression award semantics yet.
-- No 12D or later-phase work.
+- No campaign graph/content population yet; 12D remains closed.
+- No H01–H06, T05–T10, supports, organism behavior or environmental semantics.
+- No cloud merge, migration or demo-import implementation in this increment.
 
 ### Blockers / deferred known work
 - **No user-action blocker.**
 - 12C remains incomplete.
-- Increment 136 requires authoritative headless validation.
-- The same audit still shows additional 12C obligations after reconstruction, notably idempotent Results/progression application and remaining unimplemented foundation trait families/interaction coverage; these must be handled before 12D.
+- Increment 137 requires authoritative headless validation.
+- Remaining audited 12C work still includes unimplemented foundation trait families/production interaction coverage and additional persistence hardening obligations before the 12C exit gate can be claimed.
 
 ### Canonical contradictions
-- **NONE discovered.** The new service implements the already-frozen persistence rule that mutable mid-phase state is never sole authority and resume defaults to full deterministic reconstruction.
+- **NONE discovered.** This increment implements the already-frozen exactly-once Results transaction and monotonic progression semantics without inventing currency, counters or alternative unlock rules.
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 136.
+At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 137.
 
-- If the workflow fails, inspect the first exact compile/runtime/assertion failure in the new reconstruction contract and make one focused repair batch only.
-- If the workflow is green, preserve reconstruction authority and implement the next audited 12C persistence gap: deterministic `completion_id` plus idempotent atomic Results/progression application with duplicate/reopen/crash-boundary regression coverage, following `PHASE11_TECH_PERSISTENCE.md` exactly.
+- If the workflow fails, inspect the first exact compile/runtime/assertion failure in the new Results/progression contract and make one focused repair batch only.
+- If the workflow is green, preserve the completion/progression authority and audit the remaining frozen 12C mechanical obligations against `MECHANICS.md`, `TECHNICAL_SPEC.md`, current simulation files and headless coverage. Select the next missing foundation trait/core interaction strictly from repository evidence and implement one coherent increment.
 - Do not begin 12D, 12E or later phases until the full 12C exit gate is satisfied and recorded.
