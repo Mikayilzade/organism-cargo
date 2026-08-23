@@ -17,10 +17,10 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 126
+## Current implementation checkpoint — Increment 127
 
 ### Phase / subsystem
-**12C Core Systems — restore ordinary H03/S02 production behavior after T10 dormant-contamination normalization**
+**12C Core Systems — enforce exactly-once next-tick T10 carry lifetime**
 
 ### Repository truth read before work
 This run re-read the mandatory recovery chain:
@@ -30,59 +30,60 @@ This run re-read the mandatory recovery chain:
 - `DESIGN_STATUS.md`
 - `PHASE11_FINAL_FREEZE.md`
 
-For the exact failing subsystem it also re-read `GAME_BIBLE.md`, `MECHANICS.md`, the current T10 dormant-contamination composition layer, Increment-125 diff, and the authoritative headless workflow failure.
+For the exact subsystem it also re-read `GAME_BIBLE.md`, `MECHANICS.md`, the current T10 effect/carry and dormant-contamination composition layers, the focused reconsumption regression, and the latest authoritative CI state.
 
-Frozen requirements remain unchanged: contamination is an authoritative Phase-C/Phase-D spatial channel; T09 modifies organism intake rather than the environmental field; T10 pulses resolve in Phase H and may become next-tick authority; existing H03/S02 behavior must remain unchanged when contamination authority already exists.
+Frozen requirements remain unchanged: T10 is a finite reactive pulse resolved in Phase H; carried channel/internal deltas may affect the next tick but may not become an unbounded persistent source; deterministic replay and explicit causal evidence remain mandatory.
 
 ### Entry validation
-- Repository `main` at start: `db01017c6647427c689dccf4eae694fb1ec42ba9` (`12C: restore T10 dormant contamination authority`).
-- Explicit `organism-cargo/godot-headless` status for Increment 125: **FAILURE**, workflow run `32631126594`.
-- The notification-safe Actions job itself concluded successfully while publishing the authoritative custom failure status.
-- Import and all contracts before the ordinary H03 contamination suite were green.
-- The first concrete regression moved earlier than T10: `contamination_environment_kernel_test_runner.gd` failed `production transit executes H03 plus powered S02` and the Brownout/H03+H04 production case.
-- Root cause: the Increment-125 normalization treated an already-published Phase-D contamination field as incomplete unless `contamination_response_events` also existed. Environment-only H03/S02 tests legitimately publish the field without requesting organism-response evidence, so the new T10 layer returned an error instead of preserving the established production result.
+- Repository `main` at start: `197f5e9c85e4d26d518a1fceae5470872f68cf28` (`12C: scope T10 dormant contamination normalization`).
+- Explicit `organism-cargo/godot-headless` status for Increment 126: **SUCCESS**, workflow run `32633677698`.
+- Therefore ordinary H03/S02 behavior and the focused T10 Contamination/T09 reconsumption boundary are green.
+- Inspection of `transit_t10_effect_integrated_runner.gd` confirmed the remaining carry-lifetime bug: after `_apply_carry` consumed the prior tick delta, `_apply_effect_records` was still seeded with that same carry dictionary. With no new record, the already-consumed delta survived and could be applied again on tick 3+.
 
-### Implemented in Increment 126
-- Narrowed dormant-channel detection to the actual dormant case only: if the inherited result already contains a non-empty `phase_d_contamination_exposure_by_cell`, the T10 normalization now returns that result unchanged.
-- Removed the accidental requirement that every existing contamination field must also expose `contamination_response_events`.
-- Kept the zero-field/T09 normalization path only for results where the Phase-D contamination field is genuinely absent.
-- No T10, H03, S02, T09, contamination, H05 or A–I formula/order semantics were changed.
+### Implemented in Increment 127
+- Added `transit_t10_once_carry_integrated_runner.gd` as a narrow production composition layer above the validated contamination-authority chain.
+- The layer applies incoming carry once at the next-tick boundary, then resets to an empty carry before evaluating current-tick Phase-H effect records. Only newly-created current-tick deltas become carry for the following tick.
+- Updated `transit_power_integrated_runner.gd` to use this corrected composition layer without modifying frozen T10 magnitude, targeting, trigger guards, phase order, channel bounds, T09 behavior or contamination formulas.
+- Added a three-tick production regression using a once-per-run `HEAT_PULSE`: tick 2 must consume the tick-1 pulse; tick 3 must return to the no-T10 heat exposure and must contain no stale reconsumption event/carry.
+- Added that regression to the existing notification-safe headless contract suite.
 
 ### Files changed
-- `src/sim/transit_t10_contamination_channel_authority_integrated_runner.gd` — scope dormant normalization strictly to absent contamination-field authority.
-- `IMPLEMENTATION_STATUS.md` — Increment-126 checkpoint and exact continuation instruction.
+- `src/sim/transit_t10_once_carry_integrated_runner.gd` — one-boundary T10 carry composition.
+- `src/sim/transit_power_integrated_runner.gd` — production runner now points at the one-boundary carry layer.
+- `tests/unit/t10_once_carry_test_runner.gd` — deterministic three-tick once-per-run carry regression.
+- `.github/workflows/headless-tests.yml` — executes the new regression while preserving notification-safe status publishing.
+- `IMPLEMENTATION_STATUS.md` — Increment-127 checkpoint and continuation instruction.
 
 ### Validation performed / available
-- Workflow run `32631126594` was inspected at job/log level and isolated the first regression to ordinary H03/S02 production before any T10 reconsumption assertion executed.
-- Static inspection confirmed those tests can legitimately expose Phase-D contamination authority without organism contamination-response events; such results must not be normalized by the T10-only layer.
-- Local Godot execution is not available in the connector runtime, so the single notification-safe GitHub headless workflow triggered by this checkpoint is the authoritative post-push validation.
-- Per anti-spam policy this run makes one coherent checkpoint only; any remaining CI failure becomes the next run's exact repair boundary.
+- Increment 126 authoritative CI was confirmed green before implementation.
+- Static inspection of the old carry loop isolated the exact stale-carry persistence mechanism.
+- The new regression verifies deterministic replay, tick-2 consumption, empty post-consumption carry, no tick-3 stale reconsumption evidence, and tick-3 exposure equality with the no-T10 baseline.
+- Local Godot execution is not available in the connector runtime; the single notification-safe GitHub headless workflow triggered by this checkpoint is the authoritative post-push validation.
+- Per anti-spam policy this run makes one coherent checkpoint only. Any CI issue discovered after the push becomes the next run's first repair boundary.
 
 ### Deliberately not changed
 - No canonical gameplay/design files.
-- No T10 carry-lifetime correction yet.
-- No `FOOD_PULSE` / `CONTAMINATION_CLEANSE` next-tick consumer semantics yet.
-- No H06 implementation.
+- No T10 trigger/magnitude/targeting semantics.
+- No `FOOD_PULSE` or `CONTAMINATION_CLEANSE` next-tick consumer implementation yet.
+- No H06 Zone Isolation implementation yet.
 - No 12D or later-phase work.
 
 ### Blockers / deferred known work
 - **No user-action blocker.**
 - 12C remains incomplete.
-- Increment 126 must be validated by the existing headless workflow.
-- If ordinary H03/S02 regressions are green and the focused Contamination/T09 T10 regression still fails, its first exact assertion/error is the sole next repair boundary.
-- Once Contamination/T09 is green, T10 carried deltas still need exactly-once next-tick consumption with a three-tick regression, then canonical `FOOD_PULSE` / `CONTAMINATION_CLEANSE` consumers.
+- Increment 127 must be validated by the existing headless workflow.
+- After carry lifetime is green, T10 still needs canonical `FOOD_PULSE` and `CONTAMINATION_CLEANSE` consumer semantics with deterministic replay and ancestry coverage.
 - H06 Zone Isolation remains the next separate missing 12C hazard subsystem after T10 closes.
 
 ### Canonical contradictions
-- **NONE discovered.** This increment restores pre-existing contamination production authority and narrows T10 normalization without changing frozen mechanics.
+- **NONE discovered.** The change enforces the already-frozen finite T10 semantics rather than adding gameplay.
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 126.
+At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 127.
 
-- If the workflow fails before `t10_reconsumption_test_runner.gd`, inspect the first exact regression and repair only that failure class in one focused batch.
-- If ordinary contamination regressions are green and `t10_reconsumption_test_runner.gd` still fails, inspect its first exact returned error/assertion and repair only the dormant Contamination/T09 reconsumption boundary.
-- If the Contamination/T09 regression is green, correct T10 carry lifetime so channel/internal deltas are consumed exactly once at the next-tick boundary and add a three-tick production regression proving a once-per-run pulse is not re-applied on tick 3.
-- Then implement canonical next-tick consumer handling for `FOOD_PULSE` and `CONTAMINATION_CLEANSE`, with deterministic replay and ancestry coverage.
-- Once the complete T10 effect path is green, mark T10 core semantics closed and implement H06 Zone Isolation as the next clearest missing 12C hazard obligation.
+- If the workflow fails before or at `t10_once_carry_test_runner.gd`, inspect the first exact compile/runtime/assertion failure and make one focused repair batch only.
+- If the complete workflow is green, implement canonical next-tick consumer handling for `FOOD_PULSE` and `CONTAMINATION_CLEANSE`, preserving finite trigger guards, deterministic replay, Phase-H-to-next-tick timing and causal ancestry.
+- When both internal T10 effect kinds are green together with channel pulses/reconsumption/carry lifetime, mark T10 core semantics closed in status.
+- Then implement H06 Zone Isolation as the next clearest missing 12C hazard obligation.
 
 Do not begin 12D, 12E or later phases until the full 12C exit gate is satisfied and recorded.

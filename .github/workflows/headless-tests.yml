@@ -81,6 +81,7 @@ jobs:
             "T10 Reactive Pulse production transit integration contract test|--headless --path . --script tests/unit/t10_transit_integration_test_runner.gd"
             "T10 Phase-H effect application and next-tick carry contract test|--headless --path . --script tests/unit/t10_effect_application_test_runner.gd"
             "T10 next-tick stress consumer reconsumption contract test|--headless --path . --script tests/unit/t10_reconsumption_test_runner.gd"
+            "T10 one-boundary carry lifetime regression|--headless --path . --script tests/unit/t10_once_carry_test_runner.gd"
           )
 
           for entry in "${cases[@]}"; do
