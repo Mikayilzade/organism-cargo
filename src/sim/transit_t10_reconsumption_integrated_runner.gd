@@ -21,7 +21,7 @@ func _reconsume_stress_field_carry(result: Dictionary) -> Dictionary:
 		return _failure("invalid_t10_reconsumption_snapshots")
 	if not (checksums_value is Array or checksums_value is PackedStringArray):
 		return _failure("invalid_t10_reconsumption_checksums")
-	var snapshots: Array = snapshots_value
+	var snapshots: Array = snapshots_value as Array
 	var checksums: PackedStringArray = PackedStringArray()
 	for raw_checksum: Variant in checksums_value:
 		checksums.append(String(raw_checksum))
@@ -32,7 +32,6 @@ func _reconsume_stress_field_carry(result: Dictionary) -> Dictionary:
 	var rewritten_checksums: PackedStringArray = PackedStringArray()
 	var all_reconsumption_events: Array = []
 	var previous_application_events: Array = []
-	var kernel: StressFieldResponseKernel = StressFieldResponseKernelScript.new()
 
 	for index: int in range(snapshots.size()):
 		var raw_snapshot: Variant = snapshots[index]
@@ -42,11 +41,11 @@ func _reconsume_stress_field_carry(result: Dictionary) -> Dictionary:
 		var tick_reconsumption_events: Array = []
 		var stress_application_events: Array = _stress_application_events(previous_application_events)
 		if not stress_application_events.is_empty():
-			var reconsumed: Dictionary = _reconsume_stress_field_tick(snapshot, stress_application_events, kernel)
+			var reconsumed: Dictionary = _reconsume_stress_field_tick(snapshot, stress_application_events)
 			if not bool(reconsumed.get("ok", false)):
 				return reconsumed
-			snapshot = reconsumed["snapshot"]
-			tick_reconsumption_events = reconsumed["events"]
+			snapshot = reconsumed["snapshot"] as Dictionary
+			tick_reconsumption_events = reconsumed["events"] as Array
 			for raw_event: Variant in tick_reconsumption_events:
 				if raw_event is Dictionary:
 					all_reconsumption_events.append((raw_event as Dictionary).duplicate(true))
@@ -77,7 +76,7 @@ func _reconsume_stress_field_carry(result: Dictionary) -> Dictionary:
 					aggregate_stress_events.append((raw_event as Dictionary).duplicate(true))
 	next_result["stress_field_response_events"] = aggregate_stress_events
 	if not rewritten_snapshots.is_empty():
-		var final_snapshot: Dictionary = rewritten_snapshots[rewritten_snapshots.size() - 1]
+		var final_snapshot: Dictionary = rewritten_snapshots[rewritten_snapshots.size() - 1] as Dictionary
 		var final_runtime_value: Variant = final_snapshot.get("organism_runtime", [])
 		if final_runtime_value is Array:
 			next_result["final_organism_runtime"] = (final_runtime_value as Array).duplicate(true)
@@ -85,8 +84,7 @@ func _reconsume_stress_field_carry(result: Dictionary) -> Dictionary:
 
 func _reconsume_stress_field_tick(
 		snapshot: Dictionary,
-		application_events: Array,
-		kernel: StressFieldResponseKernel
+		application_events: Array
 ) -> Dictionary:
 	var tick: int = int(snapshot.get("tick", 0))
 	if tick <= 0:
@@ -103,20 +101,20 @@ func _reconsume_stress_field_tick(
 	)
 	if not bool(pre_runtime_result.get("ok", false)):
 		return pre_runtime_result
-	var pre_runtime: Array = pre_runtime_result["organisms"]
-	var sampled: Dictionary = kernel.sample_phase_e(tick, pre_runtime, field_value as Dictionary)
+	var pre_runtime: Array = pre_runtime_result["organisms"] as Array
+	var sampled: Dictionary = StressFieldResponseKernelScript.new().sample_phase_e(tick, pre_runtime, field_value as Dictionary)
 	if not bool(sampled.get("ok", false)):
 		return _failure("phase_e_t10_reconsumption:%s" % String(sampled.get("error", "unknown")))
-	var sample_events: Array = sampled.get("events", [])
+	var sample_events: Array = sampled.get("events", []) as Array
 	var ancestry_result: Dictionary = _attach_t10_stress_ancestry(sample_events, pre_runtime, application_events)
 	if not bool(ancestry_result.get("ok", false)):
 		return ancestry_result
-	sample_events = ancestry_result["events"]
-	var phase_f: Dictionary = kernel.apply_phase_f(tick, pre_runtime, sampled["observations"])
+	sample_events = ancestry_result["events"] as Array
+	var phase_f: Dictionary = StressFieldResponseKernelScript.new().apply_phase_f(tick, pre_runtime, sampled["observations"] as Array)
 	if not bool(phase_f.get("ok", false)):
 		return _failure("phase_f_t10_reconsumption:%s" % String(phase_f.get("error", "unknown")))
-	var phase_f_events: Array = phase_f.get("events", [])
-	var upstream_by_id: Dictionary = pre_runtime_result["upstream_by_id"]
+	var phase_f_events: Array = phase_f.get("events", []) as Array
+	var upstream_by_id: Dictionary = pre_runtime_result["upstream_by_id"] as Dictionary
 	for index: int in range(phase_f_events.size()):
 		var raw_event: Variant = phase_f_events[index]
 		if not raw_event is Dictionary:
@@ -125,10 +123,10 @@ func _reconsume_stress_field_tick(
 		var instance_id: String = String(event.get("instance_id", ""))
 		event["upstream_stress_delta"] = int(upstream_by_id.get(instance_id, 0))
 		phase_f_events[index] = event
-	var phase_g: Dictionary = kernel.evaluate_phase_g(
+	var phase_g: Dictionary = StressFieldResponseKernelScript.new().evaluate_phase_g(
 		tick,
-		phase_f["organisms"],
-		phase_f["phase_f_event_id_by_instance_id"]
+		phase_f["organisms"] as Array,
+		phase_f["phase_f_event_id_by_instance_id"] as Dictionary
 	)
 	if not bool(phase_g.get("ok", false)):
 		return _failure("phase_g_t10_reconsumption:%s" % String(phase_g.get("error", "unknown")))
@@ -142,9 +140,8 @@ func _reconsume_stress_field_tick(
 			continue
 		preserved_events.append(event.duplicate(true))
 	var replacement_events: Array = []
-	for batch: Variant in [sample_events, phase_f_events, phase_g.get("events", [])]:
-		if not batch is Array:
-			return _failure("invalid_t10_reconsumption_event_batch")
+	var phase_g_events: Array = phase_g.get("events", []) as Array
+	for batch: Array in [sample_events, phase_f_events, phase_g_events]:
 		for raw_event: Variant in batch:
 			if not raw_event is Dictionary:
 				return _failure("invalid_t10_reconsumption_event")
