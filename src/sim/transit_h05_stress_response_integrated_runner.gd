@@ -4,8 +4,15 @@ const H05StressFieldIntegratedRunnerScript := preload("res://src/sim/transit_h06
 const H05StressFieldResponseKernelScript := preload("res://src/sim/stress_field_response_kernel.gd")
 const H05SleepWakeKernelScript := preload("res://src/sim/sleep_wake_kernel.gd")
 const H05S04NestPadKernelScript := preload("res://src/sim/s04_nest_pad_kernel.gd")
+const H05T04SootherKernelScript := preload("res://src/sim/t04_soother_kernel.gd")
 
 func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dictionary = {}) -> Dictionary:
+	var t04_definitions_value: Variant = simulation_defs.get("t04_definitions", [])
+	if not t04_definitions_value is Array:
+		return {"ok": false, "error": "invalid_t04_definitions"}
+	var t04_definitions: Array = t04_definitions_value
+	var has_t04: bool = not t04_definitions.is_empty()
+
 	var s04_authority: Dictionary = _prepare_s04_authority(committed_run, simulation_defs)
 	if not bool(s04_authority.get("ok", false)):
 		return s04_authority
@@ -31,20 +38,19 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 	var first_snapshot: Dictionary = first_snapshot_value
 	var first_field_value: Variant = first_snapshot.get("stress_field_by_cell", null)
 	var first_runtime_value: Variant = first_snapshot.get("organism_runtime", [])
-	if not first_field_value is Dictionary:
-		return base_result
 	if not first_runtime_value is Array:
 		return {"ok": false, "error": "invalid_organism_runtime_snapshot"}
-	var first_field: Dictionary = first_field_value
 	var first_runtime: Array = first_runtime_value
-	if first_field.is_empty() or first_runtime.is_empty():
+	if first_runtime.is_empty():
+		return base_result
+	if not first_field_value is Dictionary and not has_t04:
 		return base_result
 
 	var definitions_value: Variant = simulation_defs.get("organism_definitions", null)
 	if not definitions_value is Dictionary:
 		return {"ok": false, "error": "missing_organism_definitions_for_stress_field_response"}
 	var organism_definitions: Dictionary = definitions_value
-	var hazards_value: Variant = simulation_defs.get("hazards_by_id", null)
+	var hazards_value: Variant = simulation_defs.get("hazards_by_id", {})
 	if not hazards_value is Dictionary:
 		return {"ok": false, "error": "missing_sleep_wake_hazard_authority"}
 	var hazards_by_id: Dictionary = hazards_value
@@ -67,11 +73,13 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 	var kernel: StressFieldResponseKernel = H05StressFieldResponseKernelScript.new()
 	var sleep_wake_kernel: SleepWakeKernel = H05SleepWakeKernelScript.new()
 	var s04_kernel: S04NestPadKernel = H05S04NestPadKernelScript.new()
+	var t04_kernel: T04SootherKernel = H05T04SootherKernelScript.new()
 	var integrated_snapshots: Array = []
 	var integrated_checksums: PackedStringArray = PackedStringArray()
 	var all_events: Array = []
 	var all_wake_events: Array = []
 	var all_s04_events: Array = []
+	var all_t04_events: Array = []
 	var final_runtime: Array = []
 
 	for index: int in range(snapshots.size()):
@@ -82,13 +90,9 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		var snapshot: Dictionary = snapshot_source.duplicate(true)
 		var tick: int = int(snapshot.get("tick", index + 1))
 		var runtime_value: Variant = snapshot.get("organism_runtime", [])
-		var field_value: Variant = snapshot.get("stress_field_by_cell", null)
 		if not runtime_value is Array:
 			return {"ok": false, "error": "invalid_organism_runtime_snapshot"}
-		if not field_value is Dictionary:
-			return {"ok": false, "error": "invalid_stress_field_snapshot"}
 		var base_runtime: Array = runtime_value
-		var stress_field_by_cell: Dictionary = field_value
 
 		var composed_result: Dictionary = _compose_pre_field_runtime(
 			base_runtime,
@@ -138,10 +142,36 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 			return {"ok": false, "error": "invalid_sleep_wake_events"}
 		var wake_events: Array = wake_events_value
 
+		var t04_result: Dictionary = t04_kernel.resolve_phase_e(tick, pre_field_runtime, t04_definitions)
+		if not bool(t04_result.get("ok", false)):
+			return {"ok": false, "error": "phase_e_t04:%s" % String(t04_result.get("error", "unknown"))}
+		var t04_events_value: Variant = t04_result.get("events", [])
+		if not t04_events_value is Array:
+			return {"ok": false, "error": "invalid_t04_soothing_events"}
+		var t04_events: Array = t04_events_value
+
+		var field_value: Variant = snapshot.get("stress_field_by_cell", null)
+		var stress_field_by_cell: Dictionary = {}
+		if field_value is Dictionary:
+			stress_field_by_cell = (field_value as Dictionary).duplicate(true)
+		elif has_t04:
+			var zero_field_result: Dictionary = _zero_stress_field(pre_field_runtime)
+			if not bool(zero_field_result.get("ok", false)):
+				return zero_field_result
+			stress_field_by_cell = zero_field_result["field"]
+		else:
+			return {"ok": false, "error": "invalid_stress_field_snapshot"}
+
 		var sampled: Dictionary = kernel.sample_phase_e(tick, pre_field_runtime, stress_field_by_cell)
 		if not bool(sampled.get("ok", false)):
 			return {"ok": false, "error": "phase_e_stress_field:%s" % String(sampled.get("error", "unknown"))}
-		var phase_f: Dictionary = kernel.apply_phase_f(tick, pre_field_runtime, sampled["observations"])
+		var phase_f: Dictionary = kernel.apply_phase_f(
+			tick,
+			pre_field_runtime,
+			sampled["observations"],
+			t04_result["stress_delta_by_target_id"],
+			t04_result["parent_event_ids_by_target_id"]
+		)
 		if not bool(phase_f.get("ok", false)):
 			return {"ok": false, "error": "phase_f_stress_field:%s" % String(phase_f.get("error", "unknown"))}
 		var phase_g: Dictionary = kernel.evaluate_phase_g(
@@ -173,6 +203,13 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 			tick_events.append(wake_event.duplicate(true))
 			all_events.append(wake_event.duplicate(true))
 			all_wake_events.append(wake_event.duplicate(true))
+		for raw_t04_event: Variant in t04_events:
+			if not raw_t04_event is Dictionary:
+				return {"ok": false, "error": "invalid_t04_soothing_event"}
+			var t04_event: Dictionary = raw_t04_event
+			tick_events.append(t04_event.duplicate(true))
+			all_events.append(t04_event.duplicate(true))
+			all_t04_events.append(t04_event.duplicate(true))
 		for event_batch: Variant in [sampled.get("events", []), phase_f.get("events", []), phase_g.get("events", [])]:
 			if not event_batch is Array:
 				return {"ok": false, "error": "invalid_stress_field_response_events"}
@@ -191,6 +228,8 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 		snapshot["organism_runtime"] = final_runtime.duplicate(true)
 		snapshot["s04_transition_events"] = s04_events.duplicate(true)
 		snapshot["sleep_wake_events"] = wake_events.duplicate(true)
+		snapshot["t04_soothing_events"] = t04_events.duplicate(true)
+		snapshot["t04_stress_delta_by_target_id"] = (t04_result["stress_delta_by_target_id"] as Dictionary).duplicate(true)
 		snapshot["stress_field_upstream_stress_delta_by_id"] = upstream_delta_by_id.duplicate(true)
 		snapshot["stress_field_response_events"] = tick_events.duplicate(true)
 		integrated_snapshots.append(snapshot)
@@ -204,6 +243,23 @@ func simulate(committed_run: Dictionary, total_ticks: int, simulation_defs: Dict
 	base_result["tick_checksums"] = integrated_checksums
 	base_result["s04_transition_events"] = all_s04_events
 	base_result["sleep_wake_events"] = all_wake_events
+	base_result["t04_soothing_events"] = all_t04_events
 	base_result["stress_field_response_events"] = all_events
 	base_result["final_organism_runtime"] = final_runtime.duplicate(true)
 	return base_result
+
+func _zero_stress_field(organisms: Array) -> Dictionary:
+	var field: Dictionary = {}
+	for raw_organism: Variant in organisms:
+		if not raw_organism is Dictionary:
+			return {"ok": false, "error": "invalid_t04_zero_field_runtime"}
+		var organism: Dictionary = raw_organism
+		var occupied_value: Variant = organism.get("occupied_cells", [])
+		if not (occupied_value is Array or occupied_value is PackedStringArray):
+			return {"ok": false, "error": "invalid_t04_zero_field_occupied_cells"}
+		for raw_cell: Variant in occupied_value:
+			var cell_key: String = String(raw_cell)
+			if cell_key.is_empty():
+				return {"ok": false, "error": "invalid_t04_zero_field_cell"}
+			field[cell_key] = 0
+	return {"ok": true, "error": "", "field": field}

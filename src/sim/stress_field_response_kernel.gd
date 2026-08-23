@@ -27,7 +27,13 @@ func sample_phase_e(tick: int, organisms: Array, stress_field_by_cell: Dictionar
 		events.append({"event_id": event_id, "kind": "STRESS_FIELD_EXPOSURE", "phase": "E", "tick": tick, "instance_id": instance_id, "stress_field_exposure": exposure, "parent_event_ids": PackedStringArray()})
 	return {"ok": true, "error": "", "observations": observations, "events": events}
 
-func apply_phase_f(tick: int, organisms: Array, observations: Array) -> Dictionary:
+func apply_phase_f(
+		tick: int,
+		organisms: Array,
+		observations: Array,
+		direct_stress_delta_by_id: Dictionary = {},
+		direct_parent_event_ids_by_id: Dictionary = {}
+) -> Dictionary:
 	if tick <= 0:
 		return _failure("invalid_tick")
 	var ordered_result: Dictionary = _ordered_validated_runtime(organisms)
@@ -50,9 +56,11 @@ func apply_phase_f(tick: int, organisms: Array, observations: Array) -> Dictiona
 	var results: Array = []
 	var events: Array = []
 	var phase_f_event_id_by_instance_id: Dictionary = {}
+	var seen_runtime_ids: Dictionary = {}
 	for raw_organism: Variant in ordered:
 		var organism: Dictionary = raw_organism
 		var instance_id: String = String(organism["instance_id"])
+		seen_runtime_ids[instance_id] = true
 		if not observations_by_id.has(instance_id):
 			return _failure("missing_stress_field_observation:%s" % instance_id)
 		var observation: Dictionary = observations_by_id[instance_id]
@@ -60,16 +68,37 @@ func apply_phase_f(tick: int, organisms: Array, observations: Array) -> Dictiona
 		var stress_min: int = int(profile["stress_min"])
 		var stress_max: int = int(profile["stress_max"])
 		var stress_before: int = int(organism["stress"])
-		var stress_delta: int = int(observation["stress_field_exposure"])
+		var exposure_delta: int = int(observation["stress_field_exposure"])
+		var direct_delta: int = int(direct_stress_delta_by_id.get(instance_id, 0))
+		if direct_delta > 0:
+			return _failure("invalid_positive_direct_stress_delta:%s" % instance_id)
+		var stress_delta: int = exposure_delta + direct_delta
 		var stress_after: int = clampi(stress_before + stress_delta, stress_min, stress_max)
 		var next: Dictionary = organism.duplicate(true)
 		next["stress"] = stress_after
 		results.append(next)
 		var event_id: String = "stress-field:F:%d:%s" % [tick, instance_id]
 		phase_f_event_id_by_instance_id[instance_id] = event_id
-		events.append({"event_id": event_id, "kind": "STRESS_FIELD_INTERNAL_STRESS", "phase": "F", "tick": tick, "instance_id": instance_id, "stress_field_exposure": stress_delta, "stress_delta": stress_delta, "stress_before": stress_before, "stress_after": stress_after, "parent_event_ids": PackedStringArray([String(observation["event_id"])])})
+		var parent_event_ids: PackedStringArray = PackedStringArray([String(observation["event_id"])])
+		var direct_parents_value: Variant = direct_parent_event_ids_by_id.get(instance_id, PackedStringArray())
+		if not (direct_parents_value is Array or direct_parents_value is PackedStringArray):
+			return _failure("invalid_direct_stress_parent_ids:%s" % instance_id)
+		for raw_parent: Variant in direct_parents_value:
+			var parent_id: String = String(raw_parent)
+			if parent_id.is_empty() or parent_id in parent_event_ids:
+				return _failure("invalid_direct_stress_parent_id:%s" % instance_id)
+			parent_event_ids.append(parent_id)
+		events.append({"event_id": event_id, "kind": "STRESS_FIELD_INTERNAL_STRESS", "phase": "F", "tick": tick, "instance_id": instance_id, "stress_field_exposure": exposure_delta, "direct_stress_delta": direct_delta, "stress_delta": stress_delta, "stress_before": stress_before, "stress_after": stress_after, "parent_event_ids": parent_event_ids})
 	if observations_by_id.size() != results.size():
 		return _failure("unknown_stress_field_observation")
+	for raw_target_id: Variant in direct_stress_delta_by_id.keys():
+		var target_id: String = String(raw_target_id)
+		if not seen_runtime_ids.has(target_id):
+			return _failure("unknown_direct_stress_target:%s" % target_id)
+	for raw_target_id: Variant in direct_parent_event_ids_by_id.keys():
+		var target_id: String = String(raw_target_id)
+		if not seen_runtime_ids.has(target_id):
+			return _failure("unknown_direct_stress_parent_target:%s" % target_id)
 	return {"ok": true, "error": "", "organisms": results, "events": events, "phase_f_event_id_by_instance_id": phase_f_event_id_by_instance_id}
 
 func evaluate_phase_g(tick: int, organisms: Array, phase_f_event_id_by_instance_id: Dictionary) -> Dictionary:

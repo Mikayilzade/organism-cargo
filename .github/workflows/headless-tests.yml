@@ -70,6 +70,8 @@ jobs:
             "T02 Heat Sink production transit composition contract test|--headless --path . --script tests/unit/t02_transit_integration_test_runner.gd"
             "T03 Alarm Emitter Phase-C state-gated stress-field source contract test|--headless --path . --script tests/unit/t03_alarm_emitter_kernel_test_runner.gd"
             "T03 Alarm Emitter production stress-field composition contract test|--headless --path . --script tests/unit/t03_transit_integration_test_runner.gd"
+            "T04 Soother Phase-E capacity state and sleep contract test|--headless --path . --script tests/unit/t04_soother_kernel_test_runner.gd"
+            "T04 Soother production Phase-E/F/G composition contract test|--headless --path . --script tests/unit/t04_transit_integration_test_runner.gd"
             "S01 Cooler Phase-C effect contract test|--headless --path . --script tests/unit/s01_cooler_kernel_test_runner.gd"
             "S02 Filter Phase-C effect contract test|--headless --path . --script tests/unit/s02_filter_kernel_test_runner.gd"
             "H03 contamination field and Phase-D propagation contract test|--headless --path . --script tests/unit/contamination_environment_kernel_test_runner.gd"
