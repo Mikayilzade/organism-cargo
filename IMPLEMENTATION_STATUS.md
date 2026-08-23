@@ -9,7 +9,7 @@ Branch: `main`
 - Canonical implementation authority: **`PHASE11_FINAL_FREEZE.md` + frozen authority chain**
 - 12A Technical Bootstrap: **COMPLETE**
 - 12B Vertical Slice: **COMPLETE**
-- 12C Core Systems: **IN PROGRESS**
+- 12C Core Systems: **IN PROGRESS — EXIT-GATE RECONCILIATION**
 - 12D Content Population: **NO**
 - 12E UX / Accessibility / Controller / Deck: **NO**
 - 12F Adversarial QA: **NO**
@@ -17,69 +17,65 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 145
+## Current implementation checkpoint — Increment 146
 
 ### Phase / subsystem
-**12C Core Systems — implement and production-bind T04 Soother across Phase E/F/G**
+**12C Core Systems — T04 green; core-system coverage inventory completed and remaining proof gaps isolated**
 
 ### Entry validation
-- Repository `main` at start: `369e45796706dfe92e295a9a1d0334edc38679a7` (`12C: bind T03 stress production and harden CI`).
-- Explicit `organism-cargo/godot-headless` status for Increment 144: **SUCCESS**, workflow run `32661666386`.
-- The stricter workflow therefore validated the T03 production composition and the hidden-script-error guard before T04 work began.
+- Increment 145 implementation commit: `2ff0431c74dcf629b99405cc3268f18911387213` (`12C: implement T04 soother production path`).
+- Explicit `organism-cargo/godot-headless` status: **SUCCESS**, workflow run `32662158024`.
+- The hardened suite therefore compiled and passed both new T04 primitive and production Phase-E/F/G contracts plus all prior contracts.
 
-### Frozen authority used
-- T04 is a direct Phase-E social interaction, not an environmental source.
-- Direct social stress modification is restricted to frozen weak/standard/strong magnitudes `1/2/3`.
-- Ordinary T04 reach uses Manhattan adjacency/near range `1/2`; no whole-hold aura is introduced.
-- Targeting is deterministic and previewable; the primitive uses nearest target then stable `instance_id` ordering under authored capacity.
-- Sleep suppresses T04 only when the definition explicitly declares `sleep_gated=true`.
-- Phase-E T04 deltas aggregate with environmental exposure before the single authoritative Phase-F stress clamp; Phase-G hysteresis then evaluates the common post-F snapshot.
+### Increment 145 validated result
+- `T04SootherKernel` is now a deterministic Phase-E direct-social interaction with frozen stress magnitude bands, adjacency/near ranges, authored target eligibility/capacity, source-state gating and explicit sleep gating.
+- T04 does not mutate the environmental stress field and does not change internal stress during Phase E.
+- T04 direct stress deltas and environmental stress exposure aggregate before the single authoritative Phase-F clamp; existing Phase-G hysteresis then evaluates the common post-F snapshot.
+- T04-only runs use the same internal-stress response authority without inventing a new channel.
+- T04 causal assignment evidence is preserved into the Phase-F parent set and remains checksum-visible.
+- Focused production tests prove state/sleep gates, causal ancestry, H02+T04 same-tick aggregation and deterministic replay.
 
-### Implemented in Increment 145
-- Added `T04SootherKernel` with deterministic range, capacity, eligibility, source-state and explicit sleep-gate semantics.
-- Multiple T04 sources combine additive stress reductions commutatively; each assignment produces stable Phase-E causal evidence.
-- Extended the existing stress response Phase-F authority with optional direct-stress deltas and causal parent IDs while preserving all existing callers through default empty arguments.
-- T04 direct reduction and stress-field exposure now combine before one Phase-F clamp, preserving simultaneous-effect semantics rather than mutating internal stress early in Phase E.
-- Production `TransitPowerIntegratedRunner` path now invokes T04 after Phase-B support/wake transitions and before Phase-F/G stress resolution.
-- T04-only runs can use the shared internal-stress response path even when there is no H02/T03 environmental stress field; a zero sampling field is synthesized only as neutral exposure authority and is not persisted as a new environmental mechanic.
-- Per-tick and aggregate T04 evidence is exposed in result snapshots and remains checksum-visible through the existing stress-response event serialization.
-- Added focused primitive and production tests covering target capacity/order, state gate, explicit sleep gate, additive multi-source behavior, frozen magnitude bounds, T04-only internal stress change, H02+T04 simultaneous aggregation, causal ancestry and deterministic replay.
+### Increment 146 coverage inventory
+Created `CORE_SYSTEMS_COVERAGE.md` and mapped frozen 12C obligations to concrete production code and headless proof.
 
-### Files changed
+Confirmed green foundation:
+- deterministic A–I ordering and replay/checksums;
+- Phase-A Brownout authority;
+- growth legality and blocked-growth episode semantics;
+- explicit sleep gating;
+- T01/T02/T03/T04/T08/T10 production behavior;
+- S01–S06 production authority;
+- H01–H06 environmental/power authority;
+- Launch exactly-once, deterministic reconstruction, atomic persistence, Results idempotency, completion handoff, Targeted Retry and causal evidence.
+
+Material remaining weakness is now narrow and testable rather than an unidentified implementation hole:
+- T05 production integration exists in `transit_shared_resource_runner_base.gd` but lacks a dedicated end-to-end production contract.
+- T06 production integration exists but lacks a dedicated named real-runner production contract.
+- T07/S05 finite feeding production integration exists but lacks one focused end-to-end conservation/allocation/replay contract through the final production runner.
+- T09 production integration exists in `transit_contamination_integrated_runner.gd` but lacks a dedicated production contract proving narrow targeting/modifier behavior through the final runner.
+
+### Files changed in the broad T04 + inventory batch
 - `src/sim/t04_soother_kernel.gd`
 - `src/sim/stress_field_response_kernel.gd`
 - `src/sim/transit_h05_stress_response_integrated_runner.gd`
 - `tests/unit/t04_soother_kernel_test_runner.gd`
 - `tests/unit/t04_transit_integration_test_runner.gd`
 - `.github/workflows/headless-tests.yml`
+- `CORE_SYSTEMS_COVERAGE.md`
 - `IMPLEMENTATION_STATUS.md`
 
-### Validation performed / available
-- Increment 144 authoritative custom status verified **SUCCESS** before work.
-- Static phase-order review confirms T04 emits direct interaction records in Phase E, commits stress only in Phase F and lets the existing Phase-G hysteresis authority decide state transitions.
-- Static composition review confirms environmental stress is not reduced or rewritten by T04; only eligible target internal stress receives the direct social delta.
-- Static targeting review confirms capacity and distance ordering are deterministic and replayable.
-- Existing response-kernel callers remain source-compatible because new direct-delta arguments are optional.
-- The hardened workflow now includes both T04 primitive and production contract runners and will reject hidden GDScript script errors.
-- This checkpoint requires one authoritative Godot 4.7.1 headless run after the batched push.
-
-### Deliberately not changed
-- No frozen gameplay/design files.
-- No T01/T02/T03/T05–T10, support, hazard or persistence redesign.
-- No new spatial channel, random targeting or autonomous movement.
-- No 12D+ work.
-
-### Blockers / deferred known work
+### Blockers
 - **No user-action blocker.**
-- 12C remains incomplete until this increment is green and the frozen core-rule coverage inventory is reconciled.
+- 12C is not yet allowed to close because T05/T06/T07/T09 production proof gaps remain.
 
 ### Canonical contradictions
-- **NONE discovered.** T04 maps directly to the frozen capacity-limited direct-social stress-reduction grammar.
+- **NONE discovered.** No new gameplay rules were required by either T04 implementation or the exit-gate inventory.
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 145.
+Continue as one broad proof-closing batch rather than tiny increments:
 
-- If the workflow fails, inspect the first exact compile/runtime/assertion failure and make one focused repair batch.
-- If green, perform a broad 12C core-rule coverage inventory against the frozen acceptance/index authority: map T01–T10, H01–H06, S01–S06, phase ordering, simultaneous effects, persistence/reconstruction, completion and causal evidence to concrete production code + headless proof.
-- Close every material missing production/persistence/interaction gap found by that inventory before claiming the 12C exit gate.
-- Do not begin 12D, 12E or later phases until the complete 12C exit gate is satisfied and recorded.
+1. Add T05 production coverage proving living spore generation composes with H03 in Phase C, propagates exactly once through Phase D, changes checksum/evidence and replays deterministically.
+2. Add a shared-resource production contract covering T06 + T07 + S05 conservation, compatibility/capacity allocation, finite reserve and deterministic replay through `TransitPowerIntegratedRunner`.
+3. Add T09 production coverage proving its one-target resistance modifier is applied in the contamination response path, remains narrow/non-universal, checksum-visible and deterministic.
+4. Run the full hardened Godot suite; repair the first exact failure if any.
+5. If all are green, re-read `CORE_SYSTEMS_COVERAGE.md` against the frozen authority and either close 12C or record the exact final remaining gap. Do **not** start 12D until the 12C exit gate is explicitly green.
