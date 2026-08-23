@@ -46,12 +46,14 @@ Added `ContentPopulationValidator` as the first data-driven content-population b
 
 Focused validator tests cover a valid 22/6/48 frozen fixture plus rejection of a 23rd species, altered C16 prerequisites, static challenge content and the obsolete 8+2 demo split.
 
+A dedicated `Content Population Validator` workflow runs project import plus the focused validator contract under Godot 4.7.1 with the same script-error detection class as the main suite. The main headless workflow remains unchanged in this increment.
+
 ### Files changed in this broad checkpoint
 - `CORE_SYSTEMS_COVERAGE.md`
 - `IMPLEMENTATION_STATUS.md`
 - `src/content/content_population_validator.gd`
 - `tests/unit/content_population_validator_test_runner.gd`
-- `.github/workflows/headless-tests.yml` (validator contract registration)
+- `.github/workflows/content-population-validator.yml`
 
 ### Blockers / cautions
 - No user-action blocker.
@@ -62,7 +64,7 @@ Focused validator tests cover a valid 22/6/48 frozen fixture plus rejection of a
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 149.
+At the start of the next run, query current `main`, explicit `organism-cargo/godot-headless` status and the dedicated content-validator workflow result for Increment 149.
 
 - If red, inspect only the first exact validator/test compile or assertion failure and make one focused repair.
 - If green, continue 12D with a broad population batch: create canonical data-driven launch definitions for the six supports and the O01–O22 species roster (including profile/trait/body-plan references and bounded special-definition payloads), then extend the validator/registry tests to load those files rather than only synthetic fixtures.
