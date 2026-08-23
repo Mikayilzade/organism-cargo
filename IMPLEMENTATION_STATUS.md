@@ -1,6 +1,6 @@
 # ORGANISM CARGO — IMPLEMENTATION STATUS
 
-Last updated: 2026-08-23
+Last updated: 2026-08-24
 Repository: `Mikayilzade/organism-cargo`
 Branch: `main`
 
@@ -9,7 +9,7 @@ Branch: `main`
 - Canonical implementation authority: **`PHASE11_FINAL_FREEZE.md` + frozen authority chain**
 - 12A Technical Bootstrap: **COMPLETE**
 - 12B Vertical Slice: **COMPLETE**
-- 12C Core Systems: **IN PROGRESS — EXIT-GATE RECONCILIATION**
+- 12C Core Systems: **IN PROGRESS — FINAL EXIT-GATE CI PENDING**
 - 12D Content Population: **NO**
 - 12E UX / Accessibility / Controller / Deck: **NO**
 - 12F Adversarial QA: **NO**
@@ -17,65 +17,64 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 146
+## Current implementation checkpoint — Increment 147
 
 ### Phase / subsystem
-**12C Core Systems — T04 green; core-system coverage inventory completed and remaining proof gaps isolated**
+**12C Core Systems — final production-proof closure for T05/T09 plus exit-gate reconciliation**
 
-### Entry validation
-- Increment 145 implementation commit: `2ff0431c74dcf629b99405cc3268f18911387213` (`12C: implement T04 soother production path`).
-- Explicit `organism-cargo/godot-headless` status: **SUCCESS**, workflow run `32662158024`.
-- The hardened suite therefore compiled and passed both new T04 primitive and production Phase-E/F/G contracts plus all prior contracts.
+### Repository truth / entry validation
+- Start head: `d2b3090c3031e5464235ff6680d2fd8ebc8cb711` (`12C: advance after T04 and coverage inventory`).
+- Explicit `organism-cargo/godot-headless` status for that head: **SUCCESS**, workflow run `32662318366`.
+- Mandatory recovery chain re-read: `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`.
+- Exact mechanical authority re-read in `MECHANICS.md`, plus production T05/T06/T07/S05/T09 runners/kernels and their existing tests.
 
-### Increment 145 validated result
-- `T04SootherKernel` is now a deterministic Phase-E direct-social interaction with frozen stress magnitude bands, adjacency/near ranges, authored target eligibility/capacity, source-state gating and explicit sleep gating.
-- T04 does not mutate the environmental stress field and does not change internal stress during Phase E.
-- T04 direct stress deltas and environmental stress exposure aggregate before the single authoritative Phase-F clamp; existing Phase-G hysteresis then evaluates the common post-F snapshot.
-- T04-only runs use the same internal-stress response authority without inventing a new channel.
-- T04 causal assignment evidence is preserved into the Phase-F parent set and remains checksum-visible.
-- Focused production tests prove state/sleep gates, causal ancestry, H02+T04 same-tick aggregation and deterministic replay.
+### Reconciliation finding
+The Increment-146 inventory overstated three proof gaps. Repository truth already contained strong final-runner proof:
+- `t06_filter_feeder_kernel_test_runner.gd` already runs `TransitPowerIntegratedRunner` and proves Phase-D exposure, Phase-E consumption, Phase-F satiety persistence/carry-forward and deterministic replay.
+- `t07_feeding_kernel_test_runner.gd` already proves final-runner Phase-E/F feeding evidence, checksum visibility, deterministic replay and shared-pre-F T06+T07 composition/conservation.
+- `s05_feed_cartridge_kernel_test_runner.gd` already proves final-runner S05->T07 production composition, finite-reserve depletion, no replenishment, selected-consumer continuity and checksum visibility.
 
-### Increment 146 coverage inventory
-Created `CORE_SYSTEMS_COVERAGE.md` and mapped frozen 12C obligations to concrete production code and headless proof.
+Those paths are therefore reclassified GREEN rather than duplicating redundant tests.
 
-Confirmed green foundation:
-- deterministic A–I ordering and replay/checksums;
-- Phase-A Brownout authority;
-- growth legality and blocked-growth episode semantics;
-- explicit sleep gating;
-- T01/T02/T03/T04/T08/T10 production behavior;
-- S01–S06 production authority;
-- H01–H06 environmental/power authority;
-- Launch exactly-once, deterministic reconstruction, atomic persistence, Results idempotency, completion handoff, Targeted Retry and causal evidence.
+### Implemented in Increment 147
+- Added `tests/unit/core_trait_production_closure_test_runner.gd` for the two actual remaining proof gaps.
+- T05 production case proves:
+  - living T05 spores and H03 route contamination compose in the same Phase-C source snapshot;
+  - T05 resolves before H03 inside Phase C;
+  - the combined source is published through one Phase-D contamination exposure snapshot;
+  - removing T05 changes authoritative exposure/checksum;
+  - identical committed input replays identical snapshots/checksums.
+- T09 production case proves:
+  - one source protects exactly one compatible in-range target through the stable nearest/instance-id selector;
+  - equally near second compatible target remains unprotected, so the buffer is narrow/non-universal;
+  - the target intake multiplier is applied to contamination intake in Phase F rather than mutating the environment;
+  - protected vs unprotected contamination loads diverge exactly as authored;
+  - assignment/intake evidence is checksum-visible and replay deterministic.
+- Updated the hardened workflow to run the closure test and renamed T06/T07/S05 labels so their already-existing production coverage is explicit.
+- Updated `CORE_SYSTEMS_COVERAGE.md` to reflect repository truth and narrow the remaining exit work to authoritative CI validation only.
 
-Material remaining weakness is now narrow and testable rather than an unidentified implementation hole:
-- T05 production integration exists in `transit_shared_resource_runner_base.gd` but lacks a dedicated end-to-end production contract.
-- T06 production integration exists but lacks a dedicated named real-runner production contract.
-- T07/S05 finite feeding production integration exists but lacks one focused end-to-end conservation/allocation/replay contract through the final production runner.
-- T09 production integration exists in `transit_contamination_integrated_runner.gd` but lacks a dedicated production contract proving narrow targeting/modifier behavior through the final runner.
-
-### Files changed in the broad T04 + inventory batch
-- `src/sim/t04_soother_kernel.gd`
-- `src/sim/stress_field_response_kernel.gd`
-- `src/sim/transit_h05_stress_response_integrated_runner.gd`
-- `tests/unit/t04_soother_kernel_test_runner.gd`
-- `tests/unit/t04_transit_integration_test_runner.gd`
+### Files changed
+- `tests/unit/core_trait_production_closure_test_runner.gd`
 - `.github/workflows/headless-tests.yml`
 - `CORE_SYSTEMS_COVERAGE.md`
 - `IMPLEMENTATION_STATUS.md`
 
+### Validation performed / available
+- Previous authoritative head is green under the hardened Godot 4.7.1 suite.
+- Static review confirms T05 enters the existing contamination Phase-C source field before `apply_h03_phase_c`, then passes through exactly one `propagate_phase_d` publication.
+- Static review confirms T09 resolves during Phase E from the common pre-F runtime and only modifies target contamination intake multiplier consumed by the existing Phase-F response kernel.
+- Static review of existing T06/T07/S05 contracts confirms the previously requested production properties are already covered through `TransitPowerIntegratedRunner`.
+- This checkpoint now requires one authoritative hardened Godot run on the batched commit; no speculative CI-fix push is stacked in this run.
+
 ### Blockers
 - **No user-action blocker.**
-- 12C is not yet allowed to close because T05/T06/T07/T09 production proof gaps remain.
+- 12C cannot be marked COMPLETE until the new closure test and full hardened suite are explicitly green on the Increment-147 commit.
 
 ### Canonical contradictions
-- **NONE discovered.** No new gameplay rules were required by either T04 implementation or the exit-gate inventory.
+- **NONE discovered.** The proof batch follows frozen Phase-C contamination generation, Phase-D publication, Phase-E direct interaction and Phase-F intake/conservation semantics without changing gameplay.
 
 ## NEXT ACTION
-Continue as one broad proof-closing batch rather than tiny increments:
+At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 147.
 
-1. Add T05 production coverage proving living spore generation composes with H03 in Phase C, propagates exactly once through Phase D, changes checksum/evidence and replays deterministically.
-2. Add a shared-resource production contract covering T06 + T07 + S05 conservation, compatibility/capacity allocation, finite reserve and deterministic replay through `TransitPowerIntegratedRunner`.
-3. Add T09 production coverage proving its one-target resistance modifier is applied in the contamination response path, remains narrow/non-universal, checksum-visible and deterministic.
-4. Run the full hardened Godot suite; repair the first exact failure if any.
-5. If all are green, re-read `CORE_SYSTEMS_COVERAGE.md` against the frozen authority and either close 12C or record the exact final remaining gap. Do **not** start 12D until the 12C exit gate is explicitly green.
+- If CI fails, inspect the first exact compile/runtime/assertion failure and make one focused repair batch only; do not start 12D.
+- If CI is green, re-read `CORE_SYSTEMS_COVERAGE.md` once against the frozen authority. If no new gap appears, mark **12C Core Systems = COMPLETE** and record the exit-gate evidence. Only after that explicit closure may the same broad run begin **12D Content Population** from the frozen exact roster/campaign data, starting with the data schema/validator layer rather than ad-hoc content.
