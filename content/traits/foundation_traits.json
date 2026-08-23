@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-1",
+  "kind": "traits",
+  "id": "FOUNDATION_TRAITS",
+  "payload": {
+    "definitions": [
+      {"id":"T01","name":"Heat Emitter","summary":"Adds heat while active.","authoritative_phase_bound":true,"deterministic":true},
+      {"id":"T02","name":"Heat Sink","summary":"Removes heat locally up to declared capacity.","authoritative_phase_bound":true,"deterministic":true},
+      {"id":"T03","name":"Alarm Emitter","summary":"State-gated stress-field source.","authoritative_phase_bound":true,"deterministic":true},
+      {"id":"T04","name":"Soother","summary":"Capacity-limited stress reduction for eligible targets.","authoritative_phase_bound":true,"deterministic":true},
+      {"id":"T05","name":"Spore Shedder","summary":"State- or stage-gated contamination source.","authoritative_phase_bound":true,"deterministic":true},
+      {"id":"T06","name":"Filter Feeder","summary":"Consumes contamination and converts it to satiety or declared benefit under conservation rules.","authoritative_phase_bound":true,"deterministic":true},
+      {"id":"T07","name":"Grazer","summary":"Deterministic compatible feeding relation.","authoritative_phase_bound":true,"deterministic":true},
+      {"id":"T08","name":"Growth Trigger","summary":"Qualifying condition across declared ticks queues the next declared footprint stage.","authoritative_phase_bound":true,"deterministic":true},
+      {"id":"T09","name":"Symbiotic Buffer","summary":"Narrow conditional capacity-limited resistance or mitigation for compatible targets.","authoritative_phase_bound":true,"deterministic":true},
+      {"id":"T10","name":"Reactive Pulse","summary":"Bounded event on a named transition or state boundary with a finite trigger policy.","authoritative_phase_bound":true,"deterministic":true}
+    ],
+    "global_rules": {
+      "normal_species_significant_trait_min": 1,
+      "normal_species_significant_trait_max": 3,
+      "reactive_pulse_guards": ["once_per_run","once_per_episode","max_triggers_per_run"],
+      "authoritative_randomness": false,
+      "autonomous_movement": false
+    }
+  }
+}

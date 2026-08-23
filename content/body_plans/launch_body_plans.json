@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-1",
+  "kind": "body_plans",
+  "id": "LAUNCH_BODY_PLANS",
+  "payload": {
+    "definitions": [
+      {"id":"B01","name":"Dot","grammar":"single-cell footprint"},
+      {"id":"B02","name":"Domino","grammar":"two-cell orthogonal footprint"},
+      {"id":"B03","name":"Corner","grammar":"orthogonal corner footprint"},
+      {"id":"B04","name":"Bar","grammar":"straight orthogonal footprint"}
+    ]
+  }
+}
