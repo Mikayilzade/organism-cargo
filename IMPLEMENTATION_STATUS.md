@@ -17,10 +17,10 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 128
+## Current implementation checkpoint — Increment 129
 
 ### Phase / subsystem
-**12C Core Systems — restore T10 next-tick consumer reconsumption after one-boundary carry correction**
+**12C Core Systems — T10 internal FOOD_PULSE / CONTAMINATION_CLEANSE next-tick consumer reconsumption**
 
 ### Repository truth read before work
 This run re-read the mandatory recovery chain:
@@ -30,39 +30,46 @@ This run re-read the mandatory recovery chain:
 - `DESIGN_STATUS.md`
 - `PHASE11_FINAL_FREEZE.md`
 
-For the exact failing subsystem it also re-read `GAME_BIBLE.md`, `MECHANICS.md`, the current T10 effect/carry, stress/heat/contamination/T09 reconsumption layers, dormant-contamination authority layer, and the latest authoritative CI failure.
+For the exact T10 internal-effect subsystem it also re-read the relevant frozen authority in `GAME_BIBLE.md` and `MECHANICS.md`, plus the current T10 effect/carry/reconsumption layers, T06/T07 shared-satiety kernels, S05 finite-food wrapper, contamination Phase-E/F/G kernel and T09 contamination reconsumption path.
 
-Frozen requirements remain unchanged: T10 resolves as a finite Phase-H pulse; a carried delta may affect the next tick exactly once; the next-tick authoritative consumers must recompute their Phase-E/F/G consequences and retain explicit causal ancestry; deterministic A–I ordering and existing T09/contamination semantics remain unchanged.
+Frozen requirements remain unchanged: T10 is a finite Phase-H consequence with explicit guard semantics; a Phase-H internal-state effect becomes authoritative state for the following tick, and next-tick Phase-E/F/G consumers must observe that corrected state without recursive same-tick triggering. Deterministic A–I ordering, finite resource conservation, hysteresis and explicit causal ancestry remain mandatory.
 
 ### Entry validation
-- Repository `main` at start: `928df446b8af2b0357f10fc85f6ddb12bcc0adbb` (`12C: consume T10 carry exactly once`).
-- Explicit `organism-cargo/godot-headless` status for Increment 127: **FAILURE**, workflow run `32636689460`.
-- The notification-safe Actions job itself concluded successfully while publishing the authoritative custom failure status.
-- Import and all contracts through `t10_effect_application_test_runner.gd` were green.
-- The first failing contract was `t10_reconsumption_test_runner.gd`, with stress, Heat and Contamination/T09 next-tick exposures unchanged and the expected reconsumption ancestry/evidence absent.
-- Root cause: Increment 127 correctly replaced the inherited effect-application loop to reset consumed carry, but that override returned immediately after effect application and therefore bypassed the inherited reconsumption chain (`stress -> heat -> contamination/T09`). Calling `super.integrate_effects()` would restore those consumers but would also reintroduce the stale-carry bug.
+- Repository `main` at start: `215c99370cfa97866d55c1fcea2a2f02f18009e4` (`12C: restore T10 reconsumption after one-shot carry`).
+- Explicit `organism-cargo/godot-headless` status for Increment 128: **SUCCESS**, workflow run `32639623500`.
+- Therefore the one-boundary carry lifetime and established Stress/Heat/Contamination/T09 reconsumption passes are green together.
+- Repository inspection confirmed the remaining internal-effect gap: `FOOD_PULSE` and `CONTAMINATION_CLEANSE` were applied to end-of-tick runtime and carried into the following snapshot, but the already-resolved next-tick consumers still reflected the no-T10 base trajectory.
+- For `FOOD_PULSE`, this is materially observable in Phase-E food headroom/allocation: applying satiety after T07 can consume a food unit that should never have been allocated when the carried pulse already filled the consumer.
+- For `CONTAMINATION_CLEANSE`, applying the load delta after Phase-G leaves contaminated hysteresis/state transitions based on the stale pre-cleanse load.
 
-### Implemented in Increment 128
-- Kept the corrected one-boundary carry loop unchanged: incoming carry is applied once, then current-tick records start from a fresh empty carry.
-- After the corrected effect application pass, explicitly invokes the already-validated inherited reconsumption helpers in their original composition order: Stress-field, then Heat/thermal response, then Contamination/T09.
-- Preserved virtual dispatch for the Contamination/T09 override so T09 intake modifiers are still recomputed by the established canonical path.
-- Did not call the inherited `integrate_effects()` implementation, avoiding a second effect-application pass and avoiding resurrection of the stale-carry lifetime bug.
-- No T10 magnitude, targeting, trigger guard, channel bounds, stress/thermal/contamination formulas, T09 behavior, phase ordering or causal schema was redesigned.
+### Implemented in Increment 129
+- Added a production internal-reconsumption composition layer above the validated one-boundary T10 chain.
+- `FOOD_PULSE` now seeds the following tick's feeding authority from the corrected previous end-of-tick satiety, then re-resolves T06/T07 Phase-E/F consumption and shared satiety before the current tick's new Phase-H effects are applied.
+- The FOOD replay uses deterministic producer/consumer kernels rather than editing final satiety only; therefore changed satiety headroom can change actual food allocation/source consumption. Authored T07 producers and S05 finite-reserve producers are reconstructed through their existing definitions/state authority.
+- FOOD reconsumption preserves the current tick's non-satiety runtime state, rewrites T06/T07/shared-satiety evidence and allocation snapshots, and records explicit `T10_INTERNAL_EFFECT_RECONSUMED` ancestry back to the preceding `T10_EFFECT_APPLIED` event.
+- `CONTAMINATION_CLEANSE` now seeds the following tick's contamination load/contaminated state from the corrected previous end-of-tick runtime, then re-resolves T09 modifiers plus contamination Phase-E sampling, Phase-F intake and Phase-G hysteresis before applying any current-tick Phase-H cleanse.
+- Cleanse-dependent Phase-F intake evidence receives the explicit reconsumption event as an additional causal parent; Phase-G transitions remain children of the recomputed Phase-F event.
+- Current-tick internal Phase-H application is regenerated after the consumer replay so `value_before`, `value_after`, `applied_delta` and one-boundary internal carry reflect the corrected trajectory rather than stale base-state values.
+- Aggregate runtime/effect/T06/T07/contamination evidence is rebuilt from rewritten snapshots, and the internal reconsumption evidence participates in deterministic tick checksums.
+- No T10 magnitude, guard, trigger source, target semantics, T06/T07 allocation rules, S05 reserve rules, contamination/T09 formulas, hysteresis thresholds or phase ordering was changed.
 
 ### Files changed
-- `src/sim/transit_t10_once_carry_integrated_runner.gd` — restores the established stress/heat/contamination reconsumption chain after the corrected one-boundary effect/carry pass.
-- `IMPLEMENTATION_STATUS.md` — Increment-128 failure analysis, repair record and exact continuation instruction.
+- `src/sim/transit_t10_internal_reconsumption_integrated_runner.gd` — new internal-state next-tick consumer replay/composition layer for FOOD and CLEANSE.
+- `src/sim/transit_power_integrated_runner.gd` — production runner now composes through the internal-reconsumption layer.
+- `tests/unit/t10_internal_reconsumption_test_runner.gd` — deterministic production regressions for FOOD headroom/allocation and CLEANSE Phase-G state consumption/ancestry.
+- `.github/workflows/headless-tests.yml` — adds the focused internal-reconsumption regression to the existing notification-safe suite.
+- `IMPLEMENTATION_STATUS.md` — this checkpoint and exact continuation instruction.
 
 ### Validation performed / available
-- Workflow run `32636689460` was inspected at job/log level and isolated the regression to the first reconsumption contract; every preceding contract was green.
-- Static inheritance/composition inspection confirmed that the pre-Increment-127 postpass order is `stress -> heat -> contamination`, with the most-derived Contamination/T09 `_reconsume_contamination_tick` override remaining the authoritative implementation.
-- The repair reuses those existing tested postpasses rather than duplicating formulas or adding a parallel gameplay path.
-- Local Godot execution is not available in the connector runtime; the single notification-safe GitHub headless workflow triggered by this checkpoint is the authoritative post-push validation.
-- Per anti-spam policy this run makes one focused checkpoint only. Any remaining CI issue is intentionally deferred to the next run's exact failure boundary.
+- Increment 128 authoritative headless CI was confirmed green before implementation.
+- Static authority tracing confirmed that T07 and T06 both consume satiety headroom in Phase E, so a post-hoc FOOD snapshot edit would violate allocation/resource semantics.
+- Static contamination tracing confirmed that `CONTAMINATION_CLEANSE` must be present before the next tick's Phase-F intake / Phase-G hysteresis evaluation rather than applied afterward.
+- The new focused production regression requires deterministic replay; verifies that a tick-1 FOOD pulse can eliminate a tick-2 T07 allocation that exists in the no-T10 baseline; verifies corrected satiety and direct application ancestry; and verifies that a tick-1 cleanse drives the tick-2 canonical `CONTAMINATED_EXIT` transition with Phase-F ancestry.
+- Local Godot execution is not available in the connector runtime. The single notification-safe GitHub headless workflow triggered by this checkpoint is the authoritative post-push compile/runtime validation.
+- Per anti-spam policy this run creates one coherent checkpoint only. If CI exposes a compile/assertion problem, the exact first failure is deferred to the next run rather than generating speculative follow-up pushes now.
 
 ### Deliberately not changed
 - No canonical gameplay/design files.
-- No `FOOD_PULSE` or `CONTAMINATION_CLEANSE` next-tick consumer implementation yet.
 - No H06 Zone Isolation implementation yet.
 - No workflow notification behavior changes.
 - No 12D or later-phase work.
@@ -70,19 +77,17 @@ Frozen requirements remain unchanged: T10 resolves as a finite Phase-H pulse; a 
 ### Blockers / deferred known work
 - **No user-action blocker.**
 - 12C remains incomplete.
-- Increment 128 must be validated by the existing headless workflow.
-- After both reconsumption and one-boundary carry lifetime are green together, T10 still needs canonical `FOOD_PULSE` and `CONTAMINATION_CLEANSE` next-tick consumer semantics with deterministic replay and ancestry coverage.
+- Increment 129 requires authoritative headless validation before T10 can be marked closed.
 - H06 Zone Isolation remains the next separate missing 12C hazard subsystem after T10 closes.
 
 ### Canonical contradictions
-- **NONE discovered.** This repair restores already-authored consumer composition while retaining the frozen finite-carry rule.
+- **NONE discovered.** The change makes existing frozen next-tick consumers observe already-authored finite Phase-H internal effects; it does not add a new gameplay rule.
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 128.
+At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 129.
 
-- If the workflow fails before or at `t10_reconsumption_test_runner.gd` or `t10_once_carry_test_runner.gd`, inspect the first exact compile/runtime/assertion failure and make one focused repair batch only.
-- If the complete workflow is green, implement canonical next-tick consumer handling for `FOOD_PULSE` and `CONTAMINATION_CLEANSE`, preserving finite trigger guards, deterministic replay, Phase-H-to-next-tick timing and causal ancestry.
-- When both internal T10 effect kinds are green together with channel pulses, reconsumption and carry lifetime, mark T10 core semantics closed in status.
-- Then implement H06 Zone Isolation as the next clearest missing 12C hazard obligation.
+- If the workflow fails before or at `t10_internal_reconsumption_test_runner.gd`, inspect the first exact compile/runtime/assertion failure and make one focused repair batch only. Preserve the one-boundary carry and already-green channel reconsumption contracts.
+- If the complete workflow is green, mark T10 core semantics closed in status after confirming the internal FOOD/CLEANSE regression, channel-pulse reconsumption and carry-lifetime regressions are green together.
+- Then read the H06 authority chain and implement H06 Zone Isolation as the next clearest missing 12C hazard obligation.
 
 Do not begin 12D, 12E or later phases until the full 12C exit gate is satisfied and recorded.
