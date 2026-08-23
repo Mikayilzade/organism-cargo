@@ -125,7 +125,7 @@ func _valid_population() -> Dictionary:
 		var prerequisites_value: Variant = ContentPopulationValidatorScript.CAMPAIGN_PREREQUISITES[contract_id]
 		var prerequisites: Array = []
 		if prerequisites_value is Array:
-			prerequisites = prerequisites_value.duplicate()
+			prerequisites = (prerequisites_value as Array).duplicate()
 		campaign.append({"id":contract_id,"prerequisites":prerequisites,"has_dynamic_post_launch_change":number >= 5})
 	var challenges: Array = [
 		{"id":"G01","certified_bronze_solution":true,"dynamic_significance":true,"static_t0_solution_only":false},
