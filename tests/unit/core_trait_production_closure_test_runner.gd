@@ -31,8 +31,10 @@ func _test_t05_production_composes_with_h03_once_and_replays() -> void:
 	var events: Array = snapshot["phase_c_environment_events"]
 	_expect_equal(events.size(), 2, "T05 plus H03 emit exactly two Phase-C source events")
 	if events.size() == 2:
-		_expect_equal(String(events[0].get("kind", "")), "T05_SPORE_SOURCE", "living T05 source resolves before H03 route source")
-		_expect_equal(String(events[1].get("kind", "")), "H03_CONTAMINATION_SOURCE", "H03 source follows T05 in the same Phase-C source snapshot")
+		var first_event: Dictionary = events[0]
+		var second_event: Dictionary = events[1]
+		_expect_equal(String(first_event.get("kind", "")), "T05_SPORE_SOURCE", "living T05 source resolves before H03 route source")
+		_expect_equal(String(second_event.get("kind", "")), "H03_CONTAMINATION_SOURCE", "H03 source follows T05 in the same Phase-C source snapshot")
 	_expect_true(String(first["tick_checksums"][0]) != String(baseline["tick_checksums"][0]), "T05 production contribution is checksum-visible")
 
 func _test_t09_production_applies_one_target_modifier_and_replays() -> void:
@@ -58,8 +60,9 @@ func _test_t09_production_applies_one_target_modifier_and_replays() -> void:
 	var t09_events: Array = snapshot["t09_buffer_events"]
 	_expect_equal(t09_events.size(), 1, "production snapshot exposes one T09 assignment event")
 	if t09_events.size() == 1:
-		_expect_equal(String(t09_events[0].get("phase", "")), "E", "T09 assignment remains a Phase-E direct interaction")
-		_expect_equal(String(t09_events[0].get("target_instance_id", "")), "target-a", "T09 evidence names the protected target")
+		var t09_event: Dictionary = t09_events[0]
+		_expect_equal(String(t09_event.get("phase", "")), "E", "T09 assignment remains a Phase-E direct interaction")
+		_expect_equal(String(t09_event.get("target_instance_id", "")), "target-a", "T09 evidence names the protected target")
 	var found_augmented_intake: bool = false
 	for raw_event: Variant in snapshot["contamination_response_events"]:
 		if raw_event is Dictionary:
