@@ -2,19 +2,19 @@ class_name ContentPopulationValidator
 extends RefCounted
 
 const SPECIES_MAX: int = 22
-const SUPPORT_IDS := PackedStringArray(["S01", "S02", "S03", "S04", "S05", "S06"])
-const DEMO_SUPPORT_IDS := PackedStringArray(["S01", "S02", "S03", "S05"])
-const TRAIT_IDS := PackedStringArray(["T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08", "T09", "T10"])
-const STRESS_PROFILES := PackedStringArray(["Hardy", "Standard", "Sensitive"])
-const CONTAMINATION_PROFILES := PackedStringArray(["Resistant", "Standard", "Vulnerable"])
-const CAMPAIGN_IDS := PackedStringArray([
+const SUPPORT_IDS := ["S01", "S02", "S03", "S04", "S05", "S06"]
+const DEMO_SUPPORT_IDS := ["S01", "S02", "S03", "S05"]
+const TRAIT_IDS := ["T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08", "T09", "T10"]
+const STRESS_PROFILES := ["Hardy", "Standard", "Sensitive"]
+const CONTAMINATION_PROFILES := ["Resistant", "Standard", "Vulnerable"]
+const CAMPAIGN_IDS := [
 	"C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08",
 	"C09", "C10", "C11", "C12", "C13", "C14", "C15", "C16",
 	"C17", "C18", "C19", "C20", "C21", "C22", "C23", "C24",
 	"C25", "C26", "C27", "C28", "C29", "C30", "C31", "C32",
 	"C33", "C34", "C35", "C36", "C37", "C38", "C39", "C40",
 	"C41", "C42", "C43", "C44", "C45", "C46", "C47", "C48",
-])
+]
 const CAMPAIGN_PREREQUISITES := {
 	"C01": [], "C02": ["C01"], "C03": ["C01"], "C04": ["C02"],
 	"C05": ["C03"], "C06": ["C04"], "C07": ["C05", "C06"], "C08": ["C07"],
@@ -304,7 +304,7 @@ func _validate_demo(value: Variant) -> Dictionary:
 	if not bool(supports_result.get("ok", false)):
 		return supports_result
 	var support_ids: PackedStringArray = supports_result["values"]
-	var expected_support_ids: PackedStringArray = DEMO_SUPPORT_IDS.duplicate()
+	var expected_support_ids: PackedStringArray = PackedStringArray(DEMO_SUPPORT_IDS)
 	expected_support_ids.sort()
 	if support_ids != expected_support_ids:
 		return _failure("demo_support_set_mismatch")
