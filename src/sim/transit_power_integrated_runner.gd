@@ -1,1 +1,1 @@
-extends "res://src/sim/transit_t10_reconsumption_integrated_runner.gd"
+extends "res://src/sim/transit_t10_environment_reconsumption_integrated_runner.gd"
