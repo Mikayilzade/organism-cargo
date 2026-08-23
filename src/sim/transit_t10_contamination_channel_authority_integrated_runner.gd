@@ -37,11 +37,12 @@ func _ensure_dormant_contamination_authority(base_result: Dictionary, simulation
 		return _failure("invalid_t10_contamination_authority_snapshot")
 	var first: Dictionary = first_value as Dictionary
 	var existing_field_value: Variant = first.get("phase_d_contamination_exposure_by_cell", null)
-	var existing_response_value: Variant = first.get("contamination_response_events", null)
+	# This normalization owns only the truly dormant channel case. If the inherited
+	# production path already published a Phase-D contamination field, preserve that
+	# path byte-for-byte even when a narrower test/consumer does not request organism
+	# contamination-response evidence.
 	if existing_field_value is Dictionary and not (existing_field_value as Dictionary).is_empty():
-		if existing_response_value is Array:
-			return base_result
-		return _failure("incomplete_existing_contamination_authority")
+		return base_result
 
 	var hold_value: Variant = simulation_defs.get("hold_definition", null)
 	var definitions_value: Variant = simulation_defs.get("organism_definitions", null)
