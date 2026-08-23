@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 jobs:
   content-validator:
@@ -27,24 +28,45 @@ jobs:
           unzip -q /tmp/godot.zip -d /tmp/godot
           chmod +x /tmp/godot/Godot_v4.7.1-stable_linux.x86_64
 
-      - name: Import and validate frozen content population contract
+      - name: Import and validate frozen content population contracts
         shell: bash
         run: |
           set -euo pipefail
           GODOT=/tmp/godot/Godot_v4.7.1-stable_linux.x86_64
-          log_file="$(mktemp)"
-          set +e
-          ${GODOT} --headless --editor --path . --quit 2>&1 | tee "${log_file}"
-          import_rc=${PIPESTATUS[0]}
-          set -e
-          if [ ${import_rc} -ne 0 ] || grep -Eq 'SCRIPT ERROR:|Failed to load script' "${log_file}"; then
-            exit 1
-          fi
-          : > "${log_file}"
-          set +e
-          ${GODOT} --headless --path . --script tests/unit/content_population_validator_test_runner.gd 2>&1 | tee "${log_file}"
-          test_rc=${PIPESTATUS[0]}
-          set -e
-          if [ ${test_rc} -ne 0 ] || grep -Eq 'SCRIPT ERROR:|Failed to load script' "${log_file}"; then
-            exit 1
-          fi
+
+          run_case() {
+            local label="$1"
+            shift
+            local log_file
+            log_file="$(mktemp)"
+            echo "::group::${label}"
+            set +e
+            ${GODOT} "$@" 2>&1 | tee "${log_file}"
+            rc=${PIPESTATUS[0]}
+            set -e
+            echo "::endgroup::"
+            if [ ${rc} -ne 0 ] || grep -Eq 'SCRIPT ERROR:|Failed to load script' "${log_file}"; then
+              rm -f "${log_file}"
+              exit 1
+            fi
+            rm -f "${log_file}"
+          }
+
+          run_case "Import and parse project" --headless --editor --path . --quit
+          run_case "Frozen synthetic content population validator" --headless --path . --script tests/unit/content_population_validator_test_runner.gd
+          run_case "Real O01-O22 and S01-S06 launch roster" --headless --path . --script tests/unit/launch_roster_content_test_runner.gd
+
+      - name: Publish observable content-population status
+        if: always()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATUS_STATE: ${{ job.status == 'success' && 'success' || 'failure' }}
+        run: |
+          set -euo pipefail
+          curl -fsS -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            -d "{\"state\":\"${STATUS_STATE}\",\"context\":\"organism-cargo/content-population\",\"description\":\"Frozen content population contracts\",\"target_url\":\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"

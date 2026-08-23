@@ -5,6 +5,8 @@ const SPECIES_MAX: int = 22
 const SUPPORT_IDS := PackedStringArray(["S01", "S02", "S03", "S04", "S05", "S06"])
 const DEMO_SUPPORT_IDS := PackedStringArray(["S01", "S02", "S03", "S05"])
 const TRAIT_IDS := PackedStringArray(["T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08", "T09", "T10"])
+const STRESS_PROFILES := PackedStringArray(["Hardy", "Standard", "Sensitive"])
+const CONTAMINATION_PROFILES := PackedStringArray(["Resistant", "Standard", "Vulnerable"])
 const CAMPAIGN_IDS := PackedStringArray([
 	"C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08",
 	"C09", "C10", "C11", "C12", "C13", "C14", "C15", "C16",
@@ -26,6 +28,30 @@ const CAMPAIGN_PREREQUISITES := {
 	"C37": ["C36"], "C38": ["C35", "C37"], "C39": ["C38"], "C40": ["C39"],
 	"C41": ["C40"], "C42": ["C40"], "C43": ["C41", "C42"], "C44": ["C43"],
 	"C45": ["C43"], "C46": ["C44", "C45"], "C47": ["C46"], "C48": ["C47"],
+}
+const SPECIES_CANON := {
+	"O01": {"body_plan_id": "B01", "trait_ids": ["T01", "T03"], "stress_profile": "Standard", "contamination_profile": "Standard"},
+	"O02": {"body_plan_id": "B01", "trait_ids": ["T04"], "stress_profile": "Sensitive", "contamination_profile": "Standard"},
+	"O03": {"body_plan_id": "B01", "trait_ids": ["T06", "T08"], "stress_profile": "Standard", "contamination_profile": "Resistant"},
+	"O04": {"body_plan_id": "B01", "trait_ids": ["T05", "T10"], "stress_profile": "Hardy", "contamination_profile": "Standard"},
+	"O05": {"body_plan_id": "B02", "trait_ids": ["T01", "T09"], "stress_profile": "Hardy", "contamination_profile": "Resistant"},
+	"O06": {"body_plan_id": "B01", "trait_ids": ["T04", "T07"], "stress_profile": "Sensitive", "contamination_profile": "Resistant"},
+	"O07": {"body_plan_id": "B01", "trait_ids": ["T03", "T10"], "stress_profile": "Sensitive", "contamination_profile": "Standard"},
+	"O08": {"body_plan_id": "B01", "trait_ids": ["T07", "T08"], "stress_profile": "Sensitive", "contamination_profile": "Vulnerable"},
+	"O09": {"body_plan_id": "B02", "trait_ids": ["T02", "T06", "T10"], "stress_profile": "Hardy", "contamination_profile": "Resistant"},
+	"O10": {"body_plan_id": "B01", "trait_ids": ["T02"], "stress_profile": "Sensitive", "contamination_profile": "Standard"},
+	"O11": {"body_plan_id": "B04", "trait_ids": ["T03"], "stress_profile": "Standard", "contamination_profile": "Resistant"},
+	"O12": {"body_plan_id": "B02", "trait_ids": ["T04", "T09"], "stress_profile": "Standard", "contamination_profile": "Standard"},
+	"O13": {"body_plan_id": "B02", "trait_ids": ["T01", "T08"], "stress_profile": "Hardy", "contamination_profile": "Resistant"},
+	"O14": {"body_plan_id": "B01", "trait_ids": ["T06"], "stress_profile": "Standard", "contamination_profile": "Resistant"},
+	"O15": {"body_plan_id": "B01", "trait_ids": ["T10"], "stress_profile": "Sensitive", "contamination_profile": "Standard"},
+	"O16": {"body_plan_id": "B03", "trait_ids": ["T04"], "stress_profile": "Sensitive", "contamination_profile": "Vulnerable"},
+	"O17": {"body_plan_id": "B01", "trait_ids": ["T02", "T03"], "stress_profile": "Hardy", "contamination_profile": "Resistant"},
+	"O18": {"body_plan_id": "B01", "trait_ids": ["T05", "T08"], "stress_profile": "Standard", "contamination_profile": "Standard"},
+	"O19": {"body_plan_id": "B01", "trait_ids": ["T07", "T09"], "stress_profile": "Standard", "contamination_profile": "Resistant"},
+	"O20": {"body_plan_id": "B03", "trait_ids": ["T03", "T09"], "stress_profile": "Hardy", "contamination_profile": "Standard"},
+	"O21": {"body_plan_id": "B02", "trait_ids": ["T10"], "stress_profile": "Standard", "contamination_profile": "Vulnerable"},
+	"O22": {"body_plan_id": "B02", "trait_ids": ["T06", "T08", "T03"], "stress_profile": "Sensitive", "contamination_profile": "Standard"},
 }
 
 func validate_launch_population(population: Dictionary) -> Dictionary:
@@ -58,6 +84,31 @@ func validate_launch_population(population: Dictionary) -> Dictionary:
 		"challenge_count": int(challenge_result["count"]),
 	}
 
+func validate_species_support_roster(species: Array, supports: Array) -> Dictionary:
+	var species_result: Dictionary = _validate_species(species)
+	if not bool(species_result.get("ok", false)):
+		return species_result
+	if int(species_result.get("count", 0)) != SPECIES_MAX:
+		return _failure("incomplete_authored_species_roster:%d" % int(species_result.get("count", 0)))
+	var seen_species_value: Variant = species_result.get("seen", {})
+	if not seen_species_value is Dictionary:
+		return _failure("invalid_species_validation_state")
+	var seen_species: Dictionary = seen_species_value
+	for raw_species_id: Variant in SPECIES_CANON.keys():
+		var species_id: String = String(raw_species_id)
+		if not seen_species.has(species_id):
+			return _failure("missing_authored_species:%s" % species_id)
+
+	var support_result: Dictionary = _validate_supports(supports)
+	if not bool(support_result.get("ok", false)):
+		return support_result
+	return {
+		"ok": true,
+		"error": "",
+		"species_count": int(species_result["count"]),
+		"support_count": int(support_result["count"]),
+	}
+
 func _validate_species(value: Variant) -> Dictionary:
 	if not value is Array:
 		return _failure("invalid_species_population")
@@ -72,11 +123,14 @@ func _validate_species(value: Variant) -> Dictionary:
 		var species_id: String = String(definition.get("id", ""))
 		if not _valid_numbered_id(species_id, "O", 1, SPECIES_MAX) or seen.has(species_id):
 			return _failure("invalid_species_id:%s" % species_id)
+		if not SPECIES_CANON.has(species_id):
+			return _failure("unknown_species_id:%s" % species_id)
 		seen[species_id] = true
-		var body_plan: String = String(definition.get("body_plan", ""))
+
+		var body_plan: String = String(definition.get("body_plan_id", definition.get("body_plan", "")))
 		if body_plan not in ["B01", "B02", "B03", "B04"]:
 			return _failure("invalid_species_body_plan:%s" % species_id)
-		var traits_value: Variant = definition.get("traits", null)
+		var traits_value: Variant = definition.get("trait_ids", definition.get("traits", null))
 		if not (traits_value is Array or traits_value is PackedStringArray):
 			return _failure("invalid_species_traits:%s" % species_id)
 		var traits: PackedStringArray = PackedStringArray()
@@ -87,9 +141,56 @@ func _validate_species(value: Variant) -> Dictionary:
 			traits.append(trait_id)
 		if traits.is_empty() or traits.size() > 3:
 			return _failure("invalid_species_trait_count:%s" % species_id)
-		if not definition.has("stress_profile") or not definition.has("contamination_profile"):
-			return _failure("missing_species_profiles:%s" % species_id)
-	return {"ok": true, "error": "", "count": species.size()}
+
+		var stress_profile: String = String(definition.get("stress_profile", ""))
+		var contamination_profile: String = String(definition.get("contamination_profile", ""))
+		if stress_profile not in STRESS_PROFILES or contamination_profile not in CONTAMINATION_PROFILES:
+			return _failure("invalid_species_profiles:%s" % species_id)
+		var name: String = String(definition.get("name", ""))
+		if name.strip_edges().is_empty():
+			return _failure("missing_species_name:%s" % species_id)
+		var tier_min: int = int(definition.get("tier_min", 0))
+		var tier_max: int = int(definition.get("tier_max", 0))
+		if tier_min < 1 or tier_max > 6 or tier_min > tier_max:
+			return _failure("invalid_species_tier_band:%s" % species_id)
+		var readability: String = String(definition.get("readability", ""))
+		if readability.strip_edges().is_empty():
+			return _failure("missing_species_readability:%s" % species_id)
+		var special_value: Variant = definition.get("special", {})
+		if not special_value is Dictionary:
+			return _failure("invalid_species_special:%s" % species_id)
+		var special: Dictionary = special_value
+
+		var canon_value: Variant = SPECIES_CANON[species_id]
+		if not canon_value is Dictionary:
+			return _failure("invalid_species_canon:%s" % species_id)
+		var canon: Dictionary = canon_value
+		if body_plan != String(canon["body_plan_id"]):
+			return _failure("species_body_plan_mismatch:%s" % species_id)
+		var expected_traits_value: Variant = canon.get("trait_ids", [])
+		var expected_traits: PackedStringArray = PackedStringArray()
+		if expected_traits_value is Array or expected_traits_value is PackedStringArray:
+			for raw_expected_trait: Variant in expected_traits_value:
+				expected_traits.append(String(raw_expected_trait))
+		if traits != expected_traits:
+			return _failure("species_trait_mismatch:%s" % species_id)
+		if stress_profile != String(canon["stress_profile"]) or contamination_profile != String(canon["contamination_profile"]):
+			return _failure("species_profile_mismatch:%s" % species_id)
+
+		if "T10" in traits:
+			var bounded_value: Variant = special.get("bounded_t10", null)
+			if not bounded_value is Dictionary or not bool((bounded_value as Dictionary).get("finite_guard_required", false)):
+				return _failure("missing_bounded_t10_contract:%s" % species_id)
+		if "T08" in traits:
+			var growth_value: Variant = special.get("growth", null)
+			if not growth_value is Dictionary:
+				return _failure("missing_growth_contract:%s" % species_id)
+
+		if species_id == "O21":
+			var o21_t10_value: Variant = special.get("bounded_t10", null)
+			if not o21_t10_value is Dictionary or String((o21_t10_value as Dictionary).get("guard", "")) != "once_per_episode":
+				return _failure("o21_wake_guard_mismatch")
+	return {"ok": true, "error": "", "count": species.size(), "seen": seen}
 
 func _validate_supports(value: Variant) -> Dictionary:
 	if not value is Array:
@@ -108,6 +209,21 @@ func _validate_supports(value: Variant) -> Dictionary:
 		seen[support_id] = true
 		if String(support.get("family", "")) != support_id:
 			return _failure("invalid_support_family:%s" % support_id)
+		var name: String = String(support.get("name", ""))
+		if name.strip_edges().is_empty():
+			return _failure("missing_support_name:%s" % support_id)
+		var semantics_value: Variant = support.get("semantics", null)
+		if not semantics_value is Dictionary:
+			return _failure("missing_support_semantics:%s" % support_id)
+		if support_id == "S04" and int((semantics_value as Dictionary).get("target_capacity", 0)) != 1:
+			return _failure("s04_capacity_mismatch")
+		if support_id == "S05" and not bool((semantics_value as Dictionary).get("finite_conserved_reserve", false)):
+			return _failure("s05_reserve_not_conserved")
+		if support_id == "S06":
+			if not bool(support.get("information_only", false)):
+				return _failure("s06_not_information_only")
+			if bool((semantics_value as Dictionary).get("direct_mitigation", true)):
+				return _failure("s06_direct_mitigation_forbidden")
 	for support_id: String in SUPPORT_IDS:
 		if not seen.has(support_id):
 			return _failure("missing_support:%s" % support_id)
@@ -131,7 +247,10 @@ func _validate_campaign(value: Variant) -> Dictionary:
 	for contract_id: String in CAMPAIGN_IDS:
 		if not by_id.has(contract_id):
 			return _failure("missing_campaign_contract:%s" % contract_id)
-		var contract: Dictionary = by_id[contract_id]
+		var contract_value: Variant = by_id[contract_id]
+		if not contract_value is Dictionary:
+			return _failure("invalid_campaign_contract:%s" % contract_id)
+		var contract: Dictionary = contract_value
 		var prerequisites_result: Dictionary = _normalized_string_array(contract.get("prerequisites", []), "campaign_prerequisites:%s" % contract_id)
 		if not bool(prerequisites_result.get("ok", false)):
 			return prerequisites_result

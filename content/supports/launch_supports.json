@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-1",
+  "kind": "supports",
+  "id": "LAUNCH_SUPPORTS",
+  "payload": {
+    "definitions": [
+      {"id":"S01","name":"Cooler","family":"S01","phase":"C","requires_power":true,"information_only":false,"semantics":{"channel":"heat","effect":"local_removal_up_to_capacity","fixture_cost":true,"brownout_exposed":true}},
+      {"id":"S02","name":"Filter","family":"S02","phase":"C","requires_power":true,"information_only":false,"semantics":{"channel":"contamination","effect":"local_removal_up_to_capacity","direct_organism_load_removal":false,"fixture_cost":true}},
+      {"id":"S03","name":"Baffle","family":"S03","phase":"D","requires_power":false,"information_only":false,"semantics":{"effect":"boundary_transmission_modifier","stress_transmission":true,"directed_relation_blocking":true,"may_block_beneficial_relations":true,"spatial_opportunity_cost":true}},
+      {"id":"S04","name":"Nest Pad","family":"S04","phase":"B","requires_power":false,"information_only":false,"semantics":{"effect":"sleep_recovery_support","target_capacity":1,"sleep_uses_explicit_trait_gates_only":true}},
+      {"id":"S05","name":"Feed Cartridge","family":"S05","phase":"E","requires_power":false,"information_only":false,"semantics":{"effect":"finite_food_source","finite_conserved_reserve":true,"occupies_declared_cell_or_fixture":true,"may_accelerate_growth":true}},
+      {"id":"S06","name":"Monitor Beacon","family":"S06","phase":"E","requires_power":false,"information_only":true,"semantics":{"effect":"information_only","direct_mitigation":false,"required_for_discovery_bronze":false,"solver_or_recommendation_engine":false}}
+    ]
+  }
+}
