@@ -17,10 +17,10 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 141
+## Current implementation checkpoint — Increment 142
 
 ### Phase / subsystem
-**12C Core Systems — bind T02 Heat Sink into production Phase-C transit composition**
+**12C Core Systems — focused repair of T02 production integration contract**
 
 ### Repository truth read before work
 Mandatory recovery chain re-read:
@@ -30,54 +30,49 @@ Mandatory recovery chain re-read:
 - `DESIGN_STATUS.md`
 - `PHASE11_FINAL_FREEZE.md`
 
-Exact subsystem authority additionally checked in `MECHANICS.md`, `CONTENT_ARCHITECTURE.md`, the green T02 primitive, current T01/H05 shared production runner and existing T01 production integration coverage.
-
 ### Entry validation
-- Repository `main` at start: `3c876e54ec593db7aaaa6ca8fb8d92b80b1077ce` (`12C: establish T02 heat sink primitive`).
-- Explicit `organism-cargo/godot-headless` status for Increment 140: **SUCCESS**, workflow run `32660092803`.
-- Therefore the deterministic T02 primitive is green and the exact recorded NEXT ACTION was production binding before T03.
+- Repository `main` at start: `d2a60b42b3eca4f983948e35b5779cfc64a1ddda` (`12C: bind T02 into production transit`).
+- Explicit `organism-cargo/godot-headless` status for Increment 141: **FAILURE**, workflow run `32660438413`.
+- First authoritative failing contract: `t02_transit_integration_test_runner.gd`, T01+T02 same-Phase-C assertion expected `7` but authoritative result was `6`.
 
-### Implemented in Increment 141
-- Bound authored `t02_definitions` into the same real production Phase-C heat composition already used by T01.
-- The production runner now activates its expanded heat path for T01, T02 or relevant in-window H05 authority; legacy non-living-heat/non-H05 runs retain the previous fast path.
-- T02 reads the current post-Phase-B organism runtime and therefore follows current occupied cells after growth/state authority rather than launch-only placement.
-- Phase-C order is now frozen explicitly as base environmental generation -> T01 living heat source -> T02 living bounded heat sink -> powered S01 support mitigation, with contamination/support work otherwise unchanged.
-- T02 causal events are written to the existing checksum-visible `phase_c_environment_events` stream; it is not misclassified as support evidence.
-- T02 output then passes through the existing Phase-D H05/thermal propagation and Phase-E organism thermal response without creating a second heat channel or alternate response path.
-- Added focused production coverage proving direct H01->T02 removal, same-boundary T01/T02 interaction, T02 plus powered S01 stacking, H05 application after T02, checksum visibility and deterministic replay.
-- Added the T02 production transit contract to the existing notification-safe Godot headless suite.
+### Repair in Increment 142
+- Inspected the exact fixture arithmetic: H01 contributes 6 heat, T01 contributes +3, and T02 removes its full bounded capacity 3 in the same Phase-C boundary.
+- Correct authoritative result is therefore `6`, not `7`.
+- Updated only the incorrect regression expectation; production simulation code and frozen T01/T02/S01/H05 ordering remain unchanged.
+- This is a test-fixture correction, not a gameplay redesign.
 
 ### Files changed
-- `src/sim/transit_h05_shared_resource_runner_base.gd` — T02-aware production Phase-C living-heat composition.
-- `tests/unit/t02_transit_integration_test_runner.gd` — focused production interaction and replay regressions.
-- `.github/workflows/headless-tests.yml` — adds the T02 production transit contract.
-- `IMPLEMENTATION_STATUS.md` — records this checkpoint and exact continuation.
+- `tests/unit/t02_transit_integration_test_runner.gd` — fixes the incorrect expected value for H01 + T01 - T02 arithmetic.
+- `IMPLEMENTATION_STATUS.md` — records the failed run, focused repair and exact continuation.
 
 ### Validation performed / available
-- Increment 140 explicit custom headless status verified **SUCCESS** before work.
-- Static ordering review confirms T02 runs after T01 and before S01, then feeds the unchanged Phase-D H05/thermal authority.
-- Static evidence review confirms T02 living-sink events join the same checksum-visible environmental event stream as T01 rather than powered-support evidence.
-- Static compatibility review confirms the legacy fast path remains selected when T01/T02 are absent and no in-window H05 event requires the expanded loop.
-- This checkpoint requires one authoritative GitHub Godot 4.7.1 headless run; no speculative second push is stacked in this run.
+- GitHub Actions log was inspected directly for workflow run `32660438413`.
+- The first failing authoritative assertion was reproduced arithmetically from its own fixture values: `6 + 3 - 3 = 6`.
+- T01 primitive/integration and T02 primitive tests were green before the failing T02 production assertion in the same run.
+- A new authoritative Godot 4.7.1 headless run is required for this checkpoint; no additional speculative CI repair is stacked in this run.
+
+### Additional observed diagnostic
+- The same CI log also printed a strict-typing parse diagnostic in `src/run/results_progression_service.gd:20`, while its test runner still printed PASS and did not determine the workflow failure. This was not modified in this focused repair batch because the run instruction requires one focused repair for the first failing T02 production contract. If it persists after T02 is green, it must be handled as a separate next increment rather than mixed into this checkpoint.
 
 ### Deliberately not changed
 - No frozen gameplay/design files.
-- No T01 primitive semantics, S01 powered-support semantics, H01 source semantics or H05 Phase-D semantics were redesigned.
-- No T03/T04 implementation and no 12D+ work.
+- No production T01/T02/S01/H05 code.
+- No T03/T04 work in this repair run.
+- No 12D+ work.
 
 ### Blockers / deferred known work
 - **No user-action blocker.**
 - 12C remains incomplete.
-- Increment 141 requires authoritative headless validation.
-- Remaining foundation gap starts with T03 Alarm Emitter, then T04 Soother, followed by remaining core/persistence acceptance obligations before the 12C exit gate can be claimed.
+- Increment 142 requires authoritative headless validation.
 
 ### Canonical contradictions
-- **NONE discovered.** T02 is composed as the frozen local bounded living heat sink inside the existing C->D->E heat path and remains distinct from powered S01 mitigation.
+- **NONE discovered.** The failure was an incorrect test expectation, not a contradiction in frozen heat semantics.
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 141.
+At the start of the next run, query current `main` and explicit `organism-cargo/godot-headless` status for Increment 142.
 
-- If the workflow fails, inspect the first exact compile/runtime/assertion failure in the T02 production contract and make one focused repair batch only.
-- If the workflow is green, preserve T01/T02/S01/H05 heat composition and implement the next missing foundation trait: **T03 Alarm Emitter**, first as deterministic state-gated stress-field source authority and then bind it into the existing production stress-field Phase-C/Phase-D path without changing H02/S03/H05 semantics.
+- If the workflow still fails, inspect the first exact failure and make one focused repair batch only.
+- If the T02 production contract is green but the previously observed `results_progression_service.gd:20` strict-typing diagnostic still appears as a real compile/test failure, repair that diagnostic as the next isolated checkpoint before adding new mechanics.
+- If the full authoritative suite is green, preserve T01/T02/S01/H05 heat composition and implement the next missing foundation trait: **T03 Alarm Emitter**, first as deterministic state-gated stress-field source authority and then bind it into the existing production stress-field Phase-C/Phase-D path without changing H02/S03/H05 semantics.
 - After T03 production binding is green, continue with T04 Soother.
 - Do not begin 12D, 12E or later phases until the complete 12C exit gate is satisfied and recorded.

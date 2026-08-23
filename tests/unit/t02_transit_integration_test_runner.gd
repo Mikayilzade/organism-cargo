@@ -42,7 +42,7 @@ func _test_t01_then_t02_share_same_phase_c_authority() -> void:
 	if not bool(result.get("ok", false)):
 		return
 	var snapshot: Dictionary = result["end_tick_snapshots"][0]
-	_expect_equal(int(snapshot["heat_by_cell"]["0,0"]), 7, "T01 source is available to bounded T02 sink in the same Phase-C boundary")
+	_expect_equal(int(snapshot["heat_by_cell"]["0,0"]), 6, "T01 source is available to bounded T02 sink in the same Phase-C boundary")
 	var events: Array = snapshot["phase_c_environment_events"]
 	_expect_equal(events.size(), 2, "T01 and T02 both retain checksum-visible Phase-C evidence")
 	if events.size() == 2:
