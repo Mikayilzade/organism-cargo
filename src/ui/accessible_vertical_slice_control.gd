@@ -6,7 +6,7 @@ const CriticalSignalPresentationBuilderScript := preload("res://src/ui/critical_
 
 var _semantic_focus_label: Label
 var _support_config_label: Label
-var _accessibility_settings_model: AccessibilitySettingsModel = AccessibilitySettingsModelScript.new()
+var _accessibility_settings_model = AccessibilitySettingsModelScript.new()
 var _critical_signal_panel: VBoxContainer
 var _critical_signal_summary: Label
 var _critical_signal_list: VBoxContainer
@@ -182,7 +182,7 @@ func _sync_critical_signal_panel() -> void:
 		_critical_signal_summary.text = "TRANSIT SIGNALS — authoritative transit is resolving; critical cues remain visual and text-addressable."
 		_clear_critical_signal_rows()
 		return
-	var builder: CriticalSignalPresentationBuilder = CriticalSignalPresentationBuilderScript.new()
+	var builder = CriticalSignalPresentationBuilderScript.new()
 	_critical_signals = builder.build(
 		_accessibility_settings_model,
 		_flow.last_completed_result(),
@@ -252,12 +252,10 @@ func _ensure_critical_signal_panel() -> void:
 	add_child(_critical_signal_panel)
 	if _primary_button != null:
 		move_child(_critical_signal_panel, _primary_button.get_index())
-
 	_critical_signal_summary = Label.new()
 	_critical_signal_summary.name = "CriticalSignalSummary"
 	_critical_signal_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_critical_signal_panel.add_child(_critical_signal_summary)
-
 	_critical_signal_list = VBoxContainer.new()
 	_critical_signal_list.name = "CriticalSignalList"
 	_critical_signal_panel.add_child(_critical_signal_list)

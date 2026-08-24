@@ -17,69 +17,44 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 177
+## Current implementation checkpoint — Increment 178
 
 ### Phase / subsystem
-**12E UX / Accessibility / Controller / Deck — rendered critical-signal integration across authoritative Transit failure -> Causal Review**
+**12E UX / Accessibility / Controller / Deck — focused CI repair for rendered critical-signal integration**
 
 ### Repository truth / entry validation
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact subsystem authorities `PHASE11_UX_ACCESSIBILITY.md` and `PHASE11_TECH_PERSISTENCE.md`.
-- Entry head: `3e527275b54b85cf63f9f0219970e80f15f80312` (Increment 176).
-- Inspected the actual Increment-176 `content-population` run `32779784079`: workflow completed **success** on the exact entry SHA.
-- Inspected the actual Increment-176 `godot-headless` run `32779784445`, job `headless-tests` (`97599078954`): executable job completed **success**, including Godot 4.7.1 installation, the full `Run headless contract suite` step and status publication. The previously observed combined-status residue is therefore not treated as executable truth.
-- Both executable workflows are green, so this run followed the green branch of the previous `NEXT ACTION`.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, plus `PHASE11_UX_ACCESSIBILITY.md` and `PHASE11_TECH_PERSISTENCE.md` for the current 12E subsystem.
+- Entry head: `014857826763e88720aaad33247bfb1a3074de4f` (Increment 177).
+- Inspected Increment-177 `content-population` run `32782153623`, job `97606335596`: executable import failed before content validation because `src/app/shell.gd` could not preload/resolve `src/ui/accessible_vertical_slice_control.gd`.
+- Inspected Increment-177 `godot-headless` run `32782153596`, job `97606335533`: the GitHub job wrapper is green because that workflow intentionally exits 0 after collecting suite status, but its own log published `organism-cargo/godot-headless = failure` from the same project-import parse failure. This is the executable truth for Increment 177.
 
-### Implemented in Increment 177
-- Connected `AccessibilitySettingsModel.critical_signal(...)` to the real player-facing `AccessibleVerticalSliceControl` instead of leaving accessibility equivalents at a model-only boundary.
-- Added a rendered `CriticalSignalPanel` for Transit/Causal Review. Each surfaced critical event visibly carries:
-  - source identity;
-  - text label;
-  - caption when enabled/required;
-  - explicit icon, pattern and shape channels;
-  - active motion and flashing presentation modes.
-- Added `CriticalSignalPresentationBuilder`, which derives presentation events from authoritative completed-run/review output rather than inventing parallel gameplay state:
-  - route hazard onset and end are derived from authoritative end-tick hazard snapshots;
-  - Brownout/power loss is derived from Phase-A `disabled_support_ids`/power snapshots, including first-tick Brownout where no transition callback exists yet;
-  - organism state transitions and panic/alarm are derived from Causal Review `ORGANISM_RESPONSE` evidence;
-  - blocked-growth episode signals are derived from authoritative `GROWTH_BLOCKED` events when present;
-  - mandatory predicate failures are derived from Causal Review objective evidence;
-  - transit completion is derived from the authoritative completed result.
-- Hazard channel detection preserves the frozen non-color languages where the authoritative hazard definition identifies heat, stress or contamination. Brownout retains the slashed-power language and mandatory failure retains explicit failure text/shape.
-- No-audio behavior is now visible in the actual rendered Review path: master volume 0 forces source-aware critical captions even when optional non-speech captions are disabled.
-- Reduced Motion and Reduced Flashing now affect rendered critical rows through `snap_fade` / static-pattern and persistent-outline presentation metadata; no full-screen flash is emitted.
-- Added runtime presentation-setting refresh on the accessible control. Re-rendering accessibility output does not mutate or rerun the committed simulation.
-- Added focused rendered acceptance coverage through the already-wired `vertical_slice_control_test_runner.gd`. The helper performs an actual legal Launch and deterministic three-tick Transit containing:
-  - a forced S06 Brownout;
-  - an H01 heat hazard that starts and ends;
-  - authoritative organism state changes into panic;
-  - a mandatory stress predicate failure;
-  - handoff to Causal Review.
-- The rendered acceptance verifies actual Brownout/hazard/state/panic/failure/completion rows, no-audio captions, frozen heat icon/pattern language, Reduced Motion/Reduced Flashing output, and visible source/label/icon/pattern/shape equivalents.
-- The same acceptance captures authoritative tick/completion checksums, changes presentation settings after Review, and proves the stored authoritative hashes are unchanged while only presentation metadata changes.
-- No simulation rule, tick ordering, checksum algorithm, campaign progression, economy, content, Launch/Results ownership, save semantics or frozen gameplay behavior changed.
+### Implemented in Increment 178
+- Followed the red-CI branch of the prior `NEXT ACTION`; no new Retry/Reset/map/Codex work was started in this run.
+- Kept the Increment-177 rendered critical-signal behavior intact while removing fragile cross-script global-class type dependencies introduced in the new accessibility presentation layer.
+- `AccessibleVerticalSliceControl` now instantiates `AccessibilitySettingsModelScript` and `CriticalSignalPresentationBuilderScript` through their preloaded script resources without also requiring global class-name type resolution during editor class registration.
+- `CriticalSignalPresentationBuilder` now accepts the settings object through the built-in `Object` contract and invokes `critical_signal` through `has_method`/`call`, removing the direct `AccessibilitySettingsModel` global-class dependency from its parser signature while preserving the same presentation-only behavior.
+- No simulation, checksum, progression, persistence, content, Launch/Results ownership, or frozen gameplay semantics changed.
 
 ### Validation / policy
-- Increment-176 executable GitHub Actions jobs were inspected directly before implementation and both are green.
-- The rendered regression is invoked from `vertical_slice_control_test_runner.gd`, which is already part of the normal `godot-headless` suite; no extra workflow case or CI churn is required.
-- Static integration review traced every new rendered signal back to existing authoritative result/review fields (`end_tick_snapshots`, Phase-A power snapshots, `growth_events`, Causal Review response/objective events and final delivery result).
-- Static review also confirms accessibility changes only rebuild presentation dictionaries/Labels from duplicated completed/review data; they never feed back into the flow coordinator or simulation kernels.
-- This autonomous environment has no directly runnable local Godot 4.7.1 binary; fresh GitHub Actions after this single checkpoint push are the available executable validation path.
-- All source/test/status work for this acceptance cluster is batched into one Git tree + one checkpoint commit/push. No speculative second CI repair is made in this run.
+- Exact failing workflow logs were inspected before changing code; the first executable failure was project import/preload resolution, not a gameplay test assertion.
+- The focused repair is limited to parser/type coupling inside the newly added Increment-177 accessibility presentation files.
+- Increment-177 headless wrapper behavior was reconciled correctly: job conclusion alone is not treated as pass when its published suite status is failure.
+- No speculative second CI repair is made in this run. Fresh GitHub Actions for Increment 178 are the executable confirmation path.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh Increment-177 CI must confirm Godot 4.7.1 parses the new inherited `super(...)` presentation hooks and executes the rendered failure-to-review acceptance successfully.
-- The rendered critical-signal path now covers the representative dynamic failure-to-review cluster, but 12E remains incomplete: Retry/Reset/Return-to-map, Codex, save-recovery, campaign-completion and the remaining maximum-scale/device/accessibility matrix repetitions are still outstanding.
+- Fresh Increment-178 CI must confirm that both project import workflows can resolve `AccessibleVerticalSliceControl` and then execute the rendered failure-to-review acceptance.
+- If fresh CI is green, resume the full 12E acceptance cluster: Retry / Reset / Return to map + semantic device access + Codex exact-rule reachability at maximum UI scale.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the actual linked `content-population` and `godot-headless` executable jobs for Increment 177 rather than trusting combined-status residue.
+At the start of the next run, inspect the actual linked `content-population` and `godot-headless` executable logs/statuses for Increment 178.
 
 If either executable workflow is red, inspect the first exact executable failure and make one focused repair batch only.
 
-If both executable workflows are green, take the next full 12E acceptance cluster rather than a micro-increment:
+If both executable workflows are green, take the next substantial 12E acceptance cluster:
 1. implement and render the complete `Retry / Reset / Return to map` required path with semantic keyboard/controller/Deck access and focused headless coverage;
 2. in the same coherent cluster, implement the required Codex entry/navigation surface far enough to prove exact rule/arithmetic text remains reachable at maximum UI scale without pointer-only interaction;
 3. leave save-recovery and campaign-completion as the following acceptance cluster unless they can be included without weakening recoverability or test quality.
