@@ -8,6 +8,7 @@ const SemanticVerticalSliceInputScript := preload("res://src/ui/semantic_vertica
 const InputActionCatalogScript := preload("res://src/ui/input_action_catalog.gd")
 const InputRemapModelScript := preload("res://src/ui/input_remap_model.gd")
 const AccessibilitySettingsModelScript := preload("res://src/ui/accessibility_settings_model.gd")
+const SettingsRemapControlScript := preload("res://src/ui/settings_remap_control.gd")
 
 const CORE_CONTENT_PATHS: Dictionary = {
 	&"body_plans": "res://content/body_plans",
@@ -31,6 +32,7 @@ var _slice_control: AccessibleVerticalSliceControl
 var _semantic_input: SemanticVerticalSliceInput
 var _accessibility_settings: AccessibilitySettingsModel
 var _input_remap: InputRemapModel
+var _settings_remap: SettingsRemapControl
 
 func _ready() -> void:
 	InputActionCatalogScript.ensure_registered()
@@ -59,6 +61,19 @@ func _ready() -> void:
 	var semantic_result: Dictionary = _semantic_input.configure(_slice_control, _slice_flow, context)
 	if not bool(semantic_result.get("ok", false)):
 		print("Organism Cargo semantic input blocked: %s" % String(semantic_result.get("error", "unknown")))
+	_settings_remap = SettingsRemapControlScript.new()
+	_settings_remap.name = "SettingsRemapControl"
+	_settings_remap.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_settings_remap.offset_left = 80.0
+	_settings_remap.offset_top = 40.0
+	_settings_remap.offset_right = -80.0
+	_settings_remap.offset_bottom = -40.0
+	_settings_remap.visible = false
+	add_child(_settings_remap)
+	var settings_result: Dictionary = _settings_remap.configure(_input_remap)
+	if not bool(settings_result.get("ok", false)):
+		print("Organism Cargo settings remap blocked: %s" % String(settings_result.get("error", "unknown")))
+	_settings_remap.close_requested.connect(hide_settings)
 	print("Organism Cargo bootstrap ready: content=%s state=%s" % [
 		String(result["content_version"]),
 		str(_bootstrap_service.state_machine().current_state()),
@@ -72,6 +87,23 @@ func slice_control() -> AccessibleVerticalSliceControl:
 
 func semantic_input_controller() -> SemanticVerticalSliceInput:
 	return _semantic_input
+
+func settings_remap_control() -> SettingsRemapControl:
+	return _settings_remap
+
+func show_settings(device: StringName = InputActionCatalogScript.DEVICE_KEYBOARD) -> Dictionary:
+	if _settings_remap == null:
+		return {"ok": false, "error": "settings_not_ready"}
+	var result: Dictionary = _settings_remap.notify_input_source(device)
+	if not bool(result.get("ok", false)):
+		return result
+	_settings_remap.visible = true
+	_settings_remap.move_to_front()
+	return {"ok": true, "error": "", "device": device}
+
+func hide_settings() -> void:
+	if _settings_remap != null:
+		_settings_remap.visible = false
 
 func accessibility_settings_snapshot() -> Dictionary:
 	return {} if _accessibility_settings == null else _accessibility_settings.snapshot()
