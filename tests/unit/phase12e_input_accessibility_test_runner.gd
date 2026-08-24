@@ -13,6 +13,7 @@ func _init() -> void:
 	_test_planning_focus_router()
 	_test_support_link_and_brownout_priority_model()
 	_test_accessibility_shell_contract()
+	_test_critical_signal_and_reduced_presentation_application()
 	_finish()
 
 func _test_required_input_catalog() -> void:
@@ -123,6 +124,60 @@ func _test_accessibility_shell_contract() -> void:
 
 	var invalid_scale := settings.apply_patch({"ui_scale_percent": 201})
 	_expect(not bool(invalid_scale.get("ok", true)), "unsupported UI scale is rejected rather than silently hiding controls")
+
+func _test_critical_signal_and_reduced_presentation_application() -> void:
+	var settings: AccessibilitySettingsModel = AccessibilitySettingsModelScript.new()
+	var applied := settings.apply_patch({
+		"reduced_motion": true,
+		"reduced_flashing": true,
+		"master_volume_percent": 0,
+		"non_speech_captions": false,
+	})
+	_expect(bool(applied.get("ok", false)), "reduced no-audio presentation profile applies")
+
+	for kind: StringName in AccessibilitySettingsModelScript.CRITICAL_SIGNAL_KINDS:
+		var signal := settings.critical_signal(kind, "Transit")
+		_expect(bool(signal.get("ok", false)), "%s critical signal is representable" % String(kind))
+		_expect(bool(signal.get("caption_visible", false)), "%s remains caption-visible when audio is unavailable" % String(kind))
+		_expect(not String(signal.get("text_label", "")).is_empty(), "%s exposes a text label" % String(kind))
+		_expect(not String(signal.get("icon", "")).is_empty(), "%s exposes a non-color icon" % String(kind))
+		_expect(not String(signal.get("pattern", "")).is_empty(), "%s exposes a non-color pattern" % String(kind))
+		_expect(not String(signal.get("shape", "")).is_empty(), "%s exposes a non-color shape" % String(kind))
+		_expect_equal(signal.get("motion_mode"), "snap_fade", "%s uses reduced-motion snap/fade presentation" % String(kind))
+		_expect_equal(signal.get("overlay_motion"), "static_pattern", "%s removes scrolling/particle dependence" % String(kind))
+		_expect_equal(signal.get("flash_mode"), "persistent_outline", "%s uses reduced-flashing persistent emphasis" % String(kind))
+		_expect(not bool(signal.get("full_screen_flash", true)), "%s never requires a full-screen flash" % String(kind))
+		_expect(not bool(signal.get("authoritative_simulation_changed", true)), "%s presentation does not change simulation authority" % String(kind))
+
+	var heat := settings.critical_signal(&"hazard_onset", "Heat Surge", "route segment active", &"heat")
+	_expect_equal(heat.get("icon"), "heat", "heat channel uses frozen heat icon")
+	_expect_equal(heat.get("pattern"), "thermal_lines", "heat channel uses frozen thermal-line pattern")
+	_expect(String(heat.get("caption", "")).contains("Heat Surge — hazard started"), "hazard caption identifies source explicitly")
+
+	var stress := settings.critical_signal(&"alarm_panic", "Ember Pod", "panic threshold crossed", &"stress")
+	_expect_equal(stress.get("icon"), "stress", "stress channel uses frozen stress icon")
+	_expect_equal(stress.get("pattern"), "jagged_ripple", "stress channel uses frozen ripple/jagged pattern")
+	_expect(not bool(stress.get("camera_shake", true)), "Reduced Motion disables alarm camera shake")
+
+	var contamination := settings.critical_signal(&"state_transition", "Cargo B", "contaminated", &"contamination")
+	_expect_equal(contamination.get("icon"), "contamination", "contamination channel uses frozen contamination icon")
+	_expect_equal(contamination.get("pattern"), "particulate_mottle", "contamination channel uses frozen particulate/mottled pattern")
+
+	var brownout := settings.critical_signal(&"brownout_power_loss", "Cooler", "priority shed")
+	_expect_equal(brownout.get("icon"), "slashed_power", "Brownout uses explicit slashed-power symbol")
+	_expect(String(brownout.get("caption", "")).contains("Cooler — power lost"), "Brownout caption identifies affected support")
+
+	var failure := settings.critical_signal(&"predicate_failure", "Objective M1", "temperature exceeded")
+	_expect_equal(failure.get("text_label"), "FAILURE", "mandatory predicate failure is labeled in text")
+	_expect(String(failure.get("caption", "")).contains("Objective M1 — mandatory objective failed"), "failure caption names the predicate source")
+
+	var completion := settings.critical_signal(&"transit_completion", "Route", "review ready")
+	_expect_equal(completion.get("text_label"), "TRANSIT COMPLETE", "transit completion is explicit without audio")
+	_expect(not bool(completion.get("audio_available", true)), "no-audio profile never depends on completion sound")
+
+	var invalid := settings.critical_signal(&"not_a_real_signal", "System")
+	_expect(not bool(invalid.get("ok", true)), "unknown presentation signal is rejected explicitly")
+	_expect_equal(String(invalid.get("error", "")), "unknown_critical_signal", "unknown signal rejection is deterministic")
 
 func _expect(value: bool, label: String) -> void:
 	if not value:
