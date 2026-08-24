@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-1",
+  "kind": "campaign_contracts",
+  "id": "CAMPAIGN_CHAPTER3_BATCH_01",
+  "payload": {
+    "definitions": [
+      {"id":"C17","tier":"3","purpose":"Cradle Moss / awake-asleep role","hold_id":"H07","route_id":"R10","species_ids":["O06","O02","O10"],"support_ids":[],"requires_post_launch_change":true,"temporally_separated_changes":2,"maximum_spacing_inferior":true,"growth_reserve_edge_inferior":false,"vibration_wake_timing":false},
+      {"id":"C18","tier":"3","purpose":"Glass Larva / growth footprint","hold_id":"H08","route_id":"R12","species_ids":["O08","O10","O14"],"support_ids":[],"requires_post_launch_change":true,"temporally_separated_changes":2,"maximum_spacing_inferior":false,"growth_reserve_edge_inferior":true,"vibration_wake_timing":false},
+      {"id":"C19","tier":"3","purpose":"Feed Cartridge support","hold_id":"H08","route_id":"R12","species_ids":["O06","O08","O02"],"support_ids":["S05"],"requires_post_launch_change":true,"temporally_separated_changes":2,"maximum_spacing_inferior":true,"growth_reserve_edge_inferior":false,"vibration_wake_timing":false},
+      {"id":"C20","tier":"3","purpose":"Nest Pad / sleep","hold_id":"H07","route_id":"R10","species_ids":["O06","O02","O10"],"support_ids":["S04"],"requires_post_launch_change":true,"temporally_separated_changes":2,"maximum_spacing_inferior":false,"growth_reserve_edge_inferior":false,"vibration_wake_timing":false},
+      {"id":"C21","tier":"3","purpose":"vibration wake timing","hold_id":"H08","route_id":"R11","species_ids":["O06","O02","O10"],"support_ids":["S04"],"requires_post_launch_change":true,"temporally_separated_changes":2,"maximum_spacing_inferior":false,"growth_reserve_edge_inferior":false,"vibration_wake_timing":true},
+      {"id":"C22","tier":"3","purpose":"Cinder Snail / heat-driven growth","hold_id":"H08","route_id":"R10","species_ids":["O13","O08","O10"],"support_ids":["S01","S05"],"requires_post_launch_change":true,"temporally_separated_changes":2,"maximum_spacing_inferior":true,"growth_reserve_edge_inferior":true,"vibration_wake_timing":false},
+      {"id":"C23","tier":"3","purpose":"Moth Cushion + Warmback timing/protection","hold_id":"H08","route_id":"R11","species_ids":["O16","O05","O06","O02"],"support_ids":["S04"],"requires_post_launch_change":true,"temporally_separated_changes":2,"maximum_spacing_inferior":true,"growth_reserve_edge_inferior":false,"vibration_wake_timing":true},
+      {"id":"C24","tier":"3","purpose":"Chapter-3 capstone: wake + growth + support tradeoff","hold_id":"H08","route_id":"R10","species_ids":["O06","O08","O13","O16","O05"],"support_ids":["S04","S05"],"requires_post_launch_change":true,"temporally_separated_changes":3,"maximum_spacing_inferior":true,"growth_reserve_edge_inferior":true,"vibration_wake_timing":false}
+    ]
+  }
+}
