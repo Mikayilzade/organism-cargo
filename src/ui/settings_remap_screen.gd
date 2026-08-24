@@ -3,6 +3,7 @@ extends Control
 
 const InputActionCatalogScript := preload("res://src/ui/input_action_catalog.gd")
 const InputRemapModelScript := preload("res://src/ui/input_remap_model.gd")
+const InputBindingsStoreScript := preload("res://src/ui/input_bindings_store.gd")
 
 signal device_changed(device: StringName)
 signal binding_changed(device: StringName, action: StringName, binding: String)
@@ -10,6 +11,8 @@ signal remap_feedback(message: String)
 signal close_requested()
 
 var _model: InputRemapModel
+var _bindings_store: Variant
+var _last_persistence_result: Dictionary = {}
 var _active_device: StringName = InputActionCatalogScript.DEVICE_KEYBOARD
 var _last_input_device: StringName = InputActionCatalogScript.DEVICE_KEYBOARD
 var _capture_action: StringName = &""
@@ -23,29 +26,34 @@ var _controller_button: Button
 var _reset_button: Button
 var _close_button: Button
 
-func _init(model: InputRemapModel = null) -> void:
+func _init(model: InputRemapModel = null, bindings_store: Variant = null) -> void:
 	_model = model if model != null else InputRemapModelScript.new()
+	_bindings_store = bindings_store if bindings_store != null else InputBindingsStoreScript.new()
 
 func _ready() -> void:
 	if _list == null: _build_widgets()
+	InputActionCatalogScript.ensure_registered()
+	_last_persistence_result = _bindings_store.load_into(_model)
+	if bool(_last_persistence_result.get("recovered", false)):
+		_set_feedback("Local control settings were invalid for: %s. Only those bindings were reset to defaults; campaign progress was not touched." % ", ".join(PackedStringArray(_last_persistence_result.get("recovered_devices", []))))
+	elif not bool(_last_persistence_result.get("ok", false)):
+		_set_feedback("Local control settings could not be loaded. Default bindings remain available.")
 	_refresh()
 
 func model() -> InputRemapModel: return _model
 func active_device() -> StringName: return _active_device
 func last_input_device() -> StringName: return _last_input_device
 func capture_action() -> StringName: return _capture_action
+func persistence_snapshot() -> Dictionary: return _last_persistence_result.duplicate(true)
 
 func set_active_device(device: StringName) -> Dictionary:
 	if device != InputActionCatalogScript.DEVICE_KEYBOARD and device != InputActionCatalogScript.DEVICE_CONTROLLER: return {"ok": false, "error": "unknown_device"}
-	_active_device = device
-	_capture_action = &""
-	_refresh(); device_changed.emit(device)
+	_active_device = device; _capture_action = &""; _refresh(); device_changed.emit(device)
 	return {"ok": true, "error": "", "device": device}
 
 func note_input_source(device: StringName) -> Dictionary:
 	if device != InputActionCatalogScript.DEVICE_KEYBOARD and device != InputActionCatalogScript.DEVICE_CONTROLLER: return {"ok": false, "error": "unknown_device"}
-	_last_input_device = device
-	set_active_device(device)
+	_last_input_device = device; set_active_device(device)
 	return {"ok": true, "error": "", "device": device}
 
 func note_input_event(event: InputEvent) -> Dictionary:
@@ -57,13 +65,11 @@ func begin_capture(action: StringName) -> Dictionary:
 	if not InputActionCatalogScript.REQUIRED_ACTIONS.has(action): return {"ok": false, "error": "unknown_action"}
 	_capture_action = action
 	_set_feedback("Listening on %s for %s. Press a control on this same device; Cancel exits capture." % [_device_name(_active_device), _human_action(action)])
-	_refresh()
-	return {"ok": true, "error": "", "action": action, "device": _active_device}
+	_refresh(); return {"ok": true, "error": "", "action": action, "device": _active_device}
 
 func cancel_capture() -> Dictionary:
 	if _capture_action == &"": return {"ok": false, "error": "not_capturing"}
-	var cancelled := _capture_action; _capture_action = &""
-	_set_feedback("Remap cancelled for %s." % _human_action(cancelled)); _refresh()
+	var cancelled := _capture_action; _capture_action = &""; _set_feedback("Remap cancelled for %s." % _human_action(cancelled)); _refresh()
 	return {"ok": true, "error": "", "action": cancelled}
 
 func capture_event(event: InputEvent) -> Dictionary:
@@ -81,17 +87,19 @@ func capture_event(event: InputEvent) -> Dictionary:
 	if not bool(applied.get("ok", false)):
 		_set_feedback("Binding model updated but InputMap application failed: %s." % String(applied.get("error", "unknown_error")))
 		return applied
-	_capture_action = &""
-	_set_feedback("%s bound to %s on %s." % [_human_action(action), label, _device_name(_active_device)])
-	_refresh()
-	return {"ok": true, "error": "", "device": _active_device, "action": action, "binding": label}
+	_last_persistence_result = _bindings_store.save(_model)
+	if not bool(_last_persistence_result.get("ok", false)):
+		_set_feedback("Binding is active for this session but device-local save failed: %s." % String(_last_persistence_result.get("error", "unknown_error")))
+		return {"ok": false, "error": "settings_save_failed", "detail": _last_persistence_result}
+	_capture_action = &""; _set_feedback("%s bound to %s on %s and saved on this device." % [_human_action(action), label, _device_name(_active_device)]); _refresh()
+	return {"ok": true, "error": "", "device": _active_device, "action": action, "binding": label, "durable": true}
 
 func propose_binding(action: StringName, physical_label: String) -> Dictionary:
 	var result: Dictionary = _model.propose_binding(_active_device, action, physical_label)
 	if bool(result.get("ok", false)):
-		var explanation := "Binding saved."
+		var explanation := "Binding accepted."
 		var reused: Variant = result.get("mutually_exclusive_reuse", [])
-		if bool(result.get("explanation_required", false)) and reused is Array: explanation = "Binding saved; reused only in mutually exclusive context(s): %s." % _join_actions(reused as Array)
+		if bool(result.get("explanation_required", false)) and reused is Array: explanation = "Binding accepted; reused only in mutually exclusive context(s): %s." % _join_actions(reused as Array)
 		_set_feedback(explanation); _refresh(); binding_changed.emit(_active_device, action, String(result.get("binding", "")))
 		return result
 	var error := String(result.get("error", "unknown_error"))
@@ -104,7 +112,12 @@ func reset_active_device() -> Dictionary:
 	var result: Dictionary = _model.reset_device(_active_device)
 	if bool(result.get("ok", false)):
 		InputActionCatalogScript.reset_device_in_input_map(_active_device)
-		_capture_action = &""; _set_feedback("%s bindings reset to defaults." % _device_name(_active_device)); _refresh()
+		_last_persistence_result = _bindings_store.save(_model)
+		_capture_action = &""
+		if bool(_last_persistence_result.get("ok", false)): _set_feedback("%s bindings reset to defaults and saved locally." % _device_name(_active_device))
+		else: _set_feedback("%s defaults restored for this session, but local save failed." % _device_name(_active_device))
+		_refresh()
+		if not bool(_last_persistence_result.get("ok", false)): return {"ok": false, "error": "settings_save_failed", "detail": _last_persistence_result}
 	return result
 
 func recovery_snapshot() -> Dictionary: return _model.recovery_contract(_active_device)
@@ -119,12 +132,10 @@ func rendered_snapshot() -> Dictionary:
 	var rows: Dictionary = {}
 	for action: StringName in InputActionCatalogScript.REQUIRED_ACTIONS: rows[String(action)] = row_text(action)
 	return {"active_device": _active_device, "last_input_device": _last_input_device, "capture_action": _capture_action,
-		"device_title": _device_title.text if _device_title != null else "", "feedback": _feedback.text if _feedback != null else "",
-		"recovery": _recovery.text if _recovery != null else "", "rows": rows,
-		"keyboard_focusable": _keyboard_button != null and _keyboard_button.focus_mode == Control.FOCUS_ALL,
-		"controller_focusable": _controller_button != null and _controller_button.focus_mode == Control.FOCUS_ALL,
-		"reset_focusable": _reset_button != null and _reset_button.focus_mode == Control.FOCUS_ALL,
-		"close_focusable": _close_button != null and _close_button.focus_mode == Control.FOCUS_ALL}
+		"device_title": _device_title.text if _device_title != null else "", "feedback": _feedback.text if _feedback != null else "", "recovery": _recovery.text if _recovery != null else "", "rows": rows,
+		"keyboard_focusable": _keyboard_button != null and _keyboard_button.focus_mode == Control.FOCUS_ALL, "controller_focusable": _controller_button != null and _controller_button.focus_mode == Control.FOCUS_ALL,
+		"reset_focusable": _reset_button != null and _reset_button.focus_mode == Control.FOCUS_ALL, "close_focusable": _close_button != null and _close_button.focus_mode == Control.FOCUS_ALL,
+		"device_local_persistence": true}
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible: return
@@ -133,7 +144,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _capture_action != &"cancel" and event.is_action_pressed(&"cancel"):
 			cancel_capture(); get_viewport().set_input_as_handled(); return
 		var result := capture_event(event)
-		if bool(result.get("ok", false)) or String(result.get("error", "")) == "wrong_device": get_viewport().set_input_as_handled()
+		if bool(result.get("ok", false)) or String(result.get("error", "")) in ["wrong_device", "settings_save_failed"]: get_viewport().set_input_as_handled()
 		return
 	var device := InputActionCatalogScript.device_for_event(event)
 	if device != &"":
