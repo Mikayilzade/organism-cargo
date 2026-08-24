@@ -5,7 +5,7 @@ var failures: int = 0
 func _init() -> void:
 	_test_hold_geometry()
 	_test_route_profiles()
-	_test_chapter1_contracts()
+	_test_campaign_contracts()
 	if failures == 0:
 		print("launch_authored_batch_test_runner: PASS")
 		quit(0)
@@ -14,11 +14,12 @@ func _init() -> void:
 		quit(1)
 
 func _test_hold_geometry() -> void:
-	var docs: Array = [_load_json("res://content/holds/launch_hold_geometry_batch_01.json"), _load_json("res://content/holds/launch_hold_geometry_batch_02.json")]
+	var docs: Array = [_load_json("res://content/holds/launch_hold_geometry_batch_01.json"), _load_json("res://content/holds/launch_hold_geometry_batch_02.json"), _load_json("res://content/holds/launch_hold_geometry_batch_03.json")]
 	var limits: Dictionary = {
 		"H01":[5,6,5,5,1,2],"H02":[5,6,5,5,1,2],"H03":[5,6,5,5,1,2],
 		"H04":[5,6,6,6,2,2],"H05":[5,6,6,6,2,2],"H06":[5,6,6,6,2,2],
-		"H07":[5,9,5,7,2,3],"H08":[5,9,5,7,2,3]
+		"H07":[5,9,5,7,2,3],"H08":[5,9,5,7,2,3],"H09":[5,9,5,7,2,6],"H10":[5,9,5,7,2,6],
+		"H11":[7,9,6,7,0,6],"H12":[7,9,6,7,0,6]
 	}
 	var seen: Dictionary = {}
 	for raw_doc: Variant in docs:
@@ -40,11 +41,14 @@ func _test_hold_geometry() -> void:
 			for raw_fixture: Variant in fixtures:
 				var cell: Array = _array(_dict(raw_fixture).get("cell", [])); var key: String = _cell_key(cell)
 				_expect(_in_bounds(cell, width, height), "%s fixture cell in bounds" % hold_id); _expect(not blocked.has(key), "%s fixture not blocked" % hold_id); _expect(not fixture_cells.has(key), "%s fixture cells unique" % hold_id); fixture_cells[key] = true
-	_expect(seen.size() == 8, "authored geometry now covers H01-H08")
+			if hold_id in ["H11","H12"]:
+				var fraction: float = float(blocked.size()) / float(width * height)
+				_expect(fraction >= 0.20 and fraction <= 0.35, "%s blocked fraction stays inside HF5 freeze" % hold_id)
+	_expect(seen.size() == 12, "authored geometry covers H01-H12")
 
 func _test_route_profiles() -> void:
-	var docs: Array = [_load_json("res://content/routes/launch_route_profiles_batch_01.json"), _load_json("res://content/routes/launch_route_profiles_batch_02.json")]
-	var allowed_effects: Dictionary = {"RH1":["heat_input"],"RH2":["contamination_source"],"RH3":["stress_field","wake_request"]}
+	var docs: Array = [_load_json("res://content/routes/launch_route_profiles_batch_01.json"), _load_json("res://content/routes/launch_route_profiles_batch_02.json"), _load_json("res://content/routes/launch_route_profiles_batch_03.json")]
+	var allowed_effects: Dictionary = {"RH1":["heat_input"],"RH2":["contamination_source"],"RH3":["stress_field","wake_request"],"RH4":["power_capacity_change"],"RH5":["decay_modifier","vent_modifier","heat_removal_input"],"RH6":["heat_input"],"RH7":["existing_input_sequence"]}
 	var seen: Dictionary = {}
 	for raw_doc: Variant in docs:
 		for raw_definition: Variant in _array(_dict(_dict(raw_doc).get("payload", {})).get("definitions", [])):
@@ -52,6 +56,8 @@ func _test_route_profiles() -> void:
 			_expect(not seen.has(route_id), "%s appears once" % route_id); seen[route_id] = true; _expect(duration > 0 and duration <= 24, "%s duration <=24" % route_id)
 			var max_families: int = 2
 			if tier == "0-1" or tier == "2": max_families = 1
+			elif tier == "4-5": max_families = 3
+			elif tier == "6": max_families = 4
 			_expect(families.size() <= max_families, "%s tier family ceiling" % route_id)
 			var declared: Dictionary = {}
 			for raw_family: Variant in families:
@@ -62,25 +68,33 @@ func _test_route_profiles() -> void:
 				_expect(tick >= 0 and span > 0 and tick + span <= duration, "%s event in route" % route_id); _expect(declared.has(family_id), "%s event family declared" % route_id); _expect(_array(allowed_effects.get(family_id, [])).has(effect_id), "%s effect grammar" % route_id)
 				if tier == "2": _expect(tick >= previous_end, "%s Tier-2 events non-overlap" % route_id)
 				previous_end = tick + span
-	_expect(seen.size() == 12, "authored routes now cover R01-R12")
+	_expect(seen.size() == 18, "authored routes cover R01-R18")
 
-func _test_chapter1_contracts() -> void:
-	var doc: Dictionary = _load_json("res://content/contracts/campaign_chapter1_batch_01.json")
-	var defs: Array = _array(_dict(doc.get("payload", {})).get("definitions", [])); _expect(defs.size() == 8, "chapter 1 has C01-C08 payloads")
-	var hold_ids: Dictionary = {}; var route_ids: Dictionary = {}; var species_ids: Dictionary = {}; var support_ids: Dictionary = {}
-	for path: String in ["res://content/holds/launch_hold_geometry_batch_01.json","res://content/holds/launch_hold_geometry_batch_02.json"]:
+func _test_campaign_contracts() -> void:
+	var docs: Array = [_load_json("res://content/contracts/campaign_chapter1_batch_01.json"), _load_json("res://content/contracts/campaign_chapter2_batch_01.json")]
+	var hold_ids: Dictionary = {}; var route_defs: Dictionary = {}; var species_ids: Dictionary = {}; var support_ids: Dictionary = {}
+	for path: String in ["res://content/holds/launch_hold_geometry_batch_01.json","res://content/holds/launch_hold_geometry_batch_02.json","res://content/holds/launch_hold_geometry_batch_03.json"]:
 		for raw: Variant in _array(_dict(_load_json(path).get("payload", {})).get("definitions", [])): hold_ids[String(_dict(raw).get("id", ""))] = true
-	for path: String in ["res://content/routes/launch_route_profiles_batch_01.json","res://content/routes/launch_route_profiles_batch_02.json"]:
-		for raw: Variant in _array(_dict(_load_json(path).get("payload", {})).get("definitions", [])): route_ids[String(_dict(raw).get("id", ""))] = true
+	for path: String in ["res://content/routes/launch_route_profiles_batch_01.json","res://content/routes/launch_route_profiles_batch_02.json","res://content/routes/launch_route_profiles_batch_03.json"]:
+		for raw: Variant in _array(_dict(_load_json(path).get("payload", {})).get("definitions", [])): route_defs[String(_dict(raw).get("id", ""))] = _dict(raw)
 	for raw: Variant in _array(_dict(_load_json("res://content/species/launch_roster.json").get("payload", {})).get("definitions", [])): species_ids[String(_dict(raw).get("id", ""))] = true
 	for raw: Variant in _array(_dict(_load_json("res://content/supports/launch_supports.json").get("payload", {})).get("definitions", [])): support_ids[String(_dict(raw).get("id", ""))] = true
-	var seen: Dictionary = {}
-	for raw: Variant in defs:
-		var d: Dictionary = _dict(raw); var cid: String = String(d.get("id", "")); _expect(not seen.has(cid), "%s appears once" % cid); seen[cid] = true
-		_expect(hold_ids.has(String(d.get("hold_id", ""))), "%s hold resolves" % cid); _expect(route_ids.has(String(d.get("route_id", ""))), "%s route resolves" % cid)
-		for sid: Variant in _array(d.get("species_ids", [])): _expect(species_ids.has(String(sid)), "%s species resolves" % cid)
-		for sid: Variant in _array(d.get("support_ids", [])): _expect(support_ids.has(String(sid)), "%s support resolves" % cid)
-		if cid in ["C05","C06","C07","C08"]: _expect(bool(d.get("requires_post_launch_change", false)), "%s preserves dynamic transit gate" % cid)
+	var seen: Dictionary = {}; var chapter2_spacing_inferior: int = 0; var chapter2_two_changes: int = 0
+	for raw_doc: Variant in docs:
+		for raw: Variant in _array(_dict(_dict(raw_doc).get("payload", {})).get("definitions", [])):
+			var d: Dictionary = _dict(raw); var cid: String = String(d.get("id", "")); _expect(not seen.has(cid), "%s appears once" % cid); seen[cid] = true
+			_expect(hold_ids.has(String(d.get("hold_id", ""))), "%s hold resolves" % cid)
+			var rid: String = String(d.get("route_id", "")); _expect(route_defs.has(rid), "%s route resolves" % cid)
+			for sid: Variant in _array(d.get("species_ids", [])): _expect(species_ids.has(String(sid)), "%s species resolves" % cid)
+			for sid: Variant in _array(d.get("support_ids", [])): _expect(support_ids.has(String(sid)), "%s support resolves" % cid)
+			if cid in ["C05","C06","C07","C08","C09","C10","C11","C12","C13","C14","C15","C16"]: _expect(bool(d.get("requires_post_launch_change", false)), "%s preserves dynamic transit gate" % cid)
+			if cid.begins_with("C1") and cid != "C01":
+				if bool(d.get("maximum_spacing_inferior", false)): chapter2_spacing_inferior += 1
+				if int(d.get("temporally_separated_changes", 0)) >= 2: chapter2_two_changes += 1
+				if route_defs.has(rid): _expect(String(_dict(route_defs[rid]).get("tier", "")) == "2", "%s uses Tier-2 route ceiling" % cid)
+	_expect(seen.size() == 16, "campaign payloads cover C01-C16")
+	_expect(chapter2_spacing_inferior >= 2, "Chapter 2 has at least two maximum-spacing-inferior authored cases")
+	_expect(chapter2_two_changes >= 4, "Chapter 2 contributes multiple two-change dynamic-transit cases")
 
 func _load_json(path: String) -> Dictionary:
 	var file: FileAccess = FileAccess.open(path, FileAccess.READ)

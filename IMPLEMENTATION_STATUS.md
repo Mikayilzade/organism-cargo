@@ -17,47 +17,49 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 159
+## Current implementation checkpoint — Increment 160
 
 ### Phase / subsystem
-**12D Content Population — focused authored-batch CI path repair**
+**12D Content Population — complete launch hold/route authored sets + Chapter 2 payload batch**
 
 ### Repository truth / entry validation
-- Re-read the mandated recovery chain and current implementation authority.
-- Entry head: `eeeae58cf7f23dd17ed7cebf6a080bfbe7dcc42f`.
-- Entry explicit statuses reported `organism-cargo/content-population` **FAILURE** and `organism-cargo/godot-headless` **FAILURE**.
-- Inspected the Content Population Validator workflow first, per NEXT ACTION.
-- Exact failure occurred only after the synthetic validator, launch roster validator and topology/route validator had already passed.
+- Re-read the mandated recovery chain and current content/progression authority from repository state only.
+- Entry head: `1a3a1530837f3b00f109f93681e927a27ca3951f`.
+- Explicit legacy commit status still reported `organism-cargo/godot-headless` failure, but the linked Godot Headless Tests workflow run `32693528826` itself completed with conclusion **success**; Content Population status was **success**.
+- Proceeded on the green workflow truth and the saved NEXT ACTION.
 
-### Implemented in Increment 159
-- Isolated the authored-batch regression to `tests/unit/launch_authored_batch_test_runner.gd` attempting to open non-existent `res://content/species/launch_species.json`.
-- Confirmed the authoritative populated launch roster actually resides at `res://content/species/launch_roster.json` and contains O01–O22 under the expected `payload.definitions` shape.
-- Repaired the test fixture path to `launch_roster.json`.
-- No gameplay, content payload, campaign, geometry, route or balance semantics were changed.
+### Implemented in Increment 160
+- Added concrete authored geometry for H09 Service Bay, H10 Cross-Fixture Bay, H11 Three-Pocket Vault and H12 S-Corridor Vault in `launch_hold_geometry_batch_03.json`.
+- H09/H10 stay inside frozen HF4 dimensions/fixture density; H11/H12 stay inside HF5 7–9 x 6–7 bounds and 20–35% blocked-cell fraction.
+- Added R13–R18 in `launch_route_profiles_batch_03.json`, completing the 18-profile launch target and introducing authored RH4 Brownout, RH5 Vent Cycle, RH6 Thermal Gradient and RH7 Maintenance Oscillation usage without new effect grammar.
+- Added authored C09–C16 payload/bindings in `campaign_chapter2_batch_01.json` for contamination sink/source/leak, Filter, Silt Grazer beneficial contamination, Baffle tradeoff, recombination and the Chapter-2 future-footprint capstone.
+- Marked Chapter-2 dynamic-transit evidence explicitly: C10/C13/C14/C16 make pure maximum-spacing inferior; C10–C16 include multiple two-change cases while every C09–C16 requires post-launch change.
+- Extended `launch_authored_batch_test_runner.gd` to validate H01–H12, R01–R18, full hazard effect grammar RH1–RH7, tier family ceilings, HF5 blocked fractions, C01–C16 reference resolution, Chapter-2 Tier-2 route binding, dynamic-transit markers and Chapter-2 maximum-spacing quota.
 
 ### Validation / policy
-- Recovered the exact GitHub Actions failure log before editing.
-- Confirmed `content/species/launch_roster.json` exists and exposes the expected species definition collection.
-- The preceding workflow cases in the failing run were green: synthetic content population validator, real O01–O22/S01–S06 roster validation, and real H01–H12/RH1–RH7 topology/route metadata validation.
-- No local Godot binary is available in this runtime; fresh CI from this single checkpoint is authoritative for executable validation.
+- Verified all new JSON payloads use the repository-wide `vertical-slice-1` content version required by `ContentRegistry`.
+- Checked H11/H12 blocked fractions against frozen HF5 limits (14/56 = 25%; 19/63 ≈ 30.2%).
+- Checked R13–R18 durations <=24 ticks and hazard-family counts against frozen tier ceilings; all event effect IDs come from existing RH1–RH7 grammar.
+- C09–C16 references use existing O01–O22/S01–S06 IDs and only authored hold/route IDs.
+- No local Godot binary is available in this runtime; fresh CI from this single checkpoint is authoritative for executable GDScript/content validation.
 - One coherent checkpoint commit/push is used for this run; no speculative follow-up push will be made in the same run.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh CI for Increment 159 must confirm the authored-batch path repair and reveal whether any later assertion remains.
-- 12D remains incomplete: H09–H12, R13–R18, C09–C48, generated/recombined challenge templates, public-demo mapping and broad dynamic/non-dominance gates remain outstanding.
+- Fresh CI must validate Increment 160; if red, inspect the first exact failure and make one focused repair batch next run.
+- 12D remains incomplete: C17–C48 payloads/bindings, generated/recombined challenge templates, public-demo mapping and broad cross-campaign dynamic/non-dominance validation remain outstanding.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and both explicit commit statuses.
+At the start of the next run, query current `main` and both explicit commit/workflow statuses.
 
-If either is red, inspect the first available exact failure and make one focused repair batch only.
+If either authoritative workflow is red, inspect the first exact failure and make one focused repair batch only.
 
-If both are green:
-1. populate H09–H12 concrete geometry and R13–R18 route profiles, introducing RH4/RH5 and later RH6/RH7 only within frozen tier/simultaneity ceilings;
-2. author C09–C16 payload/bindings for Chapter 2 (contamination sink/source/leak, Filter, Silt Grazer, Baffle, recombination and capstone), with all references resolvable;
-3. extend validators for contract tier vs route-family ceilings and Chapter-2 C09–C16 dynamic-transit requirements.
+If green:
+1. author C17–C24 Chapter 3 payload/bindings for Cradle Moss, Glass Larva, Feed Cartridge, Nest Pad, Vibration wake timing, Cinder Snail, Moth Cushion/Warmback and the wake+growth+support capstone;
+2. bind Chapter 3 only to route/hold complexity legal for its tier and add at least one case where the obvious permanent growth corner/edge reserve is strategically bad;
+3. extend authored-batch validation for C17–C24 references, Chapter-3 dynamic-transit quotas, Feed/Nest support introduction, vibration wake timing and growth-reserve anti-template evidence.
 
 Do not begin 12E until complete 12D validation is green.

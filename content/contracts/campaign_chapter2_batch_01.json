@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-1",
+  "kind": "campaign_contracts",
+  "id": "CAMPAIGN_CHAPTER2_BATCH_01",
+  "payload": {
+    "definitions": [
+      {"id":"C09","tier":"2","purpose":"contamination sink intro","hold_id":"H04","route_id":"R08","species_ids":["O14","O02"],"support_ids":[],"requires_post_launch_change":true,"temporally_separated_changes":1,"maximum_spacing_inferior":false},
+      {"id":"C10","tier":"2","purpose":"contamination source intro","hold_id":"H05","route_id":"R08","species_ids":["O04","O14"],"support_ids":[],"requires_post_launch_change":true,"temporally_separated_changes":2,"maximum_spacing_inferior":true},
+      {"id":"C11","tier":"2","purpose":"contamination route leak","hold_id":"H06","route_id":"R08","species_ids":["O04","O14","O02"],"support_ids":[],"requires_post_launch_change":true,"temporally_separated_changes":2,"maximum_spacing_inferior":false},
+      {"id":"C12","tier":"2","purpose":"Filter support","hold_id":"H07","route_id":"R08","species_ids":["O04","O14"],"support_ids":["S02"],"requires_post_launch_change":true,"temporally_separated_changes":2,"maximum_spacing_inferior":false},
+      {"id":"C13","tier":"2","purpose":"Silt Grazer / beneficial contamination use","hold_id":"H07","route_id":"R08","species_ids":["O03","O04","O14"],"support_ids":[],"requires_post_launch_change":true,"temporally_separated_changes":2,"maximum_spacing_inferior":true},
+      {"id":"C14","tier":"2","purpose":"Baffle / cluster-separate tradeoff","hold_id":"H08","route_id":"R08","species_ids":["O03","O04","O14","O02"],"support_ids":["S03"],"requires_post_launch_change":true,"temporally_separated_changes":2,"maximum_spacing_inferior":true},
+      {"id":"C15","tier":"2","purpose":"recombination / generated-style authored case","hold_id":"H08","route_id":"R08","species_ids":["O03","O04","O14","O02","O10"],"support_ids":["S02","S03"],"requires_post_launch_change":true,"temporally_separated_changes":2,"maximum_spacing_inferior":false},
+      {"id":"C16","tier":"2","purpose":"Chapter-2 capstone: contamination feeding + future footprint","hold_id":"H08","route_id":"R08","species_ids":["O03","O04","O14","O02"],"support_ids":["S02","S03"],"requires_post_launch_change":true,"temporally_separated_changes":2,"maximum_spacing_inferior":true}
+    ]
+  }
+}

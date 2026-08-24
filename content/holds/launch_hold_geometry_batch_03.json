@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-1",
+  "kind": "holds",
+  "id": "LAUNCH_HOLD_GEOMETRY_BATCH_03",
+  "payload": {
+    "definitions": [
+      {"id":"H09","width":7,"height":6,"blocked_cells":[[3,0],[3,5]],"utility_fixtures":[{"id":"F01","cell":[1,1]},{"id":"F02","cell":[5,1]},{"id":"F03","cell":[1,4]},{"id":"F04","cell":[5,4]}],"declared_symmetry":"mirror_horizontal"},
+      {"id":"H10","width":7,"height":7,"blocked_cells":[[3,0],[3,1],[0,3],[1,3],[5,3],[6,3],[3,5],[3,6]],"utility_fixtures":[{"id":"F01","cell":[2,2]},{"id":"F02","cell":[4,2]},{"id":"F03","cell":[2,4]},{"id":"F04","cell":[4,4]}],"declared_symmetry":"rotate_180"},
+      {"id":"H11","width":8,"height":7,"blocked_cells":[[2,0],[3,0],[4,0],[5,0],[2,1],[5,1],[2,2],[5,2],[0,4],[1,4],[6,4],[7,4],[3,5],[4,5]],"utility_fixtures":[{"id":"F01","cell":[1,2]},{"id":"F02","cell":[6,2]},{"id":"F03","cell":[3,6]}],"declared_symmetry":"none"},
+      {"id":"H12","width":9,"height":7,"blocked_cells":[[0,1],[1,1],[2,1],[5,1],[6,1],[7,1],[8,1],[2,2],[5,2],[2,3],[3,3],[4,3],[5,3],[6,3],[6,4],[2,5],[3,5],[4,5],[6,5]],"utility_fixtures":[{"id":"F01","cell":[0,3]},{"id":"F02","cell":[8,3]},{"id":"F03","cell":[4,6]}],"declared_symmetry":"none"}
+    ]
+  }
+}
