@@ -17,42 +17,42 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 157
+## Current implementation checkpoint — Increment 158
 
 ### Phase / subsystem
-**12D Content Population — H05–H08, R07–R12 and Chapter-1 C01–C08 bindings**
+**12D Content Population — focused content-version contract repair**
 
 ### Repository truth / entry validation
 - Re-read the mandated recovery chain and current 12D content/progression authority.
-- Entry head: `9b07852a66372864494323669bc5b80e4cdf81a6`.
-- Entry statuses: `organism-cargo/godot-headless` **SUCCESS**; `organism-cargo/content-population` **SUCCESS**.
+- Entry head: `de8b6f1d695624a5081f0f9d822049b274504010`.
+- Entry explicit statuses reported `organism-cargo/content-population` **FAILURE** and `organism-cargo/godot-headless` **FAILURE**.
+- The headless workflow job itself completed successfully; the actionable first exact failure was in the dedicated content-population workflow.
 
-### Implemented in Increment 157
-- Added concrete authored geometry H05–H08, completing HF2 and HF3 launch geometry coverage while staying inside frozen family dimensions/fixture limits.
-- Added authored route profiles R07–R12 with bounded RH1/RH2/RH3 events, <=24 ticks, Tier-2 single-family/non-overlap rules and Tier-3 <=2-family ceilings.
-- Added C01–C08 Chapter-1 contract payload/bindings with resolvable hold, route, species and support references and explicit C05–C08 dynamic-transit flags.
-- Extended the dedicated authored-content validator across both geometry/route batches and Chapter-1 reference resolution.
-- No frozen gameplay rule was redesigned.
+### Implemented in Increment 158
+- Inspected the failing Content Population Validator job log and isolated `content_version_mismatch:LAUNCH_HOLD_GEOMETRY_BATCH_02` during `ContentRegistry` load.
+- Confirmed `ContentRegistry` intentionally requires one shared `content_version` across all loaded content documents.
+- Reconciled the three documents introduced in Increment 157 (`LAUNCH_HOLD_GEOMETRY_BATCH_02`, `LAUNCH_ROUTE_PROFILES_BATCH_02`, `CAMPAIGN_CHAPTER1_BATCH_01`) from the accidental `launch-12d-2` version to the repository-wide `vertical-slice-1` content version already used by the preceding authored batches.
+- Geometry, route events, contract bindings and all frozen gameplay semantics are otherwise unchanged.
 
 ### Validation / policy
-- Entry CI was green before authoring.
-- Static/content constraints encoded in the dedicated validator now cover H01–H08, R01–R12 and C01–C08 reference resolution.
-- This runtime has no local Godot binary; fresh CI from this checkpoint is authoritative for executable validation.
-- One coherent commit/push is used for this run.
+- Exact CI failure was recovered from GitHub Actions logs before editing.
+- Existing preceding hold/route authored batches use `vertical-slice-1`, matching the registry-wide version invariant.
+- All three repaired JSON documents were syntax-checked after the version-only change.
+- No local Godot binary is available in this runtime; fresh CI from this single checkpoint is authoritative for executable validation.
+- One coherent checkpoint commit/push is used for this run; no speculative follow-up push will be made in the same run.
 
 ### Blockers / cautions
 - No user-action blocker.
-- 12D remains incomplete.
-- H09–H12 still require concrete authored geometry.
-- R13–R18 still require authored route profiles including later-family coverage where frozen tier ceilings permit.
-- C09–C48 payload/binding data remains unpopulated.
-- Generated/recombined challenge templates, public-demo mapping and broad dynamic/non-dominance gates remain unpopulated.
+- Fresh CI for Increment 158 remains to confirm the focused repair.
+- 12D remains incomplete: H09–H12, R13–R18, C09–C48, generated/recombined challenge templates, public-demo mapping and broad dynamic/non-dominance gates remain outstanding.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and both explicit commit statuses. If either is red, inspect the first available exact failure and make one focused repair batch only.
+At the start of the next run, query current `main` and both explicit commit statuses.
+
+If either is red, inspect the first available exact failure and make one focused repair batch only.
 
 If both are green:
 1. populate H09–H12 concrete geometry and R13–R18 route profiles, introducing RH4/RH5 and later RH6/RH7 only within frozen tier/simultaneity ceilings;

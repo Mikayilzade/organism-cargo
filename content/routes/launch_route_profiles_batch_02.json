@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "content_version": "launch-12d-2",
+  "content_version": "vertical-slice-1",
   "kind": "routes",
   "id": "LAUNCH_ROUTE_PROFILES_BATCH_02",
   "payload": {
