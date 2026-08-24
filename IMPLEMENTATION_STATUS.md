@@ -17,39 +17,40 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 162
+## Current implementation checkpoint — Increment 163
 
 ### Phase / subsystem
-**12D Content Population — Chapter 4 authored campaign payload batch**
+**12D Content Population — Chapter 5 authored campaign payload batch**
 
 ### Repository truth / entry validation
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, plus current progression/content canon from repository state only.
-- Entry head: `ce84596b817c0ef55c27ea06f91b47c69d01ce94`.
-- Combined commit status exposed `organism-cargo/godot-headless` as failure, but linked workflow run `32701969105` had job `headless-tests` completed with conclusion **success** and every step green.
-- `organism-cargo/content-population` was **success** at entry, so proceeded from the saved green-path NEXT ACTION.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the current progression/content canon required for Chapter 5 from repository state only.
+- Entry head: `6b33f3e7296682c289b5eee263935e8f5177a5bc`.
+- `organism-cargo/content-population` was **success** at entry.
+- Combined status still exposed `organism-cargo/godot-headless` as failure, but linked Actions run `32706668205` job `headless-tests` completed with conclusion **success** and every job step green. This matches the previously observed stale/misreported status-context condition, so the actual workflow result was treated as green.
 
-### Implemented in Increment 162
-- Added `content/contracts/campaign_chapter4_batch_01.json` with authored C25–C32 payload/bindings for the frozen Chapter-4 curriculum.
-- C25 introduces Pulse Mite social-to-heat cascade; C26 introduces Velvet Nurse narrow protection; C27 introduces Rattle Reed directed overlay with Baffle interaction; C28 introduces Service Bay H09 fixture competition.
-- C29 introduces RH4 Brownout/support priority on R16 inside Tier-4 ceilings and records an explicit Cooler+Filter-inferior case under Brownout plus fixture pressure.
-- C30 introduces Coal Urchin helper-liability composite with a living thermal substitute making Cooler inferior; C31 introduces Whistle Crab protection-with-downside.
-- C32 recombines directed social pressure, Brownout, helper/protector downside and Glass Larva growth into the frozen interruptible four-step cascade capstone on H10.
-- Chapter 4 now has multiple maximum-spacing-inferior cases and an explicit permanent growth-corner/edge reserve anti-template case tied to a real growth species and Service Bay interruption lane.
-- Added `tests/unit/chapter4_authored_content_test_runner.gd` to validate C25–C32 IDs/references, Tier-4 route ceilings, dynamic-transit/two-change quotas, Service Bay usage, directed-overlay evidence, RH4 Brownout binding, powered-support priority, Cooler/Filter inferiority, helper/protector downside and C32 four-step capstone evidence.
-- Extended `.github/workflows/content-population-validator.yml` to execute the new Chapter-4 validator after the existing authored batch validator.
+### Implemented in Increment 163
+- Added `content/contracts/campaign_chapter5_batch_01.json` with authored C33–C40 payload/bindings using only frozen O01–O22 species, S01–S06 supports, H01–H12 holds and R01–R18 routes.
+- Preserved the exact Bronze prerequisite chain for C33–C40 directly in authored data: C33<-C32, C34<-C33, C35<-C34, C36<-C33, C37<-C36, C38<-C35+C37, C39<-C38, C40<-C39.
+- C33 introduces S06 Monitor Beacon strictly as an information-only evidence option with no direct mitigation and a certified no-Monitor Bronze family.
+- C34/C35 form the Lantern Tick O15 bounded-discovery -> documented-use pair. Discovery hides exactly one trait-information dimension and does not require Monitor for Bronze.
+- C36/C37 form the Pale Drifter O21 bounded wake-discovery -> documented-use pair and bind the discovery case to existing route R11 with an explicit `wake_request` event.
+- C38 binds Spindle Bloom O18 advanced lifecycle content while keeping causal explanation explicitly bounded.
+- C39 binds Amber Leech O19 dependency/conservation content and records the canonical legal-but-inferior Filter and Baffle cases because they destroy beneficial contamination/relationship timing.
+- C40 is the Chapter-5 unknown-route-detail capstone using existing R18. Exactly one route-information dimension (`event_tick`) is hidden; hazard families, target and intensity remain disclosed. Monitor can reveal that timing evidence but is not required for Bronze and consumes support/fixture opportunity.
+- Added repeated helper/protector comparison-cluster evidence and multiple maximum-spacing-inferior cases without adding a universal protector/helper rule.
+- Added `tests/unit/chapter5_authored_content_test_runner.gd` to validate references, Tier-5 ceilings, exact prerequisites, discovery/documentation pairing, explicit wake binding, one-dimension bounded uncertainty, Monitor non-dominance/no-mitigation, dynamic/two-change quotas, C39 Filter/Baffle inferiority and C40 capstone constraints.
+- Extended `.github/workflows/content-population-validator.yml` to execute the Chapter-5 authored-content validator after the existing Chapter-4 check.
 
 ### Validation / policy
-- Authoring uses only existing O01–O22 species, S01–S06 supports, H01–H12 holds and R01–R18 routes; no new mechanic, species, support, hold, hazard family or route profile was introduced.
-- RH4 appears only on existing Tier-4/5 route R16 in this batch; C25–C28 remain on pre-Brownout Tier-3 routes while Chapter-4 contract tier is 4.
-- Directed-overlay evidence is bound to O11 Rattle Reed plus S03 Baffle; Brownout evidence is bound to an actual RH4 `power_capacity_change` event rather than metadata alone.
-- Helper/protector downside assertions bind actual O12/O17/O20/O05 roster members; growth-reserve anti-template evidence binds an authored growth species.
-- No local Godot binary is available in this runtime; fresh GitHub Actions from this single checkpoint is authoritative for executable GDScript/content validation.
-- One coherent checkpoint commit/push is used for this run; no speculative follow-up push will be made in the same run.
+- The existing Chapter-4 content checkpoint entered with `organism-cargo/content-population` green and the linked general headless job green despite the stale failure context.
+- Static authoring review confirms every referenced species/support/hold/route ID exists in the current frozen content data; C36 explicitly uses the existing R11 wake-request route and C40 uses existing Tier-5 R18.
+- No local Godot binary is available in this runtime; the fresh GitHub Actions run from this single checkpoint is authoritative for executable GDScript/content validation.
+- One coherent checkpoint commit/push is used for this run; no speculative follow-up CI repair will be pushed in the same run.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh CI must validate Increment 162; if red, inspect the first exact failure and make one focused repair batch next run.
-- 12D remains incomplete: C33–C48 payloads/bindings, generated/recombined challenge templates, public-demo mapping and broad cross-campaign dynamic/non-dominance validation remain outstanding.
+- Fresh CI must validate Increment 163. If red, inspect the first exact failure and make one focused repair batch next run.
+- 12D remains incomplete: C41–C48 Chapter-6/mastery payloads, generated/recombined challenge templates, public-demo mapping and broad cross-campaign dynamic/non-dominance validation remain outstanding.
 
 ### Canonical contradictions
 - **NONE discovered.**
@@ -57,11 +58,11 @@ Branch: `main`
 ## NEXT ACTION
 At the start of the next run, query current `main` and both explicit commit/workflow statuses.
 
-If either authoritative workflow is red, inspect the first exact failure and make one focused repair batch only.
+If either authoritative workflow is actually red, inspect the first exact failure and make one focused repair batch only.
 
 If green:
-1. author C33–C40 Chapter 5 payload/bindings for Monitor Beacon, Lantern Tick bounded discovery/documented use, Pale Drifter bounded wake discovery/documented use, Spindle Bloom advanced lifecycle, Amber Leech dependency and the bounded-route-information capstone;
-2. keep discovery semantics bounded and information-only: Monitor Beacon may expose evidence but never direct mitigation or become required for discovery Bronze; use only existing Tier-5-valid holds/routes/hazards and preserve exact C33–C40 prerequisites;
-3. extend content validation for Chapter-5 references, discovery/documentation pairing, dynamic/maximum-spacing quotas, Monitor non-dominance, helper/protector empirical-cluster evidence and bounded-information constraints.
+1. author C41–C48 Chapter-6/mastery payload/bindings for Ash Sponge, Splitcap, Constricted Vault, Thermal Gradient, Maintenance Oscillation, anti-template helper-liability, penultimate full-system mastery and final Living Manifest;
+2. use only frozen H11/H12 mastery topology and existing R16–R18/RH1–RH7 grammar where appropriate; preserve exact C41–C48 prerequisites and Tier-6 route ceilings, including at least two permanent-growth-corner/edge anti-template cases in Chapter 6;
+3. extend Chapter-6 validation for all references, dynamic/two-change coverage, helper/protector non-dominance, Cooler/Filter inferiority, growth-reserve anti-template evidence and the final capstone chain.
 
-Do not begin 12E until complete 12D validation is green.
+After C41–C48 is green, continue generated/recombined challenge templates, public-demo mapping and broad 12D cross-campaign validation. Do not begin 12E until complete 12D validation is green.
