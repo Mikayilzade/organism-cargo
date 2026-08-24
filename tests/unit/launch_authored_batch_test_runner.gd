@@ -72,7 +72,7 @@ func _test_chapter1_contracts() -> void:
 		for raw: Variant in _array(_dict(_load_json(path).get("payload", {})).get("definitions", [])): hold_ids[String(_dict(raw).get("id", ""))] = true
 	for path: String in ["res://content/routes/launch_route_profiles_batch_01.json","res://content/routes/launch_route_profiles_batch_02.json"]:
 		for raw: Variant in _array(_dict(_load_json(path).get("payload", {})).get("definitions", [])): route_ids[String(_dict(raw).get("id", ""))] = true
-	for raw: Variant in _array(_dict(_load_json("res://content/species/launch_species.json").get("payload", {})).get("definitions", [])): species_ids[String(_dict(raw).get("id", ""))] = true
+	for raw: Variant in _array(_dict(_load_json("res://content/species/launch_roster.json").get("payload", {})).get("definitions", [])): species_ids[String(_dict(raw).get("id", ""))] = true
 	for raw: Variant in _array(_dict(_load_json("res://content/supports/launch_supports.json").get("payload", {})).get("definitions", [])): support_ids[String(_dict(raw).get("id", ""))] = true
 	var seen: Dictionary = {}
 	for raw: Variant in defs:

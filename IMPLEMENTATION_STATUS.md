@@ -17,33 +17,34 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 158
+## Current implementation checkpoint — Increment 159
 
 ### Phase / subsystem
-**12D Content Population — focused content-version contract repair**
+**12D Content Population — focused authored-batch CI path repair**
 
 ### Repository truth / entry validation
-- Re-read the mandated recovery chain and current 12D content/progression authority.
-- Entry head: `de8b6f1d695624a5081f0f9d822049b274504010`.
+- Re-read the mandated recovery chain and current implementation authority.
+- Entry head: `eeeae58cf7f23dd17ed7cebf6a080bfbe7dcc42f`.
 - Entry explicit statuses reported `organism-cargo/content-population` **FAILURE** and `organism-cargo/godot-headless` **FAILURE**.
-- The headless workflow job itself completed successfully; the actionable first exact failure was in the dedicated content-population workflow.
+- Inspected the Content Population Validator workflow first, per NEXT ACTION.
+- Exact failure occurred only after the synthetic validator, launch roster validator and topology/route validator had already passed.
 
-### Implemented in Increment 158
-- Inspected the failing Content Population Validator job log and isolated `content_version_mismatch:LAUNCH_HOLD_GEOMETRY_BATCH_02` during `ContentRegistry` load.
-- Confirmed `ContentRegistry` intentionally requires one shared `content_version` across all loaded content documents.
-- Reconciled the three documents introduced in Increment 157 (`LAUNCH_HOLD_GEOMETRY_BATCH_02`, `LAUNCH_ROUTE_PROFILES_BATCH_02`, `CAMPAIGN_CHAPTER1_BATCH_01`) from the accidental `launch-12d-2` version to the repository-wide `vertical-slice-1` content version already used by the preceding authored batches.
-- Geometry, route events, contract bindings and all frozen gameplay semantics are otherwise unchanged.
+### Implemented in Increment 159
+- Isolated the authored-batch regression to `tests/unit/launch_authored_batch_test_runner.gd` attempting to open non-existent `res://content/species/launch_species.json`.
+- Confirmed the authoritative populated launch roster actually resides at `res://content/species/launch_roster.json` and contains O01–O22 under the expected `payload.definitions` shape.
+- Repaired the test fixture path to `launch_roster.json`.
+- No gameplay, content payload, campaign, geometry, route or balance semantics were changed.
 
 ### Validation / policy
-- Exact CI failure was recovered from GitHub Actions logs before editing.
-- Existing preceding hold/route authored batches use `vertical-slice-1`, matching the registry-wide version invariant.
-- All three repaired JSON documents were syntax-checked after the version-only change.
+- Recovered the exact GitHub Actions failure log before editing.
+- Confirmed `content/species/launch_roster.json` exists and exposes the expected species definition collection.
+- The preceding workflow cases in the failing run were green: synthetic content population validator, real O01–O22/S01–S06 roster validation, and real H01–H12/RH1–RH7 topology/route metadata validation.
 - No local Godot binary is available in this runtime; fresh CI from this single checkpoint is authoritative for executable validation.
 - One coherent checkpoint commit/push is used for this run; no speculative follow-up push will be made in the same run.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh CI for Increment 158 remains to confirm the focused repair.
+- Fresh CI for Increment 159 must confirm the authored-batch path repair and reveal whether any later assertion remains.
 - 12D remains incomplete: H09–H12, R13–R18, C09–C48, generated/recombined challenge templates, public-demo mapping and broad dynamic/non-dominance gates remain outstanding.
 
 ### Canonical contradictions
