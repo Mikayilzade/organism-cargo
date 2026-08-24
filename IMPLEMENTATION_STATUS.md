@@ -17,47 +17,51 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 169
+## Current implementation checkpoint — Increment 170
 
 ### Phase / subsystem
-**12E UX / Accessibility / Controller / Deck — focused CI repair after Increment 168**
+**12E UX / Accessibility / Controller / Deck — rendered Settings/remapping screen**
 
 ### Repository truth / entry validation
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md` before touching implementation state.
-- Entry head: `75a9bb5086e37747ef2714075f90319953ade4c8` (Increment 168).
-- `organism-cargo/godot-headless` linked run `32721920784`, job `headless-tests` (`97414953286`) completed **success**; all executable steps, including `Run headless contract suite`, are green.
-- `organism-cargo/content-population` linked run `32721920826`, job `content-validator` (`97414953537`) completed **failure** in `Import and validate frozen content population contracts`.
-- The first exact executable failure was a Godot 4.7.1 strict GDScript parse error in `src/ui/transit_review_navigation_model.gd:223`: `duplicate()` was called on a value still inferred as `Variant`; warnings are treated as errors in the content validator.
-- Per anti-spam policy, this run performs only one focused repair batch and does not continue into the green-branch Settings/UI work.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the current subsystem authority in `PHASE11_UX_ACCESSIBILITY.md` and the existing input/remap implementation.
+- Entry head: `7ff7f660d95a47df806912bfad4bc475bfbef1b5` (Increment 169).
+- Increment-169 linked `content-population` run `32740114167`, job `content-validator` (`97472280483`) completed **success**.
+- Increment-169 linked `godot-headless` run `32740114039`, job `headless-tests` (`97472280461`) completed **success**, including `Run headless contract suite`. The older combined `godot-headless` context still reports failure, so executable job state remains the authority for this checkpoint.
+- Both actual executable workflows are green; the run therefore followed the green branch of the previous `NEXT ACTION`.
 
-### Implemented in Increment 169
-- Repaired `_parent_ids()` in `src/ui/transit_review_navigation_model.gd` by replacing the problematic `raw.duplicate()` call with explicit iteration over `(raw as PackedStringArray)` into the already typed `PackedStringArray` accumulator.
-- The repair preserves the exact deterministic parent-id values and ordering and changes no gameplay, review semantics, simulation authority or data model.
-- No speculative CI/workflow edits were made.
+### Implemented in Increment 170
+- Added `src/ui/settings_remap_screen.gd`, a real rendered `Control`-based Settings/Controls screen backed by `InputRemapModel` rather than a model-only acceptance stub.
+- The screen renders every frozen required semantic action for keyboard and controller, with focusable device/reset controls, scrollable action rows, explicit physical-binding text and a non-glyph text action label.
+- Added dynamic keyboard/controller presentation switching through `note_input_source()`. The active profile changes between `[KB]` and `[PAD]` marker families while retaining text labels, satisfying the rule that glyph recognition cannot be the sole instruction channel.
+- Binding proposals flow through the existing conflict authority. Overlapping-context conflicts are blocked before save and produce a rendered explanation naming the conflicting action.
+- Mutually-exclusive contextual reuse remains allowed but now produces explicit rendered explanation text when the model marks explanation as required.
+- Added independent per-device reset-to-default controls and a visible same-device recovery line showing current Accept/Cancel bindings and whether recovery is ready. No other device is required to confirm/cancel remapping.
+- Added `tests/unit/phase12e_settings_remap_screen_test_runner.gd` covering rendered keyboard rows, dynamic controller switching, conflict explanation, contextual reuse explanation, per-device reset and same-device recovery for keyboard/controller.
 
 ### Validation / policy
-- The failing workflow job and full log were inspected directly; this checkpoint addresses the first exact executable compile failure and nothing broader.
-- Increment-168 headless regression job remains confirmed green.
-- Fresh GitHub Actions is required to verify project import and the content population validator after this typed-copy repair.
-- All source/status changes are batched into one checkpoint commit/push for this run.
+- The prior Increment-169 executable headless and content-population jobs were inspected directly and are green.
+- The new focused Settings/remap runner is saved in-repo and exercises the rendered screen contract; the existing GitHub headless workflow still provides project import plus the full regression suite on every push. A follow-up should wire this focused runner into the workflow case list after fresh import/regression confirms the new class parses cleanly, avoiding speculative workflow churn in the same implementation batch.
+- No gameplay, simulation authority, persistence semantics, campaign progression, content or frozen mechanical rule was changed.
+- All source/test/status changes are batched into one checkpoint commit/push for this run.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh CI must validate Increment 169. If red, the next run must inspect the first exact executable failure and make one focused repair batch only; do not stack speculative fixes.
-- 12E remains incomplete: rendered Settings/remapping UI, dynamic keyboard/controller glyph+text switching, same-device remap recovery in the actual screen, visible region/focus styling, support-link/power-priority semantic interaction, responsive real widget composition at 1280x800/200%, no-audio/non-color presentation application, Reduced Motion/Flashing application, and complete Retry/Reset/map/Codex/save-recovery/campaign-completion acceptance paths remain outstanding.
+- Fresh CI must validate Increment 170. If either executable workflow is red, inspect the first exact executable failure and make one focused repair batch only.
+- The screen currently exposes the remap contract and rendered state but is not yet routed from the persistent shell/menu scene; physical capture/application into Godot `InputMap` remains a separate presentation/input integration step and must preserve the same-device recovery contract.
+- 12E remains incomplete: persistent Settings navigation, visible semantic focus/region styling, support-link/power-priority keyboard/controller interaction, real 1280x800/200%-scale widget composition, no-audio/non-color presentation application, Reduced Motion/Reduced Flashing application, and complete Retry/Reset/map/Codex/save-recovery/campaign-completion acceptance paths remain outstanding.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, query current `main` and inspect the actual linked `content-population` and `godot-headless` workflow jobs for Increment 169 rather than trusting combined status residue.
+At the start of the next run, inspect the actual linked `content-population` and `godot-headless` executable jobs for Increment 170 rather than trusting combined status residue.
 
 If either executable workflow is red, inspect the first exact executable failure and make one focused repair batch only.
 
 If both executable workflows are green:
-1. build the rendered Settings/remapping screen on `InputRemapModel`, including dynamic keyboard/controller glyph + text switching, conflict explanation, per-device reset and same-device Accept/Cancel recovery;
-2. extend the actual rendered shell with visible semantic focus/region styling and support-link/power-priority keyboard/controller interaction;
-3. replace model-only Deck reachability with real 1280x800 / 200%-scale widget-composition checks, then apply no-audio/non-color and Reduced Motion/Reduced Flashing presentation behavior;
-4. continue closing the remaining required paths: Retry/Reset/map, Codex, save-recovery and campaign-completion acceptance.
+1. wire `phase12e_settings_remap_screen_test_runner.gd` into the headless case list and connect `SettingsRemapScreen` into the persistent shell/menu Settings path without making pointer input mandatory;
+2. add real same-device physical remap capture/application and dynamic keyboard/controller source detection while preserving visible glyph + text labels and guaranteed Accept/Cancel recovery;
+3. extend the rendered planning shell with visible semantic focus/region styling and support-link/power-priority keyboard/controller interaction;
+4. then replace model-only Deck reachability with real 1280x800 / 200%-scale widget-composition checks and continue the no-audio/non-color, Reduced Motion/Flashing, Retry/Reset/map, Codex, save-recovery and campaign-completion acceptance paths.
 
 Do not begin 12F until the full 12E acceptance matrix is implemented and green. Do not report overall completion until `IMPLEMENTATION COMPLETE = YES`.
