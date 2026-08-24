@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-1",
+  "kind": "routes",
+  "id": "LAUNCH_ROUTE_PROFILES_BATCH_01",
+  "payload": {
+    "definitions": [
+      {"id":"R01","tier":"0-1","duration_ticks":8,"hazard_family_ids":[],"events":[]},
+      {"id":"R02","tier":"0-1","duration_ticks":10,"hazard_family_ids":["RH1"],"events":[{"tick":6,"family_id":"RH1","effect":"heat_input","target":{"zone":"center"},"intensity":1,"duration_ticks":1}]},
+      {"id":"R03","tier":"0-1","duration_ticks":12,"hazard_family_ids":["RH1"],"events":[{"tick":5,"family_id":"RH1","effect":"heat_input","target":{"zone":"left"},"intensity":1,"duration_ticks":2}]},
+      {"id":"R04","tier":"0-1","duration_ticks":14,"hazard_family_ids":["RH1"],"events":[{"tick":4,"family_id":"RH1","effect":"heat_input","target":{"zone":"right"},"intensity":1,"duration_ticks":2}]},
+      {"id":"R05","tier":"2","duration_ticks":16,"hazard_family_ids":["RH2"],"events":[{"tick":5,"family_id":"RH2","effect":"contamination_source","target":{"zone":"left"},"intensity":1,"duration_ticks":2},{"tick":11,"family_id":"RH2","effect":"contamination_source","target":{"zone":"right"},"intensity":1,"duration_ticks":2}]},
+      {"id":"R06","tier":"2","duration_ticks":16,"hazard_family_ids":["RH3"],"events":[{"tick":6,"family_id":"RH3","effect":"stress_field","target":{"scope":"hold"},"intensity":1,"duration_ticks":1},{"tick":12,"family_id":"RH3","effect":"wake_request","target":{"scope":"sleeping"},"intensity":1,"duration_ticks":1}]}
+    ]
+  }
+}

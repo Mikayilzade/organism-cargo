@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-1",
+  "kind": "holds",
+  "id": "LAUNCH_HOLD_GEOMETRY_BATCH_01",
+  "payload": {
+    "definitions": [
+      {"id":"H01","width":5,"height":5,"blocked_cells":[],"utility_fixtures":[{"id":"F01","cell":[2,2]}],"declared_symmetry":"rotate_180"},
+      {"id":"H02","width":6,"height":5,"blocked_cells":[],"utility_fixtures":[{"id":"F01","cell":[1,2]}],"declared_symmetry":"mirror_horizontal"},
+      {"id":"H03","width":6,"height":5,"blocked_cells":[],"utility_fixtures":[{"id":"F01","cell":[1,2]},{"id":"F02","cell":[4,2]}],"declared_symmetry":"rotate_180"},
+      {"id":"H04","width":5,"height":6,"blocked_cells":[[2,0],[2,1],[2,4],[2,5]],"utility_fixtures":[{"id":"F01","cell":[0,2]},{"id":"F02","cell":[4,3]}],"declared_symmetry":"rotate_180"}
+    ]
+  }
+}
