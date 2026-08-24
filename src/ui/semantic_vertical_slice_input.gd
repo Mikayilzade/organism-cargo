@@ -3,11 +3,13 @@ extends Node
 
 const InputActionCatalogScript := preload("res://src/ui/input_action_catalog.gd")
 const PlanningFocusRouterScript := preload("res://src/ui/planning_focus_router.gd")
+const PlanningSupportConfigModelScript := preload("res://src/ui/planning_support_config_model.gd")
 const TransitReviewNavigationModelScript := preload("res://src/ui/transit_review_navigation_model.gd")
 
 var _control: AccessibleVerticalSliceControl
 var _flow: VerticalSliceFlowCoordinator
 var _router: PlanningFocusRouter
+var _support_config: PlanningSupportConfigModel
 var _transit_review: TransitReviewNavigationModel
 var _manifest_ids: Array[String] = []
 var _manifest_focus_index: int = 0
@@ -16,6 +18,7 @@ func configure(control: AccessibleVerticalSliceControl, flow: VerticalSliceFlowC
 	_control = control
 	_flow = flow
 	_router = PlanningFocusRouterScript.new()
+	_support_config = PlanningSupportConfigModelScript.new()
 	_transit_review = TransitReviewNavigationModelScript.new()
 	var hold_value: Variant = context.get("planning_hold_payload", {})
 	if typeof(hold_value) == TYPE_DICTIONARY:
@@ -35,41 +38,53 @@ func configure(control: AccessibleVerticalSliceControl, flow: VerticalSliceFlowC
 					if not instance_id.is_empty():
 						_manifest_ids.append(instance_id)
 	_manifest_focus_index = 0
+	var support_definitions: Variant = context.get("planning_support_definitions", [])
+	if typeof(support_definitions) == TYPE_DICTIONARY:
+		support_definitions = (support_definitions as Dictionary).get("definitions", [])
+	var support_targets: Variant = context.get("planning_support_targets", _manifest_ids)
+	var support_configured: Dictionary = _support_config.configure(support_definitions, support_targets)
+	if not bool(support_configured.get("ok", false)):
+		return support_configured
 	var transit_configured: Dictionary = _transit_review.configure_transit(context)
 	if not bool(transit_configured.get("ok", false)):
 		return transit_configured
+	_render_planning_semantics()
 	return {"ok": true, "error": "", "snapshot": snapshot()}
 
 func dispatch(action: StringName) -> Dictionary:
-	if _control == null or _flow == null or _router == null or _transit_review == null:
+	if _control == null or _flow == null or _router == null or _support_config == null or _transit_review == null:
 		return _fail("semantic_input_not_configured")
 	if not InputActionCatalogScript.REQUIRED_ACTIONS.has(action):
 		return _fail("unknown_semantic_action")
+	var result: Dictionary = _fail("action_not_available_in_state")
 	match _flow.current_state():
 		AppStateMachine.State.TITLE, AppStateMachine.State.CAMPAIGN_MAP, AppStateMachine.State.CONTRACT_BRIEF:
 			if action == &"accept":
-				return _control.activate_primary_action()
+				result = _control.activate_primary_action()
 		AppStateMachine.State.PLANNING:
-			return _dispatch_planning(action)
+			result = _dispatch_planning(action)
 		AppStateMachine.State.LAUNCH_CONFIRM:
 			if action == &"cancel":
 				var cancel_result: Dictionary = _control.activate_secondary_action()
 				if bool(cancel_result.get("ok", false)):
 					_router.exit_modal()
-				return cancel_result
-			if action == &"accept" or action == &"launch_focus":
-				return _control.activate_primary_action()
+				result = cancel_result
+			elif action == &"accept" or action == &"launch_focus":
+				result = _control.activate_primary_action()
 		AppStateMachine.State.TRANSIT_PLAYBACK:
-			return _dispatch_transit(action)
+			result = _dispatch_transit(action)
 		AppStateMachine.State.CAUSAL_REVIEW:
-			return _dispatch_review(action)
-	return _fail("action_not_available_in_state")
+			result = _dispatch_review(action)
+	if _flow.current_state() == AppStateMachine.State.PLANNING:
+		_render_planning_semantics()
+	return result
 
 func snapshot() -> Dictionary:
 	return {
 		"router": {} if _router == null else _router.snapshot(),
 		"manifest_focus_index": _manifest_focus_index,
 		"manifest_focus_id": "" if _manifest_ids.is_empty() else _manifest_ids[_manifest_focus_index],
+		"support_config": {} if _support_config == null else _support_config.snapshot(),
 		"state": -1 if _flow == null else _flow.current_state(),
 		"transit": {} if _transit_review == null else _transit_review.transit_snapshot(),
 		"review": {} if _transit_review == null else _transit_review.review_snapshot(),
@@ -95,14 +110,17 @@ func _dispatch_planning(action: StringName) -> Dictionary:
 		return launch_result
 	if action == &"cancel":
 		return _control.planning_clear_selection()
-	if action == &"inspect":
-		return _control.planning_inspect_selected()
 	if action == &"rotate":
 		return _control.planning_rotate_selected()
 	if action == &"remove":
 		return _control.planning_remove_selected()
 
 	var region: StringName = _router.current_region()
+	if region == &"OBJECTIVES_SUPPORTS" and _support_config.has_supports():
+		if action in [&"navigate_up", &"navigate_down", &"navigate_left", &"navigate_right", &"accept", &"overlay_previous", &"overlay_next", &"inspect"]:
+			return _support_config.command(action)
+	if action == &"inspect":
+		return _control.planning_inspect_selected()
 	if action in [&"navigate_up", &"navigate_down", &"navigate_left", &"navigate_right"]:
 		if region == &"HOLD":
 			var before: Dictionary = _router.snapshot()
@@ -174,6 +192,11 @@ func _move_manifest_focus(action: StringName) -> Dictionary:
 		"region": &"MANIFEST",
 		"manifest_focus_id": _manifest_ids[_manifest_focus_index],
 	}
+
+func _render_planning_semantics() -> void:
+	if _control == null or _router == null or _support_config == null:
+		return
+	_control.planning_render_semantic_state(_router.snapshot(), _support_config.snapshot(), "" if _manifest_ids.is_empty() else _manifest_ids[_manifest_focus_index])
 
 static func _fail(error: String) -> Dictionary:
 	return {"ok": false, "error": error}

@@ -2,6 +2,7 @@ extends SceneTree
 
 const InputActionCatalogScript := preload("res://src/ui/input_action_catalog.gd")
 const PlanningFocusRouterScript := preload("res://src/ui/planning_focus_router.gd")
+const PlanningSupportConfigModelScript := preload("res://src/ui/planning_support_config_model.gd")
 const AccessibilitySettingsModelScript := preload("res://src/ui/accessibility_settings_model.gd")
 
 var failures: int = 0
@@ -10,6 +11,7 @@ func _init() -> void:
 	_test_required_input_catalog()
 	_test_independent_default_device_paths()
 	_test_planning_focus_router()
+	_test_support_link_and_brownout_priority_model()
 	_test_accessibility_shell_contract()
 	_finish()
 
@@ -55,6 +57,37 @@ func _test_planning_focus_router() -> void:
 	_expect_equal(router.current_region(), &"INSPECTOR", "modal focus remains on the modal-owned region")
 	_expect(bool(router.exit_modal().get("ok", false)), "modal focus can be released")
 	_expect_equal(router.semantic_request(&"region_previous").get("region"), &"HOLD", "region-previous restores deterministic region navigation")
+
+func _test_support_link_and_brownout_priority_model() -> void:
+	var model: PlanningSupportConfigModel = PlanningSupportConfigModelScript.new()
+	var configured := model.configure([
+		{"id": "S01", "name": "Cooler", "requires_power": true},
+		{"id": "S02", "name": "Filter", "requires_power": true},
+		{"id": "S03", "name": "Baffle", "requires_power": false},
+	], ["cargo-a", "cargo-b", "cell-2,1"])
+	_expect(bool(configured.get("ok", false)), "support configuration accepts an ordered source/target set")
+	var snapshot: Dictionary = model.snapshot()
+	_expect_equal(snapshot.get("selected_support_id"), "S01", "ordered support focus starts at first source")
+	_expect_equal(snapshot.get("selected_target_id"), "cargo-a", "ordered target focus starts at first target")
+	_expect_equal(snapshot.get("power_priority"), ["S01", "S02"], "powered support priority follows authored order")
+
+	_expect(bool(model.command(&"navigate_right").get("ok", false)), "support target is keyboard/controller navigable")
+	_expect_equal(model.snapshot().get("selected_target_id"), "cargo-b", "right navigation advances one logical target")
+	_expect(bool(model.command(&"accept").get("ok", false)), "Accept creates a visible source-target link")
+	_expect_equal(model.snapshot().get("links"), [{"source": "S01", "target": "cargo-b"}], "source-target link is explicit and ordered")
+
+	_expect(bool(model.command(&"overlay_next").get("ok", false)), "powered support can move later in Brownout priority without pointer interaction")
+	_expect_equal(model.snapshot().get("power_priority"), ["S02", "S01"], "Brownout power priority reorders deterministically")
+	_expect(bool(model.command(&"navigate_down").get("ok", false)), "support source list advances discretely")
+	_expect_equal(model.snapshot().get("selected_support_id"), "S02", "second support becomes selected source")
+	_expect(bool(model.command(&"overlay_previous").get("ok", false)), "selected powered support can move earlier in priority")
+	_expect_equal(model.snapshot().get("power_priority"), ["S02", "S01"], "already-highest priority clamps without corruption")
+
+	_expect(bool(model.command(&"navigate_down").get("ok", false)), "non-powered support remains reachable in same ordered list")
+	var rejected := model.command(&"overlay_next")
+	_expect(not bool(rejected.get("ok", true)), "non-powered support cannot be inserted into Brownout order")
+	_expect_equal(String(rejected.get("error", "")), "selected_support_not_powered", "non-powered priority rejection is explicit")
+	_expect(String(model.snapshot().get("instructions", "")).contains("Accept link/unlink"), "support interaction exposes non-glyph text instructions")
 
 func _test_accessibility_shell_contract() -> void:
 	var settings: AccessibilitySettingsModel = AccessibilitySettingsModelScript.new()
