@@ -1,8 +1,47 @@
 class_name AccessibleVerticalSliceControl
 extends VerticalSliceControl
 
+const AccessibilitySettingsModelScript := preload("res://src/ui/accessibility_settings_model.gd")
+const CriticalSignalPresentationBuilderScript := preload("res://src/ui/critical_signal_presentation_builder.gd")
+
 var _semantic_focus_label: Label
 var _support_config_label: Label
+var _accessibility_settings_model: AccessibilitySettingsModel = AccessibilitySettingsModelScript.new()
+var _critical_signal_panel: VBoxContainer
+var _critical_signal_summary: Label
+var _critical_signal_list: VBoxContainer
+var _critical_signals: Array = []
+
+func configure(flow: VerticalSliceFlowCoordinator, context: Dictionary = {}) -> void:
+	_load_accessibility_settings(context)
+	super(flow, context)
+
+func set_context(context: Dictionary) -> void:
+	_load_accessibility_settings(context)
+	super(context)
+
+func sync_from_flow() -> void:
+	super()
+	_sync_critical_signal_panel()
+
+func set_accessibility_settings(patch: Dictionary) -> Dictionary:
+	var applied: Dictionary = _accessibility_settings_model.apply_patch(patch)
+	if bool(applied.get("ok", false)):
+		_context["accessibility_settings"] = _accessibility_settings_model.snapshot()
+		_sync_critical_signal_panel()
+	return applied
+
+func critical_signal_snapshot() -> Array:
+	return _critical_signals.duplicate(true)
+
+func critical_signal_rendered_text() -> String:
+	if _critical_signal_list == null:
+		return ""
+	var lines: PackedStringArray = PackedStringArray()
+	for child: Node in _critical_signal_list.get_children():
+		if child is Label:
+			lines.append((child as Label).text)
+	return "\n".join(lines)
 
 func planning_rotate_selected() -> Dictionary:
 	if _flow == null or _flow.current_state() != AppStateMachine.State.PLANNING:
@@ -112,6 +151,83 @@ func planning_render_semantic_state(router_snapshot: Dictionary, support_snapsho
 		String(support_snapshot.get("instructions", "")),
 	]
 
+func _load_accessibility_settings(context: Dictionary) -> void:
+	_accessibility_settings_model = AccessibilitySettingsModelScript.new()
+	var settings_value: Variant = context.get("accessibility_settings", {})
+	if typeof(settings_value) != TYPE_DICTIONARY:
+		return
+	var settings: Dictionary = settings_value
+	if settings.is_empty():
+		return
+	var applied: Dictionary = _accessibility_settings_model.apply_patch(settings)
+	if not bool(applied.get("ok", false)):
+		_accessibility_settings_model = AccessibilitySettingsModelScript.new()
+
+func _sync_critical_signal_panel() -> void:
+	_ensure_critical_signal_panel()
+	if _critical_signal_panel == null:
+		return
+	_critical_signals.clear()
+	if _flow == null:
+		_critical_signal_panel.visible = false
+		_clear_critical_signal_rows()
+		return
+	var state: int = _flow.current_state()
+	if state != AppStateMachine.State.TRANSIT_PLAYBACK and state != AppStateMachine.State.CAUSAL_REVIEW:
+		_critical_signal_panel.visible = false
+		_clear_critical_signal_rows()
+		return
+	_critical_signal_panel.visible = true
+	if state == AppStateMachine.State.TRANSIT_PLAYBACK:
+		_critical_signal_summary.text = "TRANSIT SIGNALS — authoritative transit is resolving; critical cues remain visual and text-addressable."
+		_clear_critical_signal_rows()
+		return
+	var builder: CriticalSignalPresentationBuilder = CriticalSignalPresentationBuilderScript.new()
+	_critical_signals = builder.build(
+		_accessibility_settings_model,
+		_flow.last_completed_result(),
+		_flow.last_review(),
+		_dictionary_context("simulation_defs")
+	)
+	_render_critical_signal_rows()
+
+func _render_critical_signal_rows() -> void:
+	_clear_critical_signal_rows()
+	if _critical_signal_summary == null or _critical_signal_list == null:
+		return
+	_critical_signal_summary.text = "CRITICAL TRANSIT / REVIEW SIGNALS — %d event(s). Audio is optional; source, label, icon, pattern and shape remain visible." % _critical_signals.size()
+	for index: int in range(_critical_signals.size()):
+		var signal_value: Variant = _critical_signals[index]
+		if not signal_value is Dictionary:
+			continue
+		var row: Label = Label.new()
+		row.name = "CriticalSignalRow%02d" % index
+		row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.text = _critical_signal_row_text(signal_value)
+		_critical_signal_list.add_child(row)
+
+func _critical_signal_row_text(signal: Dictionary) -> String:
+	var caption_line: String = String(signal.get("caption", "")) if bool(signal.get("caption_visible", false)) else "Caption disabled; visible source/label channels remain active."
+	return "T%02d • %s • source=%s\n%s\nicon=%s • pattern=%s • shape=%s • motion=%s • flash=%s" % [
+		int(signal.get("tick", 0)),
+		String(signal.get("text_label", "EVENT")),
+		String(signal.get("source", "System")),
+		caption_line,
+		String(signal.get("icon", "info")),
+		String(signal.get("pattern", "solid_outline")),
+		String(signal.get("shape", "outlined_badge")),
+		String(signal.get("motion_mode", "standard")),
+		String(signal.get("flash_mode", "bounded_fade")),
+	]
+
+func _clear_critical_signal_rows() -> void:
+	if _critical_signal_list == null:
+		return
+	while _critical_signal_list.get_child_count() > 0:
+		var child: Node = _critical_signal_list.get_child(0)
+		_critical_signal_list.remove_child(child)
+		child.queue_free()
+
 func _ensure_semantic_labels() -> void:
 	if _planning_panel == null:
 		return
@@ -126,3 +242,22 @@ func _ensure_semantic_labels() -> void:
 		_support_config_label.name = "SupportConfigStatus"
 		_support_config_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_planning_panel.add_child(_support_config_label)
+
+func _ensure_critical_signal_panel() -> void:
+	if _critical_signal_panel != null:
+		return
+	_critical_signal_panel = VBoxContainer.new()
+	_critical_signal_panel.name = "CriticalSignalPanel"
+	_critical_signal_panel.visible = false
+	add_child(_critical_signal_panel)
+	if _primary_button != null:
+		move_child(_critical_signal_panel, _primary_button.get_index())
+
+	_critical_signal_summary = Label.new()
+	_critical_signal_summary.name = "CriticalSignalSummary"
+	_critical_signal_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_critical_signal_panel.add_child(_critical_signal_summary)
+
+	_critical_signal_list = VBoxContainer.new()
+	_critical_signal_list.name = "CriticalSignalList"
+	_critical_signal_panel.add_child(_critical_signal_list)

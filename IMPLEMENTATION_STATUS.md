@@ -17,62 +17,71 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 176
+## Current implementation checkpoint — Increment 177
 
 ### Phase / subsystem
-**12E UX / Accessibility / Controller / Deck — no-audio/non-color critical signaling + Reduced Motion/Reduced Flashing presentation application model**
+**12E UX / Accessibility / Controller / Deck — rendered critical-signal integration across authoritative Transit failure -> Causal Review**
 
 ### Repository truth / entry validation
 - Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact subsystem authorities `PHASE11_UX_ACCESSIBILITY.md` and `PHASE11_TECH_PERSISTENCE.md`.
-- Entry head: `c2f004b54c80d1470494b51c490691780e64642d` (Increment 175).
-- Inspected Increment-175 `content-population` run `32774751002`, job `content-validator` (`97583126192`): executable job completed **success**, including project import/content validation.
-- Inspected Increment-175 `godot-headless` run `32774750949`, job `headless-tests` (`97583125849`): executable job completed **success**, including the full `Run headless contract suite` step. The published combined-status `failure` residue is not treated as executable truth.
+- Entry head: `3e527275b54b85cf63f9f0219970e80f15f80312` (Increment 176).
+- Inspected the actual Increment-176 `content-population` run `32779784079`: workflow completed **success** on the exact entry SHA.
+- Inspected the actual Increment-176 `godot-headless` run `32779784445`, job `headless-tests` (`97599078954`): executable job completed **success**, including Godot 4.7.1 installation, the full `Run headless contract suite` step and status publication. The previously observed combined-status residue is therefore not treated as executable truth.
+- Both executable workflows are green, so this run followed the green branch of the previous `NEXT ACTION`.
 
-### Implemented in Increment 176
-- Extended `AccessibilitySettingsModel` from settings-storage metadata into a deterministic presentation-application contract for every gameplay-significant cue required by the Phase-11 no-audio acceptance list:
-  - hazard onset/end;
-  - state transition;
-  - alarm/panic;
-  - growth and blocked growth;
-  - feeding/soothing activation;
-  - Brownout/power loss;
-  - discovery evidence;
-  - mandatory predicate failure;
-  - transit completion.
-- Every critical signal now yields explicit source-aware caption text, text label, icon, pattern and shape channels; audio is optional and never the only source of information.
-- Added the frozen non-color channel languages for heat (`heat` icon + `thermal_lines`), stress (`stress` icon + `jagged_ripple`) and contamination (`contamination` icon + `particulate_mottle`). Brownout uses a slashed-power icon/pattern and mandatory failure uses an explicit failure label/crossed outline.
-- Applied accessibility settings to presentation output rather than simulation:
-  - master volume 0 forces critical captions visible even when the optional non-speech caption preference is off, so the no-audio path cannot lose timing/source information;
-  - Reduced Motion switches critical presentation to snap/fade + static-pattern mode and disables camera shake;
-  - Reduced Flashing switches emphasis to persistent outline and never permits full-screen flash;
-  - every emitted signal explicitly records that authoritative simulation is unchanged.
-- Expanded `phase12e_input_accessibility_test_runner.gd` to cover the complete critical-signal set, source-aware captions, frozen non-color channel languages, no-audio behavior, Brownout/failure/completion equivalents, Reduced Motion, Reduced Flashing and rejection of unknown signal kinds.
-- No simulation rule, tick ordering, checksum, gameplay state, campaign progression, economy, content, Launch, Results, save semantics or frozen design behavior changed.
+### Implemented in Increment 177
+- Connected `AccessibilitySettingsModel.critical_signal(...)` to the real player-facing `AccessibleVerticalSliceControl` instead of leaving accessibility equivalents at a model-only boundary.
+- Added a rendered `CriticalSignalPanel` for Transit/Causal Review. Each surfaced critical event visibly carries:
+  - source identity;
+  - text label;
+  - caption when enabled/required;
+  - explicit icon, pattern and shape channels;
+  - active motion and flashing presentation modes.
+- Added `CriticalSignalPresentationBuilder`, which derives presentation events from authoritative completed-run/review output rather than inventing parallel gameplay state:
+  - route hazard onset and end are derived from authoritative end-tick hazard snapshots;
+  - Brownout/power loss is derived from Phase-A `disabled_support_ids`/power snapshots, including first-tick Brownout where no transition callback exists yet;
+  - organism state transitions and panic/alarm are derived from Causal Review `ORGANISM_RESPONSE` evidence;
+  - blocked-growth episode signals are derived from authoritative `GROWTH_BLOCKED` events when present;
+  - mandatory predicate failures are derived from Causal Review objective evidence;
+  - transit completion is derived from the authoritative completed result.
+- Hazard channel detection preserves the frozen non-color languages where the authoritative hazard definition identifies heat, stress or contamination. Brownout retains the slashed-power language and mandatory failure retains explicit failure text/shape.
+- No-audio behavior is now visible in the actual rendered Review path: master volume 0 forces source-aware critical captions even when optional non-speech captions are disabled.
+- Reduced Motion and Reduced Flashing now affect rendered critical rows through `snap_fade` / static-pattern and persistent-outline presentation metadata; no full-screen flash is emitted.
+- Added runtime presentation-setting refresh on the accessible control. Re-rendering accessibility output does not mutate or rerun the committed simulation.
+- Added focused rendered acceptance coverage through the already-wired `vertical_slice_control_test_runner.gd`. The helper performs an actual legal Launch and deterministic three-tick Transit containing:
+  - a forced S06 Brownout;
+  - an H01 heat hazard that starts and ends;
+  - authoritative organism state changes into panic;
+  - a mandatory stress predicate failure;
+  - handoff to Causal Review.
+- The rendered acceptance verifies actual Brownout/hazard/state/panic/failure/completion rows, no-audio captions, frozen heat icon/pattern language, Reduced Motion/Reduced Flashing output, and visible source/label/icon/pattern/shape equivalents.
+- The same acceptance captures authoritative tick/completion checksums, changes presentation settings after Review, and proves the stored authoritative hashes are unchanged while only presentation metadata changes.
+- No simulation rule, tick ordering, checksum algorithm, campaign progression, economy, content, Launch/Results ownership, save semantics or frozen gameplay behavior changed.
 
 ### Validation / policy
-- Increment-175 executable CI was inspected directly before implementation and both jobs are green.
-- New Increment-176 coverage is wired into the already-executed `phase12e_input_accessibility_test_runner.gd`, so the existing headless suite will exercise this increment without adding another workflow entry.
-- Static implementation review confirms the new presentation function only consumes accessibility settings and returns presentation metadata; it has no simulation/coordinator dependency and cannot mutate authoritative ticks or hashes.
-- This autonomous environment has no directly runnable local Godot binary; fresh GitHub Actions after this single checkpoint push are the executable validation path.
-- All code/test/status changes are batched into one Git tree + one checkpoint commit/push; no speculative second CI repair is made in this run.
+- Increment-176 executable GitHub Actions jobs were inspected directly before implementation and both are green.
+- The rendered regression is invoked from `vertical_slice_control_test_runner.gd`, which is already part of the normal `godot-headless` suite; no extra workflow case or CI churn is required.
+- Static integration review traced every new rendered signal back to existing authoritative result/review fields (`end_tick_snapshots`, Phase-A power snapshots, `growth_events`, Causal Review response/objective events and final delivery result).
+- Static review also confirms accessibility changes only rebuild presentation dictionaries/Labels from duplicated completed/review data; they never feed back into the flow coordinator or simulation kernels.
+- This autonomous environment has no directly runnable local Godot 4.7.1 binary; fresh GitHub Actions after this single checkpoint push are the available executable validation path.
+- All source/test/status work for this acceptance cluster is batched into one Git tree + one checkpoint commit/push. No speculative second CI repair is made in this run.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh CI for Increment 176 must confirm Godot 4.7.1 parses the new typed constant/dictionaries and that the expanded Phase-12E accessibility runner is green.
-- The critical signal policy is now executable/tested at the presentation-model boundary, but it still must be connected to the rendered Transit/Causal Review shell so representative real event output visibly uses these captions/icons/patterns.
-- 12E remains incomplete: rendered critical-signal integration, Retry/Reset/map, Codex, save-recovery, campaign-completion acceptance paths and remaining maximum-scale/accessibility matrix repetitions are outstanding.
+- Fresh Increment-177 CI must confirm Godot 4.7.1 parses the new inherited `super(...)` presentation hooks and executes the rendered failure-to-review acceptance successfully.
+- The rendered critical-signal path now covers the representative dynamic failure-to-review cluster, but 12E remains incomplete: Retry/Reset/Return-to-map, Codex, save-recovery, campaign-completion and the remaining maximum-scale/device/accessibility matrix repetitions are still outstanding.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the actual linked `content-population` and `godot-headless` executable jobs for Increment 176 rather than trusting combined-status residue.
+At the start of the next run, inspect the actual linked `content-population` and `godot-headless` executable jobs for Increment 177 rather than trusting combined-status residue.
 
 If either executable workflow is red, inspect the first exact executable failure and make one focused repair batch only.
 
-If both executable workflows are green:
-1. connect `AccessibilitySettingsModel.critical_signal(...)` to the rendered representative Transit/Causal Review path so actual hazard/state/Brownout/failure/completion events surface source-aware captions plus non-color icon/pattern/label equivalents and obey Reduced Motion/Reduced Flashing without changing simulation hashes;
-2. add a focused rendered-path headless acceptance test proving no-audio, non-color and reduced-presentation output survives the full representative failure-to-review flow;
-3. then continue with Retry/Reset/map, Codex, save-recovery and campaign-completion acceptance paths and remaining maximum-scale/accessibility matrix repetitions.
+If both executable workflows are green, take the next full 12E acceptance cluster rather than a micro-increment:
+1. implement and render the complete `Retry / Reset / Return to map` required path with semantic keyboard/controller/Deck access and focused headless coverage;
+2. in the same coherent cluster, implement the required Codex entry/navigation surface far enough to prove exact rule/arithmetic text remains reachable at maximum UI scale without pointer-only interaction;
+3. leave save-recovery and campaign-completion as the following acceptance cluster unless they can be included without weakening recoverability or test quality.
 
 Do not begin 12F until the full 12E acceptance matrix is implemented and green. Do not report overall completion until `IMPLEMENTATION COMPLETE = YES`.
