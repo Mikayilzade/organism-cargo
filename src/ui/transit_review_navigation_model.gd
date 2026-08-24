@@ -220,7 +220,8 @@ func _parent_ids(event: Dictionary) -> PackedStringArray:
 	var raw: Variant = event.get("parent_event_ids", PackedStringArray())
 	var parents := PackedStringArray()
 	if raw is PackedStringArray:
-		parents = raw.duplicate()
+		for value: String in (raw as PackedStringArray):
+			parents.append(value)
 	elif typeof(raw) == TYPE_ARRAY:
 		for value: Variant in raw:
 			parents.append(String(value))
