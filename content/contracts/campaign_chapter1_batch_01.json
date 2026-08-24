@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "content_version": "launch-12d-2",
+  "kind": "campaign_contracts",
+  "id": "CAMPAIGN_CHAPTER1_BATCH_01",
+  "payload": {
+    "definitions": [
+      {"id":"C01","tier":"0-1","purpose":"placement / launch","hold_id":"H01","route_id":"R01","species_ids":["O02"],"support_ids":[],"requires_post_launch_change":false},
+      {"id":"C02","tier":"0-1","purpose":"soothing","hold_id":"H01","route_id":"R01","species_ids":["O01","O02"],"support_ids":[],"requires_post_launch_change":false},
+      {"id":"C03","tier":"0-1","purpose":"heat / alarm","hold_id":"H02","route_id":"R02","species_ids":["O01","O02"],"support_ids":[],"requires_post_launch_change":false},
+      {"id":"C04","tier":"0-1","purpose":"heat sink","hold_id":"H02","route_id":"R03","species_ids":["O01","O10"],"support_ids":[],"requires_post_launch_change":false},
+      {"id":"C05","tier":"0-1","purpose":"first route heat consequence","hold_id":"H03","route_id":"R04","species_ids":["O01","O02","O10"],"support_ids":[],"requires_post_launch_change":true},
+      {"id":"C06","tier":"0-1","purpose":"Domino / orientation","hold_id":"H04","route_id":"R02","species_ids":["O01","O02"],"support_ids":[],"requires_post_launch_change":true},
+      {"id":"C07","tier":"0-1","purpose":"optional welfare + Cooler","hold_id":"H05","route_id":"R03","species_ids":["O01","O02"],"support_ids":["S01"],"requires_post_launch_change":true},
+      {"id":"C08","tier":"0-1","purpose":"Chapter-1 capstone: dynamic post-launch trait activation","hold_id":"H06","route_id":"R04","species_ids":["O01","O02","O10"],"support_ids":["S01"],"requires_post_launch_change":true}
+    ]
+  }
+}
