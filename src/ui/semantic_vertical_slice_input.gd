@@ -3,10 +3,12 @@ extends Node
 
 const InputActionCatalogScript := preload("res://src/ui/input_action_catalog.gd")
 const PlanningFocusRouterScript := preload("res://src/ui/planning_focus_router.gd")
+const TransitReviewNavigationModelScript := preload("res://src/ui/transit_review_navigation_model.gd")
 
 var _control: AccessibleVerticalSliceControl
 var _flow: VerticalSliceFlowCoordinator
 var _router: PlanningFocusRouter
+var _transit_review: TransitReviewNavigationModel
 var _manifest_ids: Array[String] = []
 var _manifest_focus_index: int = 0
 
@@ -14,6 +16,7 @@ func configure(control: AccessibleVerticalSliceControl, flow: VerticalSliceFlowC
 	_control = control
 	_flow = flow
 	_router = PlanningFocusRouterScript.new()
+	_transit_review = TransitReviewNavigationModelScript.new()
 	var hold_value: Variant = context.get("planning_hold_payload", {})
 	if typeof(hold_value) == TYPE_DICTIONARY:
 		var hold: Dictionary = hold_value
@@ -32,10 +35,13 @@ func configure(control: AccessibleVerticalSliceControl, flow: VerticalSliceFlowC
 					if not instance_id.is_empty():
 						_manifest_ids.append(instance_id)
 	_manifest_focus_index = 0
+	var transit_configured: Dictionary = _transit_review.configure_transit(context)
+	if not bool(transit_configured.get("ok", false)):
+		return transit_configured
 	return {"ok": true, "error": "", "snapshot": snapshot()}
 
 func dispatch(action: StringName) -> Dictionary:
-	if _control == null or _flow == null or _router == null:
+	if _control == null or _flow == null or _router == null or _transit_review == null:
 		return _fail("semantic_input_not_configured")
 	if not InputActionCatalogScript.REQUIRED_ACTIONS.has(action):
 		return _fail("unknown_semantic_action")
@@ -54,11 +60,9 @@ func dispatch(action: StringName) -> Dictionary:
 			if action == &"accept" or action == &"launch_focus":
 				return _control.activate_primary_action()
 		AppStateMachine.State.TRANSIT_PLAYBACK:
-			if action == &"accept":
-				return _control.activate_primary_action()
+			return _dispatch_transit(action)
 		AppStateMachine.State.CAUSAL_REVIEW:
-			if action == &"accept":
-				return _control.activate_primary_action()
+			return _dispatch_review(action)
 	return _fail("action_not_available_in_state")
 
 func snapshot() -> Dictionary:
@@ -67,6 +71,8 @@ func snapshot() -> Dictionary:
 		"manifest_focus_index": _manifest_focus_index,
 		"manifest_focus_id": "" if _manifest_ids.is_empty() else _manifest_ids[_manifest_focus_index],
 		"state": -1 if _flow == null else _flow.current_state(),
+		"transit": {} if _transit_review == null else _transit_review.transit_snapshot(),
+		"review": {} if _transit_review == null else _transit_review.review_snapshot(),
 	}
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -118,6 +124,44 @@ func _dispatch_planning(action: StringName) -> Dictionary:
 			return _control.planning_activate_focused_cell()
 		return _router.semantic_request(action)
 	return _router.semantic_request(action)
+
+func _dispatch_transit(action: StringName) -> Dictionary:
+	if action == &"accept":
+		var completed: Dictionary = _control.activate_primary_action()
+		if bool(completed.get("ok", false)) and _flow.current_state() == AppStateMachine.State.CAUSAL_REVIEW:
+			var configured: Dictionary = _transit_review.configure_review(_flow.last_review())
+			if not bool(configured.get("ok", false)):
+				return configured
+		return completed
+	if action in [
+		&"pause_playback", &"speed_up", &"speed_down", &"tick_step",
+		&"navigate_up", &"navigate_down", &"navigate_left", &"navigate_right",
+		&"region_next", &"region_previous", &"panel_next", &"panel_previous", &"inspect"
+	]:
+		return _transit_review.transit_command(action)
+	return _fail("action_not_available_in_transit")
+
+func _dispatch_review(action: StringName) -> Dictionary:
+	var ensure_result: Dictionary = _ensure_review_configured()
+	if not bool(ensure_result.get("ok", false)):
+		return ensure_result
+	if action == &"accept":
+		return _control.activate_primary_action()
+	if action in [
+		&"review_event_previous", &"review_event_next", &"jump_failed_predicate", &"jump_root_cause",
+		&"compare_start_final", &"panel_next", &"panel_previous", &"region_next", &"region_previous", &"inspect"
+	]:
+		return _transit_review.review_command(action)
+	return _fail("action_not_available_in_review")
+
+func _ensure_review_configured() -> Dictionary:
+	var review_snapshot: Dictionary = _transit_review.review_snapshot()
+	if int(review_snapshot.get("event_count", 0)) > 0:
+		return {"ok": true, "error": ""}
+	var review: Dictionary = _flow.last_review()
+	if review.is_empty():
+		return _fail("review_not_available")
+	return _transit_review.configure_review(review)
 
 func _move_manifest_focus(action: StringName) -> Dictionary:
 	if _manifest_ids.is_empty():

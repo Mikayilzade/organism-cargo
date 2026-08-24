@@ -17,39 +17,39 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 167
+## Current implementation checkpoint — Increment 168
 
 ### Phase / subsystem
-**12E UX / Accessibility / Controller / Deck — semantic player path, remapping state, Deck reachability**
+**12E UX / Accessibility / Controller / Deck — Transit + Causal Review semantic navigation**
 
 ### Repository truth / entry validation
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the current 12E authority in `PHASE11_UX_ACCESSIBILITY.md`, `UX_ARCHITECTURE.md` and `GAME_BIBLE.md`.
-- Entry head: `05a462c157dd33ca3cc6b9b7c031269f0b206a71` (Increment 166).
-- `organism-cargo/content-population` run `32712998150`, job `content-validator` (`97388228499`) completed **success** with all executable steps green.
-- `organism-cargo/godot-headless` run `32712998242`, job `headless-tests` (`97388228781`) completed **success** with all executable steps green. The combined failure context on the commit is stale status residue, not a failed executable job.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the current 12E authority in `PHASE11_UX_ACCESSIBILITY.md` and `UX_ARCHITECTURE.md`.
+- Entry head: `c2dfc2e4a3e24119e02642bdbd0557b325877ee6` (Increment 167).
+- `organism-cargo/content-population` combined status is **success**.
+- `organism-cargo/godot-headless` combined status is **failure**, but the linked run `32717297275`, job `headless-tests` (`97401148965`) completed **success** and every executable step, including `Run headless contract suite`, completed **success**. As in the prior checkpoint, the combined context is stale/incorrect observability residue rather than an executable test failure.
+- Because the actual linked executable job is green, the Increment-167 CI gate is satisfied and implementation resumed from the green branch of `NEXT ACTION`.
 
-### Implemented in Increment 167
-- Added `src/ui/accessible_vertical_slice_control.gd`, a focused extension of the existing player-facing control that exposes semantic Planning operations without changing simulation authority: rotate selected placement, remove selected placement, inspect selected specimen/placement, and clear selection/cancel.
-- Added `src/ui/semantic_vertical_slice_input.gd` and wired it into the persistent shell. It consumes the frozen semantic `InputMap` actions and routes them by actual app state rather than by pointer emulation.
-- Contract-select / brief progression now accepts semantic `accept`; Planning uses `PlanningFocusRouter` for explicit region navigation, logical HOLD-cell navigation, manifest navigation/selection, Accept placement, Cancel, Inspect, Rotate, Remove and deliberate Launch focus/confirmation dispatch.
-- Launch input is explicitly two-stage: `launch_focus` from Planning enters Launch Confirmation and traps focus in the toolbar/modal context; a second `launch_focus` or `accept` performs the authoritative commit; `cancel` returns safely to Planning and releases the modal trap.
-- The shell now instantiates `AccessibleVerticalSliceControl` plus `SemanticVerticalSliceInput`, so keyboard-only/controller-only semantic dispatch is in the actual persistent vertical-slice path rather than only in a standalone validation model.
-- Added `src/ui/input_remap_model.gd` with independent keyboard/controller default profiles, per-device reset, overlap-aware conflict detection, mutually-exclusive-context reuse reporting, and guaranteed same-device Accept/Cancel recovery.
-- Added `src/ui/planning_layout_reachability.gd` encoding the frozen 1280x800 / 100–200% reachability gate for manifest, hold, objectives/supports, toolbar, modal safe area and visible focus. Maximum scale permits drawer composition but never loss of mandatory controls.
-- Added `tests/unit/phase12e_semantic_remap_layout_test_runner.gd` covering independent remap recovery/reset, conflict rejection, allowed contextual reuse with explanation, Deck default/max-scale reachability, mandatory toolbar/modal/focus constraints, and loading of the new runtime semantic-control classes.
-- Added the new 12E runner to `.github/workflows/headless-tests.yml` immediately after the prior input/accessibility contract runner.
+### Implemented in Increment 168
+- Added `src/ui/transit_review_navigation_model.gd`, a presentation-only semantic navigation model that deliberately does not mutate authoritative transit state.
+- Transit semantic controls now cover pause/play, bounded 0.5x/1x/2x/4x presentation speed, paused tick-step requests, logical cell focus, deterministic entity focus, discrete focus-mode switching and Inspect results without pointer emulation.
+- Tick-step is rejected while playback is not paused. Step requests are represented as presentation intent only; they do not alter tick ordering, committed input, checksums or simulation authority.
+- Causal Review navigation now consumes the authoritative `CausalReviewEvidenceBuilder` output and supports significant-event previous/next, one-action failed-predicate jump, deterministic ancestry traversal to a root cause, start/final compare toggle, panel cycling and focused event inspection.
+- Updated `src/ui/semantic_vertical_slice_input.gd` so the actual persistent semantic input path dispatches Transit and Causal Review actions by application state. Existing Transit `accept` still performs the vertical-slice authoritative completion handoff, then configures Review navigation from `flow.last_review()`.
+- Review semantic dispatch lazily recovers its navigation state from the flow if Causal Review was entered through another valid path, avoiding dependence on one exact presentation transition.
+- Extended the already-wired `tests/unit/phase12e_semantic_remap_layout_test_runner.gd` rather than adding another workflow case. The runner now checks transit pause/step/speed semantics, logical cell/entity inspection, first-actionable Review focus, failed-predicate jump, root-cause ancestry traversal, compare toggle, panel cycling and runtime class loading.
 
 ### Validation / policy
-- Increment-166 authoritative executable workflows were checked directly and were green before implementation resumed.
-- No gameplay, content, scoring, progression, transit ordering, persistence identity or objective semantics were redesigned.
-- All source/test/workflow/status changes are batched into one checkpoint commit/push for this run.
-- Fresh GitHub Actions is required to compile/import the new GDScript and run the complete headless suite, including the new 12E runner.
+- Increment-167 actual executable headless job was inspected directly and is green despite stale combined status residue.
+- The new transit/review model is explicitly presentation-only; no gameplay, content, scoring, progression, transit phase ordering, committed-run identity, objective semantics or persistence authority was redesigned.
+- The existing headless workflow already executes `phase12e_semantic_remap_layout_test_runner.gd`, so no workflow-file churn was required for this increment.
+- All source/test/status changes are batched into one checkpoint commit/push for this run.
+- Fresh GitHub Actions is required to compile/import the updated GDScript and execute the expanded Phase-12E runner plus the full regression suite.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh CI must validate Increment 167. If red, the next run must inspect the first exact executable failure and make one focused repair batch only.
-- 12E is still incomplete: controller glyph switching, visible region/focus styling in the rendered UI, support-link/power-priority semantic interaction, responsive real widget composition at 200%, no-audio/non-color presentation application, Reduced Motion/Flashing presentation behavior, settings/remap screen UI and full Transit/Causal Review semantic acceptance remain outstanding.
-- `planning_rotate_selected()` currently advances the canonical orientation index through four quarter-turn states and delegates legality to the existing canonical planning resolver; if authored body-plan orientation semantics expose a narrower legal set in fresh CI/acceptance tests, repair must preserve that canon rather than broaden it.
+- Fresh CI must validate Increment 168. If red, the next run must inspect the first exact executable failure and make one focused repair batch only.
+- The current vertical slice still resolves authoritative transit as a whole on its existing primary action; the new pause/speed/tick-step layer therefore establishes correct semantic presentation intent and accessibility routing but does not yet replace the underlying vertical-slice completion runner with incremental per-tick presentation playback. Do not confuse presentation stepping with simulation-authority mutation.
+- 12E remains incomplete: rendered Settings/remapping UI, dynamic keyboard/controller glyph+text switching, same-device remap recovery in the actual screen, visible region/focus styling, support-link/power-priority semantic interaction, responsive real widget composition at 1280x800/200%, no-audio/non-color presentation application, Reduced Motion/Flashing application, and complete Retry/Reset/map/Codex/save-recovery/campaign-completion acceptance paths remain outstanding.
 
 ### Canonical contradictions
 - **NONE discovered.**
@@ -57,11 +57,12 @@ Branch: `main`
 ## NEXT ACTION
 At the start of the next run, query current `main` and inspect the actual linked `content-population` and `godot-headless` workflow jobs rather than trusting combined status residue.
 
-If the new headless workflow is red, inspect the first exact failure and make one focused repair batch only.
+If the new headless workflow is red, inspect the first exact executable failure and make one focused repair batch only.
 
 If green:
-1. extend semantic dispatch across Transit and Causal Review for pause/play, speed, tick-step, entity/cell Inspect, significant-event previous/next, failed-predicate/root jumps, compare start/final, Retry/Reset/map;
-2. build the rendered Settings/remapping screen on `InputRemapModel`, including dynamic keyboard/controller glyph+text switching and same-device recovery;
-3. replace the reachability model-only gate with actual 1280x800 / 200%-scale widget composition checks for manifest, hold, objectives/supports, toolbar, Launch modal and visible focus, then apply no-audio/non-color and Reduced Motion/Flashing presentation requirements.
+1. build the rendered Settings/remapping screen on `InputRemapModel`, including dynamic keyboard/controller glyph + text switching, conflict explanation, per-device reset and same-device Accept/Cancel recovery;
+2. extend the actual rendered shell with visible semantic focus/region styling and support-link/power-priority keyboard/controller interaction;
+3. replace model-only Deck reachability with real 1280x800 / 200%-scale widget-composition checks, then apply no-audio/non-color and Reduced Motion/Reduced Flashing presentation behavior;
+4. continue closing the remaining required paths: Retry/Reset/map, Codex, save-recovery and campaign-completion acceptance.
 
 Do not begin 12F until the full 12E acceptance matrix is implemented and green. Do not report overall completion until `IMPLEMENTATION COMPLETE = YES`.

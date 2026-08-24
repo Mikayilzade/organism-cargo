@@ -3,6 +3,7 @@ extends SceneTree
 const InputActionCatalogScript := preload("res://src/ui/input_action_catalog.gd")
 const InputRemapModelScript := preload("res://src/ui/input_remap_model.gd")
 const PlanningLayoutReachabilityScript := preload("res://src/ui/planning_layout_reachability.gd")
+const TransitReviewNavigationModelScript := preload("res://src/ui/transit_review_navigation_model.gd")
 const AccessibleVerticalSliceControlScript := preload("res://src/ui/accessible_vertical_slice_control.gd")
 const SemanticVerticalSliceInputScript := preload("res://src/ui/semantic_vertical_slice_input.gd")
 
@@ -11,6 +12,7 @@ var failures: int = 0
 func _init() -> void:
 	_test_remap_contract()
 	_test_deck_layout_reachability()
+	_test_transit_review_navigation()
 	_test_runtime_classes_load()
 	_finish()
 
@@ -48,11 +50,73 @@ func _test_deck_layout_reachability() -> void:
 	_expect(not bool(reachability.evaluate(Vector2i(1280, 800), 200, regions, false, true).get("ok", true)), "launch confirmation modal must fit safe area")
 	_expect(not bool(reachability.evaluate(Vector2i(1280, 800), 200, regions, true, false).get("ok", true)), "visible focus indicator is mandatory")
 
+func _test_transit_review_navigation() -> void:
+	var navigator: TransitReviewNavigationModel = TransitReviewNavigationModelScript.new()
+	var transit_context: Dictionary = {
+		"planning_hold_payload": {"width": 3, "height": 2},
+		"planning_contract_payload": {
+			"manifest": [
+				{"instance_id": "specimen-b"},
+				{"instance_id": "specimen-a"},
+			],
+		},
+	}
+	_expect(bool(navigator.configure_transit(transit_context).get("ok", false)), "transit navigation configures from existing hold/manifest context")
+	_expect_equal(float(navigator.transit_snapshot().get("speed", 0.0)), 1.0, "transit begins at canonical presentation speed 1x")
+	_expect(not bool(navigator.transit_command(&"tick_step").get("ok", true)), "tick-step cannot run while presentation is playing")
+	_expect(bool(navigator.transit_command(&"pause_playback").get("ok", false)), "pause/play semantic action is available")
+	_expect(bool(navigator.transit_command(&"tick_step").get("ok", false)), "paused transit accepts one-tick presentation step request")
+	_expect_equal(int(navigator.transit_snapshot().get("step_requests", 0)), 1, "tick-step request is counted independently of simulation authority")
+	_expect(bool(navigator.transit_command(&"speed_up").get("ok", false)), "transit speed-up is semantic and bounded")
+	_expect_equal(float(navigator.transit_snapshot().get("speed", 0.0)), 2.0, "speed-up moves from 1x to 2x")
+	_expect(bool(navigator.transit_command(&"navigate_right").get("ok", false)), "cell inspection focus moves by logical cell")
+	_expect_equal(navigator.transit_inspection().get("cell", []), [1, 0], "cell inspection exposes logical focused cell")
+	_expect(bool(navigator.transit_command(&"region_next").get("ok", false)), "transit can switch discrete inspection focus mode")
+	_expect_equal(String(navigator.transit_inspection().get("entity_id", "")), "specimen-a", "entity inspection is deterministic and pointer-free")
+
+	var root_event: Dictionary = {
+		"event_id": "t000001:h:H01",
+		"tick": 1,
+		"kind": "HAZARD_ACTIVE",
+		"parent_event_ids": PackedStringArray(),
+	}
+	var response_event: Dictionary = {
+		"event_id": "t000001:o:specimen-a",
+		"tick": 1,
+		"kind": "ORGANISM_RESPONSE",
+		"parent_event_ids": PackedStringArray(["t000001:h:H01"]),
+	}
+	var failed_event: Dictionary = {
+		"event_id": "result:p:P01",
+		"tick": 4,
+		"kind": "MANDATORY_PREDICATE",
+		"passed": false,
+		"parent_event_ids": PackedStringArray(["t000001:o:specimen-a"]),
+	}
+	var review: Dictionary = {
+		"ok": true,
+		"events": [root_event, response_event, failed_event],
+		"objective_events": [failed_event],
+		"first_actionable_event_id": "t000001:o:specimen-a",
+	}
+	_expect(bool(navigator.configure_review(review).get("ok", false)), "review navigation configures from authoritative evidence")
+	_expect_equal(String(navigator.review_snapshot().get("event_id", "")), "t000001:o:specimen-a", "review opens on first actionable event")
+	_expect(bool(navigator.review_command(&"jump_failed_predicate").get("ok", false)), "failed-predicate jump is one semantic action")
+	_expect_equal(String(navigator.review_snapshot().get("event_id", "")), "result:p:P01", "failed-predicate jump selects failed objective evidence")
+	_expect(bool(navigator.review_command(&"jump_root_cause").get("ok", false)), "root-cause jump traverses frozen cause ancestry")
+	_expect_equal(String(navigator.review_snapshot().get("event_id", "")), "t000001:h:H01", "root-cause jump reaches ancestry root deterministically")
+	_expect(bool(navigator.review_command(&"compare_start_final").get("ok", false)), "start/final compare toggle is semantic")
+	_expect(bool(navigator.review_snapshot().get("compare_start_final", false)), "compare state is presentation-only and visible")
+	_expect(bool(navigator.review_command(&"panel_next").get("ok", false)), "review panels cycle without pointer input")
+	_expect_equal(String(navigator.review_snapshot().get("panel", "")), "INSPECTOR", "review panel cycling follows deterministic order")
+
 func _test_runtime_classes_load() -> void:
 	var control: AccessibleVerticalSliceControl = AccessibleVerticalSliceControlScript.new()
 	var semantic: SemanticVerticalSliceInput = SemanticVerticalSliceInputScript.new()
+	var navigator: TransitReviewNavigationModel = TransitReviewNavigationModelScript.new()
 	_expect(control != null, "accessible player-facing control class loads")
 	_expect(semantic != null, "semantic player-facing input controller class loads")
+	_expect(navigator != null, "transit/review semantic navigation class loads")
 	control.free()
 	semantic.free()
 
