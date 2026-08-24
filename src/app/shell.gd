@@ -4,6 +4,8 @@ const AppBootstrapServiceScript := preload("res://src/app/app_bootstrap_service.
 const AtomicSaveStoreScript := preload("res://src/save/atomic_save_store.gd")
 const VerticalSliceFlowCoordinatorScript := preload("res://src/app/vertical_slice_flow_coordinator.gd")
 const VerticalSliceControlScript := preload("res://src/ui/vertical_slice_control.gd")
+const InputActionCatalogScript := preload("res://src/ui/input_action_catalog.gd")
+const AccessibilitySettingsModelScript := preload("res://src/ui/accessibility_settings_model.gd")
 
 const CORE_CONTENT_PATHS: Dictionary = {
 	&"body_plans": "res://content/body_plans",
@@ -24,8 +26,11 @@ var _bootstrap_service: AppBootstrapService
 var _save_store: AtomicSaveStore
 var _slice_flow: VerticalSliceFlowCoordinator
 var _slice_control: VerticalSliceControl
+var _accessibility_settings: AccessibilitySettingsModel
 
 func _ready() -> void:
+	InputActionCatalogScript.ensure_registered()
+	_accessibility_settings = AccessibilitySettingsModelScript.new()
 	_bootstrap_service = AppBootstrapServiceScript.new()
 	var result: Dictionary = _bootstrap_service.boot(CORE_CONTENT_PATHS)
 	if not result["ok"]:
@@ -53,6 +58,9 @@ func flow_controller() -> VerticalSliceFlowCoordinator:
 func slice_control() -> VerticalSliceControl:
 	return _slice_control
 
+func accessibility_settings_snapshot() -> Dictionary:
+	return {} if _accessibility_settings == null else _accessibility_settings.snapshot()
+
 func _vertical_slice_context(content_version: String) -> Dictionary:
 	var contract_payload: Dictionary = _payload(&"contracts", &"VS01")
 	var hold_payload: Dictionary = _payload(&"holds", &"VS_HOLD_01")
@@ -73,6 +81,7 @@ func _vertical_slice_context(content_version: String) -> Dictionary:
 		"rules_version": "vertical-slice-r1",
 		"content_version": content_version,
 		"contract_definition_checksum": contract_checksum,
+		"accessibility_settings": accessibility_settings_snapshot(),
 		"total_ticks": 1,
 		"simulation_defs": {
 			"route_profile": {"id": "route-slice", "tick_count": 1, "events": []},
