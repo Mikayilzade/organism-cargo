@@ -17,51 +17,48 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 172
+## Current implementation checkpoint — Increment 173
 
 ### Phase / subsystem
-**12E UX / Accessibility / Controller / Deck — visible semantic focus + support-link/Brownout-priority interaction**
+**12E UX / Accessibility / Controller / Deck — rendered Deck composition acceptance**
 
 ### Repository truth / entry validation
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the current subsystem authority in `PHASE11_UX_ACCESSIBILITY.md` and the live planning/input implementation.
-- Entry head: `c15da1b77c4b9bee9fd417cc269c32069e53d063` (Increment 171).
-- Increment-171 `content-population` status is **success** (`32756934701`).
-- Increment-171 combined `godot-headless` status reports failure residue, but the actual linked run `32756934660`, job `headless-tests` (`97526537882`) completed **success** and every step including `Run headless contract suite` completed **success**. Executable job state remains authoritative.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then `PHASE11_UX_ACCESSIBILITY.md` and the live Deck/layout acceptance implementation.
+- Entry head: `9888416fc4ff5de1f75dc801b163ca99347f30e5` (Increment 172).
+- Increment-172 `content-population` status is **success**, run `32762855315`.
+- Increment-172 combined `godot-headless` status reports failure residue, but actual run `32762855439`, job `headless-tests` (`97545499066`) completed **success**; every executable step including `Run headless contract suite` completed **success**.
 - Both actual executable workflows are therefore green and this run followed the green branch of the previous `NEXT ACTION`.
 
-### Implemented in Increment 172
-- Added `PlanningSupportConfigModel`, a deterministic ordered-list interaction model for support source selection, target selection/linking, and powered-support Brownout priority.
-- Support configuration is fully discrete and pointer-independent: Up/Down selects the support source, Left/Right selects a target, Accept links/unlinks, and the already-remappable Overlay Previous/Next semantic actions move a powered support earlier/later in Brownout priority.
-- Non-powered supports remain in the same ordered source list but are rejected explicitly from Brownout priority changes instead of silently entering the powered order.
-- Integrated the support model into `SemanticVerticalSliceInput`. The `OBJECTIVES_SUPPORTS` region now routes keyboard/controller semantic navigation to support configuration while other planning regions preserve their existing behavior.
-- Support targets default to manifest instance IDs when no explicit `planning_support_targets` list is supplied, while authored contexts may provide explicit target IDs for cells/fixtures/relations.
-- Added visible semantic focus presentation through `AccessibleVerticalSliceControl`: the planning shell now renders the current logical region, applies a text `[FOCUS]` marker to the focused manifest item/hold cell, gives the matching rendered button real Control focus, and renders explicit support source/target/link/Brownout-priority text plus non-glyph instructions.
-- Extended the existing Phase-12E headless acceptance runner with ordered support-link navigation, deterministic priority reorder/clamp behavior, non-powered rejection, and text-instruction assertions. Because this runner is already in the normal headless suite, no workflow churn was required.
+### Implemented in Increment 173
+- Upgraded `PlanningLayoutReachability` with `evaluate_rendered(...)`, a real Godot `Control`-tree composition probe rather than relying only on model flags.
+- Rendered acceptance now verifies actual visible Control geometry against the 1280×800 safe area for the hold, Launch, Undo, Redo, overlays, objectives, semantic focus, support-link status and Brownout-priority status.
+- At the 200% stress target the rendered probe additionally requires an explicit reachable view-reset affordance for any bounded hold pan/zoom path.
+- Added deterministic rejection reasons for hidden/missing/off-screen required controls and out-of-safe-area launch confirmation modals.
+- Extended the existing Phase-12E semantic/remap/layout headless runner with an actual 1280×800 Godot Control composition at both 100% and 200% acceptance targets, plus regression checks that off-screen Launch, missing view reset and escaped modal states fail explicitly.
+- No frozen gameplay, simulation, persistence, progression, content, economy or transit rule changed; this increment only strengthens UX/accessibility acceptance evidence.
 
 ### Validation / policy
-- Increment-171 actual executable CI jobs were inspected directly before implementation and are green.
-- The modified `phase12e_input_accessibility_test_runner.gd` remains part of the normal `godot-headless` contract suite; fresh CI for Increment 172 must parse the new model/integration scripts and execute the new assertions with the full regression suite.
-- No frozen gameplay, simulation authority, Brownout tick semantics, support mechanical effects, persistence semantics, campaign progression, content, economy, or deterministic transit rule was changed. This increment implements only the frozen interaction/accessibility contract around configuring existing supports and priority.
-- All source/test/status changes are batched into one Git tree + one checkpoint commit/push.
+- Increment-172 executable jobs were inspected directly and are green.
+- The modified `phase12e_semantic_remap_layout_test_runner.gd` is already part of the normal `godot-headless` suite; fresh CI for Increment 173 must import/parse the updated reachability model and execute the rendered Control-tree checks plus the full regression suite.
+- Repository changes are batched into one Git tree + one checkpoint commit/push.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh CI must validate Increment 172. If either executable workflow is red, inspect the first exact executable failure and make one focused repair batch only on the next run.
+- Fresh CI must validate Increment 173. If either executable workflow is red, inspect the first exact executable failure and make one focused repair batch only on the next run.
 - Durable device-local Settings serialization for remapped bindings remains outstanding.
-- 12E remains incomplete: real 1280×800 / 200%-scale widget-composition checks, no-audio/non-color presentation application, Reduced Motion/Reduced Flashing application, and complete Retry/Reset/map/Codex/save-recovery/campaign-completion acceptance paths remain outstanding.
+- 12E remains incomplete: no-audio/non-color presentation application, Reduced Motion/Reduced Flashing application, and complete Retry/Reset/map/Codex/save-recovery/campaign-completion acceptance paths remain outstanding.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the actual linked `content-population` and `godot-headless` executable jobs for Increment 172 rather than trusting combined status residue.
+At the start of the next run, inspect the actual linked `content-population` and `godot-headless` executable jobs for Increment 173 rather than trusting combined status residue.
 
 If either executable workflow is red, inspect the first exact executable failure and make one focused repair batch only.
 
 If both executable workflows are green:
-1. replace model-only Deck reachability with real 1280×800 / 200%-scale rendered widget-composition checks, keeping Launch, Undo/Redo, overlays, objectives, semantic focus, support-link state and Brownout priority reachable;
-2. integrate durable device-local Settings persistence for remapped bindings without coupling them to campaign progression;
-3. continue no-audio/non-color critical signaling and Reduced Motion/Reduced Flashing application;
-4. then complete Retry/Reset/map, Codex, save-recovery and campaign-completion acceptance paths.
+1. integrate durable device-local Settings persistence for remapped keyboard/controller bindings without coupling it to campaign progression; restore saved bindings into `InputMap` on Settings startup and preserve independent per-device reset/recovery semantics;
+2. continue no-audio/non-color critical signaling and Reduced Motion/Reduced Flashing application;
+3. then complete Retry/Reset/map, Codex, save-recovery and campaign-completion acceptance paths.
 
 Do not begin 12F until the full 12E acceptance matrix is implemented and green. Do not report overall completion until `IMPLEMENTATION COMPLETE = YES`.
