@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-1",
+  "kind": "holds",
+  "id": "LAUNCH_HOLDS",
+  "payload": {
+    "families": [
+      {
+        "id": "HF1",
+        "name": "Open Crate",
+        "bounding_range": {
+          "width": [5, 6],
+          "height": [5, 5]
+        },
+        "utility_fixture_count": [1, 2],
+        "topology": "broad zones",
+        "layouts": ["H01", "H02", "H03"]
+      },
+      {
+        "id": "HF2",
+        "name": "Split Hold",
+        "bounding_range": {
+          "width": [5, 6],
+          "height": [6, 6]
+        },
+        "utility_fixture_count": [2, 2],
+        "topology": "partial wall/spine; baffle-compatible boundary",
+        "layouts": ["H04", "H05", "H06"]
+      },
+      {
+        "id": "HF3",
+        "name": "Bent Hold",
+        "bounding_range": {
+          "width": [5, 9],
+          "height": [5, 7]
+        },
+        "utility_fixture_count": [2, 3],
+        "topology": "irregular L/bent area; uneven zones",
+        "layouts": ["H07", "H08"]
+      },
+      {
+        "id": "HF4",
+        "name": "Service Bay",
+        "bounding_range": {
+          "width": [5, 9],
+          "height": [5, 7]
+        },
+        "utility_fixture_count": [2, 6],
+        "topology": "moderate cargo area; dense fixture topology; tight route power",
+        "layouts": ["H09", "H10"]
+      },
+      {
+        "id": "HF5",
+        "name": "Constricted Vault",
+        "bounding_range": {
+          "width": [7, 9],
+          "height": [6, 7]
+        },
+        "blocked_cell_fraction": [0.2, 0.35],
+        "topology": "pockets and necks; high growth/directional pressure",
+        "layouts": ["H11", "H12"]
+      }
+    ],
+    "definitions": [
+      {"id": "H01", "name": "Training Crate", "family_id": "HF1", "topology_tags": ["broad_zones"], "fixture_policy": "family"},
+      {"id": "H02", "name": "Long Crate", "family_id": "HF1", "topology_tags": ["broad_zones", "long_axis"], "fixture_policy": "family"},
+      {"id": "H03", "name": "Twin-Fixture Crate", "family_id": "HF1", "topology_tags": ["broad_zones", "twin_fixture"], "fixture_policy": "family"},
+      {"id": "H04", "name": "Split Hold", "family_id": "HF2", "topology_tags": ["partial_wall", "split"], "fixture_policy": "family"},
+      {"id": "H05", "name": "Offset Split", "family_id": "HF2", "topology_tags": ["partial_wall", "offset_split"], "fixture_policy": "family"},
+      {"id": "H06", "name": "Narrow Gate", "family_id": "HF2", "topology_tags": ["partial_wall", "narrow_gate"], "fixture_policy": "family"},
+      {"id": "H07", "name": "Bent Hold", "family_id": "HF3", "topology_tags": ["bent_area"], "fixture_policy": "family"},
+      {"id": "H08", "name": "Hook Hold", "family_id": "HF3", "topology_tags": ["bent_area", "hook"], "fixture_policy": "family"},
+      {"id": "H09", "name": "Service Bay", "family_id": "HF4", "topology_tags": ["dense_fixtures", "tight_power"], "fixture_policy": "family"},
+      {"id": "H10", "name": "Cross-Fixture Bay", "family_id": "HF4", "topology_tags": ["dense_fixtures", "cross_fixture", "tight_power"], "fixture_policy": "family"},
+      {"id": "H11", "name": "Three-Pocket Vault", "family_id": "HF5", "topology_tags": ["blocked_cells", "three_pockets", "necks"], "fixture_policy": "family"},
+      {"id": "H12", "name": "S-Corridor Vault", "family_id": "HF5", "topology_tags": ["blocked_cells", "s_corridor", "necks"], "fixture_policy": "family"}
+    ],
+    "generation": {
+      "authored_layouts_only": true,
+      "transform_only_when_symmetry_declares": true,
+      "arbitrary_procedural_topology": false
+    }
+  }
+}

@@ -55,6 +55,7 @@ jobs:
           run_case "Import and parse project" --headless --editor --path . --quit
           run_case "Frozen synthetic content population validator" --headless --path . --script tests/unit/content_population_validator_test_runner.gd
           run_case "Real O01-O22 and S01-S06 launch roster" --headless --path . --script tests/unit/launch_roster_content_test_runner.gd
+          run_case "Real H01-H12 and RH1-RH7 topology/route metadata" --headless --path . --script tests/unit/launch_topology_route_content_test_runner.gd
 
       - name: Publish observable content-population status
         if: always()

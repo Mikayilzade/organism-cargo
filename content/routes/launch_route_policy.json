@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-1",
+  "kind": "routes",
+  "id": "LAUNCH_ROUTE_POLICY",
+  "payload": {
+    "hazard_family_ids": ["RH1", "RH2", "RH3", "RH4", "RH5", "RH6", "RH7"],
+    "authored_profile_target": 18,
+    "normal_route_max_ticks": 24,
+    "first_exposure_requires_exact_timing_and_intensity": true,
+    "bounded_uncertainty_max_hidden_dimensions": 1,
+    "tier_hazard_family_ceilings": [
+      {"tier": "0-1", "max_families": 1, "max_simultaneous": 1},
+      {"tier": "2", "max_families": 1, "max_simultaneous": 1, "may_use_two_non_overlapping_events": true},
+      {"tier": "3", "max_families": 2, "max_simultaneous": 2},
+      {"tier": "4-5", "max_families": 3, "max_simultaneous": 2},
+      {"tier": "6", "max_families": 4, "max_simultaneous": 2, "exception": "authored final readability evidence"}
+    ],
+    "profile_schema": {
+      "required_fields": ["id", "tier", "duration_ticks", "hazard_family_ids", "events"],
+      "hazard_family_reference": "must resolve in LAUNCH_HAZARD_FAMILIES",
+      "events_must_use_existing_family_grammar": true,
+      "duration_ticks_max": 24
+    }
+  }
+}

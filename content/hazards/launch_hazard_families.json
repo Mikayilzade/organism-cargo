@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "content_version": "vertical-slice-1",
+  "kind": "hazards",
+  "id": "LAUNCH_HAZARD_FAMILIES",
+  "payload": {
+    "definitions": [
+      {"id": "RH1", "name": "Thermal Surge", "effect_grammar": ["heat_input"], "targeting": "named zone/ticks", "phase": "A/C"},
+      {"id": "RH2", "name": "Contamination Leak", "effect_grammar": ["contamination_source"], "targeting": "named cells/zones/ticks", "phase": "A/C"},
+      {"id": "RH3", "name": "Vibration Burst", "effect_grammar": ["stress_field", "wake_request"], "targeting": "declared event/ticks", "phase": "A"},
+      {"id": "RH4", "name": "Brownout", "effect_grammar": ["power_capacity_change"], "targeting": "powered supports", "phase": "A", "same_tick_support_disable": true},
+      {"id": "RH5", "name": "Vent Cycle", "effect_grammar": ["decay_modifier", "vent_modifier", "heat_removal_input"], "targeting": "declared hold/ticks", "phase": "A/D"},
+      {"id": "RH6", "name": "Thermal Gradient", "effect_grammar": ["heat_input"], "targeting": "declared zones", "phase": "A/C"},
+      {"id": "RH7", "name": "Maintenance Oscillation", "effect_grammar": ["existing_input_sequence"], "targeting": "deterministic sequence", "phase": "A", "new_effect_type": false}
+    ],
+    "allowed_base_effect_grammar": ["heat_input", "contamination_source", "stress_field", "wake_request", "power_capacity_change", "decay_modifier", "vent_modifier", "heat_removal_input", "existing_input_sequence"]
+  }
+}
