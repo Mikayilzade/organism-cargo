@@ -59,6 +59,7 @@ jobs:
           run_case "Authored hold geometry and route profile batch" --headless --path . --script tests/unit/launch_authored_batch_test_runner.gd
           run_case "Chapter 4 C25-C32 authored content and anti-template evidence" --headless --path . --script tests/unit/chapter4_authored_content_test_runner.gd
           run_case "Chapter 5 C33-C40 discovery, Monitor and bounded-information evidence" --headless --path . --script tests/unit/chapter5_authored_content_test_runner.gd
+          run_case "Chapter 6 C41-C48 mastery and final Living Manifest evidence" --headless --path . --script tests/unit/chapter6_authored_content_test_runner.gd
 
       - name: Publish observable content-population status
         if: always()
