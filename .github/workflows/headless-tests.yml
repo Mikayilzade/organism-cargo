@@ -58,6 +58,7 @@ jobs:
             "Shell-owned VS01 scene flow integration test|--headless --path . --script tests/unit/vertical_slice_scene_flow_test_runner.gd"
             "Player-facing vertical slice control contract test|--headless --path . --script tests/unit/vertical_slice_control_test_runner.gd"
             "Phase 12E input focus and accessibility shell contract test|--headless --path . --script tests/unit/phase12e_input_accessibility_test_runner.gd"
+            "Phase 12E semantic input remap and Deck layout contract test|--headless --path . --script tests/unit/phase12e_semantic_remap_layout_test_runner.gd"
             "Player-built VS01 planning editor contract test|--headless --path . --script tests/unit/vertical_slice_planning_editor_test_runner.gd"
             "Persistent shell VS01 playability test|--headless --path . --script tests/unit/vertical_slice_shell_playability_test_runner.gd"
             "Persistent shell deterministic replay contract test|--headless --path . --script tests/unit/vertical_slice_shell_determinism_test_runner.gd"
