@@ -17,40 +17,44 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 178
+## Current implementation checkpoint — Increment 179
 
 ### Phase / subsystem
-**12E UX / Accessibility / Controller / Deck — focused CI repair for rendered critical-signal integration**
+**12E UX / Accessibility / Controller / Deck — second focused CI repair for rendered critical-signal parser coupling**
 
 ### Repository truth / entry validation
 - Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, plus `PHASE11_UX_ACCESSIBILITY.md` and `PHASE11_TECH_PERSISTENCE.md` for the current 12E subsystem.
-- Entry head: `014857826763e88720aaad33247bfb1a3074de4f` (Increment 177).
-- Inspected Increment-177 `content-population` run `32782153623`, job `97606335596`: executable import failed before content validation because `src/app/shell.gd` could not preload/resolve `src/ui/accessible_vertical_slice_control.gd`.
-- Inspected Increment-177 `godot-headless` run `32782153596`, job `97606335533`: the GitHub job wrapper is green because that workflow intentionally exits 0 after collecting suite status, but its own log published `organism-cargo/godot-headless = failure` from the same project-import parse failure. This is the executable truth for Increment 177.
+- Entry head: `b1cde1454ad17d37a4c0d7e80a5df685fdd097f2` (Increment 178).
+- Inspected Increment-178 `content-population` run `32784644948`, job `97613906756`: executable `Import and parse project` still failed because `src/app/shell.gd` could not preload/resolve `src/ui/accessible_vertical_slice_control.gd`.
+- Inspected Increment-178 `godot-headless` run `32784644935`, job `97613906807`: the wrapper job conclusion is `success`, but its own suite log stopped at the same import parse failure and published `organism-cargo/godot-headless = failure`; this is the executable truth.
+- The project scanner did register `AccessibleVerticalSliceControl` and `CriticalSignalPresentationBuilder` class names before shell reload, so the remaining failure is treated as script-body static parser/type coupling rather than a missing file.
 
-### Implemented in Increment 178
-- Followed the red-CI branch of the prior `NEXT ACTION`; no new Retry/Reset/map/Codex work was started in this run.
-- Kept the Increment-177 rendered critical-signal behavior intact while removing fragile cross-script global-class type dependencies introduced in the new accessibility presentation layer.
-- `AccessibleVerticalSliceControl` now instantiates `AccessibilitySettingsModelScript` and `CriticalSignalPresentationBuilderScript` through their preloaded script resources without also requiring global class-name type resolution during editor class registration.
-- `CriticalSignalPresentationBuilder` now accepts the settings object through the built-in `Object` contract and invokes `critical_signal` through `has_method`/`call`, removing the direct `AccessibilitySettingsModel` global-class dependency from its parser signature while preserving the same presentation-only behavior.
-- No simulation, checksum, progression, persistence, content, Launch/Results ownership, or frozen gameplay semantics changed.
+### Implemented in Increment 179
+- Followed the red-CI branch of the prior `NEXT ACTION`; no Retry/Reset/map/Codex feature work was started.
+- Removed the remaining implicit Variant/static-method coupling around dynamically preloaded accessibility presentation helpers in `AccessibleVerticalSliceControl`.
+- `_accessibility_settings_model` and the per-render builder are now explicitly typed as built-in `Object`, avoiding unresolved custom-global-class inference during editor class registration.
+- All calls into the dynamically preloaded settings/builder helpers now go through guarded `has_method(...)` + `call(...)` boundaries, with explicit Variant-to-Dictionary/Array validation before use.
+- Added deterministic local failure dictionaries for unavailable/invalid accessibility helper results instead of relying on static analyzer inference from custom script resources.
+- Preserved the Increment-177 rendered critical-signal behavior and presentation-only authority boundary; no simulation, tick ordering, checksums, progression, persistence, content, Launch/Results ownership, or frozen gameplay semantics changed.
 
 ### Validation / policy
-- Exact failing workflow logs were inspected before changing code; the first executable failure was project import/preload resolution, not a gameplay test assertion.
-- The focused repair is limited to parser/type coupling inside the newly added Increment-177 accessibility presentation files.
-- Increment-177 headless wrapper behavior was reconciled correctly: job conclusion alone is not treated as pass when its published suite status is failure.
-- No speculative second CI repair is made in this run. Fresh GitHub Actions for Increment 178 are the executable confirmation path.
+- Both fresh Increment-178 workflow logs were inspected before editing, including the exact first executable parse failure.
+- The repair is one focused parser/type batch inside the newly added rendered accessibility control only; no speculative feature expansion is included.
+- Static review confirms every dynamic call is guarded and every returned Variant is validated before assignment/use, removing the warning-as-error path created by inferred Variant receivers.
+- This environment does not expose a directly runnable Godot checkout; fresh GitHub Actions after this single checkpoint push remain the executable validation path.
+- One coherent Git tree/commit is used for code + status.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh Increment-178 CI must confirm that both project import workflows can resolve `AccessibleVerticalSliceControl` and then execute the rendered failure-to-review acceptance.
+- Fresh Increment-179 CI must confirm `AccessibleVerticalSliceControl` now parses under Godot 4.7.1 and that project import proceeds into the existing rendered failure-to-review acceptance.
+- If fresh CI is still red, inspect the first newly exposed parser/runtime error and make one focused repair batch only.
 - If fresh CI is green, resume the full 12E acceptance cluster: Retry / Reset / Return to map + semantic device access + Codex exact-rule reachability at maximum UI scale.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the actual linked `content-population` and `godot-headless` executable logs/statuses for Increment 178.
+At the start of the next run, inspect the actual linked `content-population` and `godot-headless` executable logs/statuses for Increment 179.
 
 If either executable workflow is red, inspect the first exact executable failure and make one focused repair batch only.
 

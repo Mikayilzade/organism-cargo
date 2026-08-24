@@ -6,7 +6,7 @@ const CriticalSignalPresentationBuilderScript := preload("res://src/ui/critical_
 
 var _semantic_focus_label: Label
 var _support_config_label: Label
-var _accessibility_settings_model = AccessibilitySettingsModelScript.new()
+var _accessibility_settings_model: Object = AccessibilitySettingsModelScript.new()
 var _critical_signal_panel: VBoxContainer
 var _critical_signal_summary: Label
 var _critical_signal_list: VBoxContainer
@@ -25,9 +25,16 @@ func sync_from_flow() -> void:
 	_sync_critical_signal_panel()
 
 func set_accessibility_settings(patch: Dictionary) -> Dictionary:
-	var applied: Dictionary = _accessibility_settings_model.apply_patch(patch)
+	if _accessibility_settings_model == null or not _accessibility_settings_model.has_method("apply_patch"):
+		return {"ok": false, "error": "accessibility_settings_unavailable"}
+	var applied_value: Variant = _accessibility_settings_model.call("apply_patch", patch)
+	if not applied_value is Dictionary:
+		return {"ok": false, "error": "invalid_accessibility_settings_result"}
+	var applied: Dictionary = applied_value
 	if bool(applied.get("ok", false)):
-		_context["accessibility_settings"] = _accessibility_settings_model.snapshot()
+		var snapshot_value: Variant = _accessibility_settings_model.call("snapshot") if _accessibility_settings_model.has_method("snapshot") else {}
+		if snapshot_value is Dictionary:
+			_context["accessibility_settings"] = (snapshot_value as Dictionary).duplicate(true)
 		_sync_critical_signal_panel()
 	return applied
 
@@ -157,10 +164,10 @@ func _load_accessibility_settings(context: Dictionary) -> void:
 	if typeof(settings_value) != TYPE_DICTIONARY:
 		return
 	var settings: Dictionary = settings_value
-	if settings.is_empty():
+	if settings.is_empty() or _accessibility_settings_model == null or not _accessibility_settings_model.has_method("apply_patch"):
 		return
-	var applied: Dictionary = _accessibility_settings_model.apply_patch(settings)
-	if not bool(applied.get("ok", false)):
+	var applied_value: Variant = _accessibility_settings_model.call("apply_patch", settings)
+	if not applied_value is Dictionary or not bool((applied_value as Dictionary).get("ok", false)):
 		_accessibility_settings_model = AccessibilitySettingsModelScript.new()
 
 func _sync_critical_signal_panel() -> void:
@@ -182,13 +189,19 @@ func _sync_critical_signal_panel() -> void:
 		_critical_signal_summary.text = "TRANSIT SIGNALS — authoritative transit is resolving; critical cues remain visual and text-addressable."
 		_clear_critical_signal_rows()
 		return
-	var builder = CriticalSignalPresentationBuilderScript.new()
-	_critical_signals = builder.build(
+	var builder: Object = CriticalSignalPresentationBuilderScript.new()
+	if builder == null or not builder.has_method("build"):
+		_critical_signal_summary.text = "CRITICAL TRANSIT / REVIEW SIGNALS — presentation unavailable."
+		_clear_critical_signal_rows()
+		return
+	var built_value: Variant = builder.call(
+		"build",
 		_accessibility_settings_model,
 		_flow.last_completed_result(),
 		_flow.last_review(),
 		_dictionary_context("simulation_defs")
 	)
+	_critical_signals = (built_value as Array).duplicate(true) if built_value is Array else []
 	_render_critical_signal_rows()
 
 func _render_critical_signal_rows() -> void:
