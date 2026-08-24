@@ -17,45 +17,42 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 174
+## Current implementation checkpoint — Increment 175
 
 ### Phase / subsystem
-**12E UX / Accessibility / Controller / Deck — durable device-local remap Settings persistence**
+**12E UX / Accessibility / Controller / Deck — focused CI repair for durable remap Settings persistence**
 
 ### Repository truth / entry validation
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact subsystem authorities `PHASE11_UX_ACCESSIBILITY.md` and `PHASE11_TECH_PERSISTENCE.md`, plus the live Settings/remap implementation.
-- Entry head: `5713de94a1d7725655cef401e84ec16bc13dfe93` (Increment 173).
-- Increment-173 linked `content-population` run `32768134603`, job `content-validator` (`97562158263`) completed **success**, including the executable content validation step.
-- Increment-173 combined `godot-headless` context still reports historical failure residue, but the actual linked run `32768134478`, job `headless-tests` (`97562158183`) completed **success**; every executable step including `Run headless contract suite` completed **success**.
-- Both actual executable workflows are therefore green and this run followed the green branch of the previous `NEXT ACTION`.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact subsystem authorities `PHASE11_UX_ACCESSIBILITY.md` and `PHASE11_TECH_PERSISTENCE.md`.
+- Entry head: `4d52f33e3199c6fe81026982e1d71a184ef77762` (Increment 174).
+- Inspected the actual Increment-174 linked `content-population` run `32774317949`, job `content-validator` (`97581733816`): it completed **failure** at the first executable `Import and parse project` gate.
+- The exact failure was GDScript static analysis in `src/ui/settings_remap_screen.gd`: `_bindings_store` was deliberately declared as `Variant`, so Godot 4.7.1 with warnings treated as errors rejected calls to `load_into()` at line 36 and `save()` at lines 90/115 even though the runtime object is `InputBindingsStore`.
+- Inspected the actual Increment-174 linked `godot-headless` run `32774317963`, job `headless-tests` (`97581734303`): the job itself completed **success**, including the executable `Run headless contract suite` step. Its published combined-status residue is therefore not treated as executable truth.
 
-### Implemented in Increment 174
-- Added `InputBindingsStore`, a device-local Settings-only persistence layer at `user://organism_cargo/input_bindings.json`; it is separate from campaign/profile/session saves and never reads or writes progression state.
-- Persisted the full required keyboard and controller semantic-action profiles as versioned JSON with exact physical event data plus a redundant human-readable label consistency check.
-- Settings startup now restores valid saved keyboard/controller bindings into both `InputRemapModel` and live Godot `InputMap` before the remap screen is used.
-- Invalid whole-file settings recover explicitly to defaults and rewrite only the local settings payload; malformed per-device payloads reset only the affected device class while preserving a valid other-device profile.
-- Remap capture now becomes durable only after model conflict validation and live `InputMap` application succeed; save failure is surfaced as a visible Settings error instead of silently claiming persistence.
-- `Reset bindings to default` remains per-device, immediately updates `InputMap`, persists the result, and leaves the other device class unchanged.
-- The persisted loader reconstructs through the existing remap conflict/recovery contract, so Accept/Cancel same-device recovery remains mandatory after restart rather than trusting arbitrary serialized labels.
-- Extended `phase12e_settings_remap_screen_test_runner.gd` with durable keyboard+controller round-trip coverage, startup restoration into `InputMap`, independent keyboard reset preserving controller customization, and corrupt-settings recovery to defaults without campaign/profile coupling.
-- No frozen gameplay, simulation, campaign progression, economy, content, transit, Launch, Results, or profile-save rule changed.
+### Implemented in Increment 175
+- Made one focused repair batch only, as required by the failed-CI branch of the previous `NEXT ACTION`.
+- Statically typed `SettingsRemapScreen._bindings_store` as `InputBindingsStore` and its injectable constructor argument as `InputBindingsStore`.
+- Preserved the existing constructor injection used by the focused remap test, because `phase12e_settings_remap_screen_test_runner.gd` supplies a real `InputBindingsStore` with an isolated test path.
+- No persistence semantics, remap conflict rules, InputMap behavior, settings recovery rules, gameplay, simulation, campaign progression, economy, content, transit, Launch, Results, or profile-save behavior changed.
 
 ### Validation / policy
-- Increment-173 executable GitHub Actions jobs were inspected directly and are green.
-- The focused Settings/remap runner remains in the normal `godot-headless` case list, so fresh CI for Increment 174 must import/parse `InputBindingsStore`, execute the new durable round-trip/corruption assertions, and then run the full existing regression suite.
-- The execution environment for this autonomous run has no directly runnable local Godot checkout/binary; repository CI is the available executable validation path after this single batched checkpoint push.
-- All source/test/status changes are batched into one Git tree + one checkpoint commit/push.
+- The failing Increment-174 content workflow was inspected down to the exact parse error before repair.
+- The Increment-174 headless executable job was inspected directly and is green.
+- Static compatibility was checked against the live `InputBindingsStore` API (`load_into(model)` and `save(model)`) and the focused Settings/remap runner's constructor injection; the repair only replaces an over-broad `Variant` annotation with the actual concrete type already instantiated everywhere.
+- This autonomous environment has no directly runnable local Godot checkout/binary; fresh GitHub Actions after this single checkpoint push are the executable validation path.
+- All source/status changes are batched into one Git tree + one checkpoint commit/push; no speculative second CI repair is made in this run.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh CI must validate Increment 174. If either executable workflow is red, inspect the first exact executable failure and make one focused repair batch only on the next run.
+- Fresh CI for Increment 175 must confirm that project import now compiles and that both content-population and the full headless suite execute successfully.
+- If fresh CI exposes another failure, the next run must inspect the first exact executable failure and make at most one focused repair batch.
 - 12E remains incomplete: no-audio/non-color critical signaling, Reduced Motion/Reduced Flashing presentation application, and complete Retry/Reset/map/Codex/save-recovery/campaign-completion acceptance paths remain outstanding.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the actual linked `content-population` and `godot-headless` executable jobs for Increment 174 rather than trusting combined status residue.
+At the start of the next run, inspect the actual linked `content-population` and `godot-headless` executable jobs for Increment 175 rather than trusting combined-status residue.
 
 If either executable workflow is red, inspect the first exact executable failure and make one focused repair batch only.
 

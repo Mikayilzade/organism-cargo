@@ -11,7 +11,7 @@ signal remap_feedback(message: String)
 signal close_requested()
 
 var _model: InputRemapModel
-var _bindings_store: Variant
+var _bindings_store: InputBindingsStore
 var _last_persistence_result: Dictionary = {}
 var _active_device: StringName = InputActionCatalogScript.DEVICE_KEYBOARD
 var _last_input_device: StringName = InputActionCatalogScript.DEVICE_KEYBOARD
@@ -26,7 +26,7 @@ var _controller_button: Button
 var _reset_button: Button
 var _close_button: Button
 
-func _init(model: InputRemapModel = null, bindings_store: Variant = null) -> void:
+func _init(model: InputRemapModel = null, bindings_store: InputBindingsStore = null) -> void:
 	_model = model if model != null else InputRemapModelScript.new()
 	_bindings_store = bindings_store if bindings_store != null else InputBindingsStoreScript.new()
 
