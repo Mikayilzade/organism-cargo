@@ -57,6 +57,7 @@ jobs:
           run_case "Real O01-O22 and S01-S06 launch roster" --headless --path . --script tests/unit/launch_roster_content_test_runner.gd
           run_case "Real H01-H12 and RH1-RH7 topology/route metadata" --headless --path . --script tests/unit/launch_topology_route_content_test_runner.gd
           run_case "Authored hold geometry and route profile batch" --headless --path . --script tests/unit/launch_authored_batch_test_runner.gd
+          run_case "Chapter 4 C25-C32 authored content and anti-template evidence" --headless --path . --script tests/unit/chapter4_authored_content_test_runner.gd
 
       - name: Publish observable content-population status
         if: always()
