@@ -17,59 +17,70 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 191
+## Current implementation checkpoint — Increment 192
 
 ### Phase / subsystem
-**12F adversarial persistence — compatibility recovery class D + retained-legacy reconstruction acceptance**
+**12F non-persistence adversarial QA — hostile state ordering + impossible planning layouts + campaign lock-bypass semantics**
 
 ### Repository truth / entry validation
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact current authority `PHASE11_TECH_PERSISTENCE.md`.
-- Entry head: `23c824acedba2b8c4318c4764a0ba193771aeafd` (Increment 190).
-- Inspected the exact Increment-190 push runs on that SHA. All three required workflows completed successfully: `Phase 12F Persistence Adversarial` run `32837107804`, `Godot Headless Tests`, and `Content Population Validator`.
-- Reconciled the dedicated 12F persistence coverage against `PHASE11_TECH_PERSISTENCE.md` section 12 and the checksum-mismatch policy in section 4.
-- Found one concrete uncovered production invariant: `_validate_compatibility()` already classified missing/incorrect compatibility as recovery class D, but `resume_current()` only persisted class C quarantine. A class-D Continue could therefore return an error without durably invalidating the obsolete run or retaining an explicit editable planning baseline, contrary to the canonical missing-compatibility behavior.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`.
+- Re-read exact current authorities `PHASE11_TECH_PERSISTENCE.md`, `PHASE11_UX_ACCESSIBILITY.md`, and `PHASE11_PROGRESSION.md`, plus the live state machine, structural resolver, campaign graph and current Phase-12F persistence runners.
+- Entry head: `1f9017ebcb6fca7b3e70babc3efdaeb0f49ebefa` (Increment 191).
+- Inspected all exact Increment-191 push workflows: `Phase 12F Persistence Adversarial` run `32842578619`, `Godot Headless Tests` run `32842578892`, and `Content Population Validator` run `32842578629`; all completed **success**.
+- Final reconciliation of `PHASE11_TECH_PERSISTENCE.md` section 12 against the four dedicated persistence runners plus broad green persistence tests found no remaining concrete uncovered persistence invariant requiring a new implementation repair in this run. Persistence therefore stops being the active 12F focus unless a later regression exposes a real gap.
 
-### Implemented in Increment 191
-- Extended `TransitReconstructionService.resume_current()` with explicit recovery-class-D handling.
-- When an in-progress run references a rules/content/contract package that cannot reconstruct it exactly, the service now:
-  - refuses to simulate under the supplied current-but-different package;
-  - preserves the immutable old `run_id` and `canonical_committed_input` for diagnostics/history;
-  - durably changes lifecycle to `ABANDONED/INVALIDATED`;
-  - stores an exact `planning_baseline` clone of the committed layout;
-  - records the compatibility failure reason and `restart_under_current_version_required = true`;
-  - returns the truthful recovery action `restart_from_committed_layout_under_current_version`;
-  - does not fabricate a final-result checksum or old outcome.
-- Added `phase12f_compatibility_recovery_adversarial_test_runner.gd` and wired it into the single existing hard-fail persistence workflow.
-- The new runner attacks both sides of the compatibility boundary:
-  - a retained exact legacy rules/content/contract package reconstructs the old committed run deterministically and preserves its run identity;
-  - a missing legacy package represented by current-but-different compatibility enters class D, durably invalidates only the resumable session, preserves the exact committed layout as restart baseline, does not fabricate an outcome, and cannot silently resume again.
-- The class-D attack also seeds permanent Bronze/Gold/completion-ledger profile state and proves session invalidation cannot roll historical permanent progression back.
-- No gameplay mechanic, simulation phase, checksum algorithm, campaign graph, content definition, medal rule or save schema was redesigned.
+### Implemented in Increment 192
+- Moved immediately to the next substantial non-persistence 12F cluster required by the prior `NEXT ACTION`.
+- Added `phase12f_state_planning_campaign_adversarial_test_runner.gd` covering three hostile surfaces in one coherent regression batch.
+- State-machine attacks verify that hostile or duplicated UI/event ordering cannot:
+  - skip BOOT/TITLE directly into Planning or Transit;
+  - bypass Launch confirmation;
+  - jump from Transit to map before authoritative completion;
+  - enter Causal Review from malformed completion payloads;
+  - process the same completed-transit callback twice;
+  - lose the exact Causal Review return owner when Codex is opened and closed.
+- Impossible planning-layout attacks verify the live `StructuralResolver` rejects or structurally blocks:
+  - overlapping placements;
+  - blocked-cell placements;
+  - negative/out-of-bounds anchors;
+  - forged illegal orientation;
+  - missing mandatory manifest instances;
+  - injected unknown instance IDs;
+  - authored-zone violations.
+- Campaign/content lock-bypass attacks load the real `content/campaign/campaign_graph.json` and assert:
+  - the graph declares Bronze completion as progression authority;
+  - the Challenge gate is exactly `Bronze(C16)`;
+  - all 48 nodes are unique and declare Bronze-only prerequisites;
+  - C01 is the fresh-profile root;
+  - C16 and C48 retain their exact frozen dependency boundaries;
+  - fabricated Gold medals, knowledge and achievements cannot substitute for Bronze(C16).
+- Added a dedicated hard-fail `Phase 12F State Planning Campaign Adversarial` workflow so this non-persistence cluster is executable independently without weakening the existing broad CI surfaces.
+- No gameplay rule, campaign graph, simulation phase, checksum algorithm, progression rule or accessibility contract was redesigned.
 
 ### Validation / policy
-- Increment-190 dedicated persistence CI, broad Godot headless CI and content validation are green before this change.
-- Static review traces the new behavior directly to `PHASE11_TECH_PERSISTENCE.md` section 4 class D and section 12 reconstruction acceptance.
-- The new focused runner is added to the existing persistence workflow rather than creating another workflow surface.
-- This runtime has no local Godot 4.7.1 binary. Fresh GitHub Actions from this single Increment-191 checkpoint are the executable validation path.
-- All meaningful code/test/workflow/status changes are batched into one checkpoint commit/push.
+- Increment-191 persistence, broad Godot headless and content workflows are green before this change.
+- The new runner executes only existing authoritative production code/data (`AppStateMachine`, `StructuralResolver`, canonical campaign graph) and frozen lock semantics.
+- Static review confirms the hostile assertions align with `PHASE11_UX_ACCESSIBILITY.md` required path ownership, `PHASE11_PROGRESSION.md` Bronze-only gating, and the frozen state/Launch ownership model.
+- This runtime has no local Godot 4.7.1 binary; fresh GitHub Actions from this single Increment-192 checkpoint are the executable validation path.
+- All meaningful test/workflow/status changes are batched into one checkpoint commit/push.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh Increment-191 CI must confirm Godot 4.7.1 parsing and all four dedicated persistence attack runners together.
-- Persistence acceptance should be reconciled one final time after CI; any still-uncovered canonical invariant must be covered before leaving this domain.
+- Fresh Increment-192 CI must confirm Godot 4.7.1 parsing and the new hostile state/planning/campaign runner.
+- If the new cluster exposes a production defect, the next run must inspect the first exact failure and make one focused repair batch only.
 - 12F remains incomplete; do not begin 12G yet.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the exact Increment-191 `Phase 12F Persistence Adversarial`, `Godot Headless Tests`, and `Content Population Validator` workflows.
+At the start of the next run, inspect the exact Increment-192 `Phase 12F State Planning Campaign Adversarial`, `Godot Headless Tests`, `Content Population Validator`, and existing persistence-adversarial workflows.
 
 If any executable workflow is red, inspect the first exact executable failure and make one focused repair batch only; do not stack speculative fixes.
 
 If all executable workflows are green:
-1. perform a final line-by-line reconciliation of the mandatory persistence acceptance list in `PHASE11_TECH_PERSISTENCE.md` against the four dedicated 12F runners plus already-green broad persistence tests; cover any remaining concrete gap in one coherent batch;
-2. if persistence acceptance is exhausted, move immediately to a substantial non-persistence 12F adversarial cluster: hostile state-machine/UI event ordering plus impossible/edge planning layouts and campaign/content lock-bypass attempts, reading the frozen authority chain for those exact subsystems first;
-3. keep 12G blocked until 12F has no known specification-breaking blocker.
+1. expand the non-persistence 12F attack surface into duplicate/hostile semantic input ordering and modal/focus escape attempts across Planning, Launch Confirm, Transit and Causal Review, using `PHASE11_UX_ACCESSIBILITY.md` as authority;
+2. attack content/progression boundary conditions not already exhausted by 12D validation: forged unavailable contract selection, impossible prerequisite combinations, Challenge entry before Bronze(C16), and campaign-completion transition before Bronze(C48); repair production gates if a real bypass exists;
+3. then continue into deterministic simulation edge/timing attacks and dominant-strategy/adversarial content checks required by 12F.
 
-Do not report overall completion until `IMPLEMENTATION COMPLETE = YES`.
+Keep 12G blocked until 12F has no known specification-breaking blocker. Do not report overall completion until `IMPLEMENTATION COMPLETE = YES`.
