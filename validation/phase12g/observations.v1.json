@@ -1,0 +1,6 @@
+{
+  "schema_version": "phase12g-evidence-v1",
+  "dataset_id": "phase12g-production-observations",
+  "description": "Production empirical observations only. Do not add synthetic/test fixtures here.",
+  "samples": []
+}
