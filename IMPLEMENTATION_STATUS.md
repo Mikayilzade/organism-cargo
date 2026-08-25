@@ -17,63 +17,61 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 184
+## Current implementation checkpoint — Increment 185
 
 ### Phase / subsystem
-**12E UX / Accessibility / Controller / Deck — atomic save-recovery choice UX + campaign-completion semantic navigation**
+**12E UX / Accessibility / Controller / Deck — production first-run accessibility preflight + maximum-scale semantic acceptance foundation**
 
 ### Repository truth / entry validation
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the active-domain authorities `PHASE11_UX_ACCESSIBILITY.md`, `PHASE11_TECH_PERSISTENCE.md`, `PHASE11_PROGRESSION.md`, and supporting `UX_ARCHITECTURE.md` recovery/completion rules.
-- Entry head: `9b9b19ccedd5df0fbf8017f6103ecb3ca48a1f43` (Increment 183).
-- Inspected Increment-183 `content-population` run `32805272825`: workflow completed **success** on the exact entry SHA.
-- Inspected Increment-183 `godot-headless` run `32805272818`: workflow completed **success** on the exact entry SHA.
-- Both executable workflows are green, so this run followed the substantial green-CI branch of the previous `NEXT ACTION`.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the active-domain authority `PHASE11_UX_ACCESSIBILITY.md`.
+- Entry head: `7d5f642e8473b582f9d4787ce82f5be620b21848` (Increment 184).
+- Inspected Increment-184 workflows on the exact entry SHA: `Content Population Validator` run `32809260724` completed **success** and `Godot Headless Tests` run `32809260695` completed **success**.
+- Both executable workflows were green, so this run followed the final substantial 12E closure branch rather than a repair branch.
 
-### Implemented in Increment 184
-- Added `SaveRecoveryService` as a recovery authority layer around the existing `AtomicSaveStore` without changing the frozen save envelope or checksum format.
-- Recovery assessment now distinguishes:
-  - no existing generation (`fresh`);
-  - valid primary;
-  - invalid/missing primary with a validated backup (`backup_available`);
-  - existing generations with no valid recovery source (`recovery_required`).
-- Added explicit validated-backup restore. The backup envelope is revalidated before installation, a corrupt primary is copied to a deterministic checksum-named diagnostic file first, the restored primary is written/validated through a temporary recovery file, and only then replaces the unusable primary. The validated backup remains intact.
-- Added explicit clean-profile recovery for the both-invalid case. Existing primary/backup bytes are retained as checksum-named diagnostics before `AtomicSaveStore` installs a new profile. The new profile starts from explicit empty monotonic progression sets/maps only; corrupt text can never synthesize Bronze clears, medals, knowledge or completion IDs.
-- Wired production shell startup to assess the local profile after content bootstrap. Existing invalid profile generations now route the live flow into `SAVE_RECOVERY`; a genuinely fresh installation with no profile files remains a normal Title path.
-- Extended the Phase-12E rendered navigation surface with a `SAVE_RECOVERY` panel. It truthfully reports whether a validated backup is available, disables invalid restore choices, exposes `Restore validated backup` and `Create new profile`, and states that corrupt generations are retained and progress is never guessed.
-- Added semantic recovery navigation through the same remappable action layer used by keyboard/controller/Deck: directional/region actions move focus and Accept activates the selected valid recovery choice. A missing/invalid backup cannot strand focus on a disabled action.
-- Added flow-owned `enter_save_recovery()` / `finish_save_recovery()` transitions so recovery completion returns to Title only after the selected persistence operation succeeds.
-- Added a rendered `CAMPAIGN_COMPLETE` surface with the frozen completion semantics: authored completion summary, medal-maxima wording, Challenge gating reminder, replayable map statement and explicit no-forced-New-Game+ wording.
-- Added semantic campaign-completion actions: Return to campaign map, open/return from Codex, and return to Title. Directional navigation and Accept work without pointer interaction; Cancel safely returns to the replayable map and Inspect opens Codex.
-- Extended the flow coordinator with campaign-completion entry/exit ownership while preserving the frozen state-machine transition graph.
-- No simulation rule, tick ordering, checksum algorithm, campaign prerequisite graph, Bronze authority, Challenge gate, economy, Launch ownership or deterministic outcome behavior changed.
+### Implemented in Increment 185
+- Added a real reusable `AccessibilityPreflightScreen` for first boot and later Settings access.
+- The preflight exposes every frozen high-impact first-run field from `PHASE11_UX_ACCESSIBILITY.md`: UI scale, Reduced Flashing, Reduced Motion, master volume, non-speech captions and input method.
+- Every preflight row is a normal focusable control and can be operated through semantic Up/Down/Left/Right/Accept/Cancel actions; no pointer, hover, wheel or drag is required.
+- First-run mode cannot be silently skipped with Cancel. After completion, the same surface becomes a normal later Accessibility Settings screen and can be closed semantically.
+- Added explicit input-method selection for Auto, keyboard+mouse, keyboard-only, controller and Steam Deck.
+- Added production shell integration:
+  - local accessibility preferences load before gameplay context is built;
+  - a first-run completion flag is stored separately from campaign progress;
+  - incomplete first-run setup opens the preflight before gameplay input is enabled;
+  - completion persists the accessibility choices and applies them to the player-facing accessible control;
+  - later `Accessibility` and `Controls` buttons remain separately reachable from the shell;
+  - opening either settings surface disables gameplay semantic input so focus cannot leak behind the modal surface.
+- Accessibility preference persistence is deliberately device-local through `ConfigFile`; it does not mutate campaign, simulation, Launch, progression or profile-save authority.
+- Added focused `Phase12EPreflightMatrixAcceptance`, invoked from the already-wired `vertical_slice_control_test_runner.gd` suite.
+- The new acceptance drives first-run setup only through semantic actions, reaches the 200% scale stress target, enables Reduced Motion/Reduced Flashing, lowers master audio to 0, selects Steam Deck input, verifies first-run Cancel is blocked, and verifies later Settings-mode Cancel is available.
+- The same acceptance reuses `PlanningLayoutReachability` at 1280x800/200% and confirms the frozen drawer-mode/max-scale contract, bounded hold pan/reset requirement and independent keyboard/controller semantic action coverage.
+- No simulation rule, tick order, checksum, content, campaign graph, Bronze authority, Challenge gate, Launch ownership or deterministic outcome behavior changed.
 
 ### Validation / policy
-- Increment-183 Content Population Validator and Godot Headless Tests were verified green before implementation.
-- Added focused `Phase12ERecoveryCompletionAcceptance`, invoked from the already-wired `vertical_slice_control_test_runner.gd` case so this cluster is exercised by the normal full headless suite without adding workflow churn.
-- The recovery acceptance constructs a valid backup plus corrupt primary, enters rendered `SAVE_RECOVERY`, restores through semantic Accept, verifies the exact backup payload becomes the normal valid primary, and verifies the corrupt primary diagnostic still exists.
-- A second recovery branch constructs two corrupt generations, proves invalid backup restore is not selectable, creates a clean profile through semantic Accept, verifies both corrupt generations were retained, and verifies fake corrupt progress/medal tokens did not enter the new profile.
-- Campaign-completion acceptance enters the explicit `CAMPAIGN_COMPLETE` state, verifies rendered 48/48/replayable/no-forced-NG+ presentation, exercises semantic Codex entry/return, directional focus movement, and semantic return to the campaign map.
-- Existing input-catalog/remap tests continue to prove independent keyboard/controller bindings for the semantic actions used here; this increment exercises those actions through the shared semantic layer rather than adding pointer-specific shortcuts.
-- Fresh Increment-184 GitHub Actions are the executable Godot 4.7.1 parse/runtime validation path; this runtime still has no directly runnable local Godot binary.
-- All source/test/status work is batched into one coherent checkpoint commit/push; no speculative follow-up CI-fix push is made in this run.
+- Increment-184 executable Content Population and Godot headless workflows were verified green before implementation.
+- The new preflight acceptance is part of the existing full Godot headless runner; no workflow file or extra CI job was added.
+- Static review confirms the first-run completion flag and accessibility preferences are local settings only and are not read as campaign/progression authority.
+- Static review confirms first-run modal ownership disables the gameplay semantic-input node until completion, while later Accessibility Settings preserves a semantic Cancel path.
+- Fresh Increment-185 GitHub Actions are the executable Godot 4.7.1 parse/runtime validation path; this environment still has no directly runnable local Godot binary.
+- All source/test/status changes are batched into one checkpoint commit/push; no speculative follow-up CI fix is made in this run.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh Increment-184 CI must confirm Godot 4.7.1 accepts the new recovery service, dynamic navigation-state surfaces and focused recovery/completion acceptance.
-- Local recovery currently covers the validated local backup and clean-profile choices. A cloud-generation choice is intentionally not invented because no cloud provider/runtime integration exists yet; `PHASE11_TECH_PERSISTENCE.md` allows another validated local/cloud generation only when available.
-- 12E remains incomplete: first-run accessibility preflight/onboarding completeness and the final representative 200%-scale/device/accessibility matrix audit remain outstanding; those must be closed before 12F begins.
+- Fresh Increment-185 CI must confirm Godot 4.7.1 accepts the new preflight script, shell integration and focused semantic matrix acceptance.
+- 12E is **not yet marked complete** in this checkpoint. The new test proves the first-run surface and the existing abstract 1280x800/200% reachability contract, but the final closure audit still needs to reconcile that model against all already-rendered mandatory surfaces (Planning, Transit/Review, Recovery, Codex and Campaign Completion) at 200% and record any concrete rendered-layout gaps rather than assuming model coverage equals rendered coverage.
+- If that rendered audit is clean and Increment-185 CI is green, 12E can be closed in the next checkpoint. Any concrete rendered-scale failure must be repaired before 12F.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the actual linked `content-population` and `godot-headless` executable logs/statuses for Increment 184.
+At the start of the next run, inspect the exact Increment-185 `content-population` and `godot-headless` executable workflows.
 
 If either executable workflow is red, inspect the first exact executable failure and make one focused repair batch only.
 
-If both executable workflows are green, take the final substantial 12E closure cluster rather than micro-increments:
-1. implement/render the complete first-run accessibility preflight path with semantic keyboard/controller/Deck access for UI scale, Reduced Flashing, Reduced Motion, master volume, non-speech captions and input method, while preserving later Settings access;
-2. execute a representative 200% UI-scale + no-audio + reduced-motion/flashing + keyboard/controller/Deck reachability matrix across first-run, Planning, Transit/Review, Recovery, Codex and Campaign Completion, adding focused acceptance where coverage is missing;
-3. audit every mandatory item in `PHASE11_UX_ACCESSIBILITY.md`; if and only if the full 12E acceptance matrix is implemented and green, mark 12E COMPLETE and set the next action to begin 12F Adversarial QA.
+If both executable workflows are green, take one final 12E closure/audit checkpoint:
+1. perform a rendered 1280x800 + 200% accessibility reachability audit across first-run preflight, Planning, Transit/Causal Review, save recovery, Codex, Controls/Accessibility Settings and Campaign Completion using the actual player-facing controls rather than only model contracts;
+2. repair any concrete clipping/focus/off-screen/reset-access failure in the same coherent batch and extend focused acceptance for the repaired surface;
+3. re-audit the mandatory item list in `PHASE11_UX_ACCESSIBILITY.md`; if every required path is implemented and the executable acceptance suite is green, mark **12E COMPLETE** and set `NEXT ACTION` to begin **12F Adversarial QA**.
 
 Do not begin 12F until the full 12E acceptance matrix is implemented and green. Do not report overall completion until `IMPLEMENTATION COMPLETE = YES`.

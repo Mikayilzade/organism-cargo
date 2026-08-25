@@ -7,6 +7,7 @@ const VerticalSliceControlScript := preload("res://src/ui/vertical_slice_control
 const Phase12ERenderedCriticalSignalAcceptanceScript := preload("res://tests/unit/phase12e_rendered_critical_signal_acceptance.gd")
 const Phase12EReviewCodexAcceptanceScript := preload("res://tests/unit/phase12e_review_codex_acceptance.gd")
 const Phase12ERecoveryCompletionAcceptanceScript := preload("res://tests/unit/phase12e_recovery_completion_acceptance.gd")
+const Phase12EPreflightMatrixAcceptanceScript := preload("res://tests/unit/phase12e_preflight_matrix_acceptance.gd")
 
 var failures: int = 0
 var run_sequence: int = 0
@@ -65,6 +66,11 @@ func _run() -> void:
 	var recovery_completion_failures: Array[String] = await recovery_completion.run(self)
 	for recovery_completion_failure: String in recovery_completion_failures:
 		_expect(false, "Phase12E recovery/completion acceptance: %s" % recovery_completion_failure)
+
+	var preflight_matrix: Phase12EPreflightMatrixAcceptance = Phase12EPreflightMatrixAcceptanceScript.new()
+	var preflight_matrix_failures: Array[String] = await preflight_matrix.run(self)
+	for preflight_matrix_failure: String in preflight_matrix_failures:
+		_expect(false, "Phase12E preflight/matrix acceptance: %s" % preflight_matrix_failure)
 
 	if failures == 0:
 		print("vertical_slice_control_test_runner: PASS")

@@ -9,10 +9,12 @@ const SEMANTIC_VERTICAL_SLICE_INPUT_PATH := "res://src/ui/semantic_vertical_slic
 const InputActionCatalogScript := preload("res://src/ui/input_action_catalog.gd")
 const InputRemapModelScript := preload("res://src/ui/input_remap_model.gd")
 const AccessibilitySettingsModelScript := preload("res://src/ui/accessibility_settings_model.gd")
+const AccessibilityPreflightScreenScript := preload("res://src/ui/accessibility_preflight_screen.gd")
 const SettingsRemapScreenScript := preload("res://src/ui/settings_remap_screen.gd")
 
 const CORE_CONTENT_PATHS: Dictionary = {&"body_plans":"res://content/body_plans", &"campaign":"res://content/campaign", &"challenges":"res://content/challenges", &"contracts":"res://content/contracts", &"hazards":"res://content/hazards", &"holds":"res://content/holds", &"routes":"res://content/routes", &"species":"res://content/species", &"supports":"res://content/supports", &"traits":"res://content/traits"}
 const SAVE_ROOT := "user://organism_cargo"
+const ACCESSIBILITY_PREFS_PATH := "user://organism_cargo_accessibility.cfg"
 
 var _bootstrap_service: AppBootstrapService
 var _save_store: AtomicSaveStore
@@ -24,10 +26,16 @@ var _accessibility_settings: AccessibilitySettingsModel
 var _input_remap: InputRemapModel
 var _settings_screen: SettingsRemapScreen
 var _settings_button: Button
+var _accessibility_button: Button
+var _preflight_screen: AccessibilityPreflightScreen
+var _first_run_accessibility_complete: bool = false
 
 func _ready() -> void:
 	InputActionCatalogScript.ensure_registered()
-	_accessibility_settings = AccessibilitySettingsModelScript.new(); _input_remap = InputRemapModelScript.new(); _build_persistent_settings_path()
+	_accessibility_settings = AccessibilitySettingsModelScript.new()
+	_load_accessibility_preferences()
+	_input_remap = InputRemapModelScript.new()
+	_build_persistent_settings_path()
 	_bootstrap_service = AppBootstrapServiceScript.new(); var result: Dictionary = _bootstrap_service.boot(CORE_CONTENT_PATHS)
 	if not result["ok"]: print("Organism Cargo bootstrap blocked: %s" % String(result["error"])); return
 	_save_store = AtomicSaveStoreScript.new(SAVE_ROOT)
@@ -57,7 +65,10 @@ func _ready() -> void:
 	var semantic_result_value: Variant = _semantic_input.call("configure", _slice_control, _slice_flow, context)
 	var semantic_result: Dictionary = semantic_result_value if semantic_result_value is Dictionary else {"ok": false, "error": "invalid_semantic_config_result"}
 	if not bool(semantic_result.get("ok", false)): print("Organism Cargo semantic input blocked: %s" % String(semantic_result.get("error", "unknown")))
-	move_child(_settings_screen, get_child_count() - 1); move_child(_settings_button, get_child_count() - 1)
+	_build_accessibility_preflight_path()
+	move_child(_settings_screen, get_child_count() - 1); move_child(_settings_button, get_child_count() - 1); move_child(_accessibility_button, get_child_count() - 1); move_child(_preflight_screen, get_child_count() - 1)
+	if not _first_run_accessibility_complete:
+		open_accessibility_preflight(true)
 	print("Organism Cargo bootstrap ready: content=%s state=%s" % [String(result["content_version"]), str(_bootstrap_service.state_machine().current_state())])
 
 func flow_controller() -> VerticalSliceFlowCoordinator: return _slice_flow
@@ -65,25 +76,51 @@ func slice_control() -> VerticalSliceControl: return _slice_control
 func semantic_input_controller() -> Node: return _semantic_input
 func settings_screen() -> SettingsRemapScreen: return _settings_screen
 func settings_button() -> Button: return _settings_button
+func accessibility_preflight_screen() -> AccessibilityPreflightScreen: return _preflight_screen
+func accessibility_button() -> Button: return _accessibility_button
 func save_recovery_service() -> SaveRecoveryService: return _save_recovery_service
 func accessibility_settings_snapshot() -> Dictionary: return {} if _accessibility_settings == null else _accessibility_settings.snapshot()
 func input_remap_snapshot() -> Dictionary: return {} if _input_remap == null else _input_remap.snapshot()
+func first_run_accessibility_complete() -> bool: return _first_run_accessibility_complete
 
 func open_settings() -> void:
 	if _settings_screen == null: return
 	_settings_screen.visible = true
-	if _slice_control != null: _slice_control.visible = false
-	if _semantic_input != null: _semantic_input.set_process_unhandled_input(false)
+	_set_game_surface_enabled(false)
 	_settings_screen.focus_entry()
 
 func close_settings() -> void:
 	if _settings_screen == null: return
 	_settings_screen.visible = false
-	if _slice_control != null: _slice_control.visible = true
-	if _semantic_input != null: _semantic_input.set_process_unhandled_input(true)
+	_set_game_surface_enabled(true)
 	if _settings_button != null: _settings_button.grab_focus()
 
+func open_accessibility_preflight(first_run: bool = false) -> void:
+	if _preflight_screen == null: return
+	_preflight_screen.configure(first_run)
+	_preflight_screen.visible = true
+	_set_game_surface_enabled(false)
+	if _settings_screen != null: _settings_screen.visible = false
+	_preflight_screen.focus_entry()
+
+func close_accessibility_settings() -> void:
+	if _preflight_screen == null: return
+	if not _first_run_accessibility_complete: return
+	_preflight_screen.visible = false
+	_set_game_surface_enabled(true)
+	if _accessibility_button != null: _accessibility_button.grab_focus()
+
+func dispatch_preflight_action(action: StringName) -> Dictionary:
+	if _preflight_screen == null or not _preflight_screen.visible:
+		return {"ok": false, "error": "preflight_not_open"}
+	return _preflight_screen.dispatch(action)
+
 func _unhandled_input(event: InputEvent) -> void:
+	if _preflight_screen != null and _preflight_screen.visible:
+		for action: StringName in [&"navigate_up", &"navigate_down", &"navigate_left", &"navigate_right", &"region_previous", &"region_next", &"panel_previous", &"panel_next", &"accept", &"cancel"]:
+			if event.is_action_pressed(action):
+				_preflight_screen.dispatch(action); get_viewport().set_input_as_handled(); return
+		return
 	if _settings_screen == null or not _settings_screen.visible: return
 	if _settings_screen.capture_action() == &"":
 		var device := InputActionCatalogScript.device_for_event(event)
@@ -92,9 +129,63 @@ func _unhandled_input(event: InputEvent) -> void:
 			close_settings(); get_viewport().set_input_as_handled()
 
 func _build_persistent_settings_path() -> void:
-	_settings_button = Button.new(); _settings_button.name = "SettingsButton"; _settings_button.text = "Settings"; _settings_button.focus_mode = Control.FOCUS_ALL
+	_settings_button = Button.new(); _settings_button.name = "SettingsButton"; _settings_button.text = "Controls"; _settings_button.focus_mode = Control.FOCUS_ALL
 	_settings_button.set_anchors_preset(Control.PRESET_TOP_RIGHT); _settings_button.position = Vector2(-132, 16); _settings_button.size = Vector2(116, 40); _settings_button.pressed.connect(open_settings); add_child(_settings_button)
+	_accessibility_button = Button.new(); _accessibility_button.name = "AccessibilityButton"; _accessibility_button.text = "Accessibility"; _accessibility_button.focus_mode = Control.FOCUS_ALL
+	_accessibility_button.set_anchors_preset(Control.PRESET_TOP_RIGHT); _accessibility_button.position = Vector2(-272, 16); _accessibility_button.size = Vector2(132, 40); _accessibility_button.pressed.connect(func() -> void: open_accessibility_preflight(false)); add_child(_accessibility_button)
 	_settings_screen = SettingsRemapScreenScript.new(_input_remap); _settings_screen.name = "SettingsRemapScreen"; _settings_screen.visible = false; _settings_screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); _settings_screen.close_requested.connect(close_settings); add_child(_settings_screen)
+
+func _build_accessibility_preflight_path() -> void:
+	_preflight_screen = AccessibilityPreflightScreenScript.new(_accessibility_settings)
+	_preflight_screen.name = "AccessibilityPreflightScreen"
+	_preflight_screen.visible = false
+	_preflight_screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_preflight_screen.completed.connect(_on_accessibility_completed)
+	_preflight_screen.close_requested.connect(close_accessibility_settings)
+	add_child(_preflight_screen)
+
+func _on_accessibility_completed(settings: Dictionary) -> void:
+	var applied := _accessibility_settings.apply_patch(settings)
+	if not bool(applied.get("ok", false)):
+		return
+	_first_run_accessibility_complete = true
+	_save_accessibility_preferences()
+	if _slice_control != null and _slice_control.has_method("set_accessibility_settings"):
+		_slice_control.call("set_accessibility_settings", _accessibility_settings.snapshot())
+	_preflight_screen.configure(false)
+	_preflight_screen.visible = false
+	_set_game_surface_enabled(true)
+	if _accessibility_button != null: _accessibility_button.grab_focus()
+
+func _set_game_surface_enabled(enabled: bool) -> void:
+	if _slice_control != null: _slice_control.visible = enabled
+	if _semantic_input != null: _semantic_input.set_process_unhandled_input(enabled)
+	if _settings_button != null: _settings_button.visible = enabled
+	if _accessibility_button != null: _accessibility_button.visible = enabled
+
+func _load_accessibility_preferences() -> void:
+	var config := ConfigFile.new()
+	if config.load(ACCESSIBILITY_PREFS_PATH) != OK:
+		_first_run_accessibility_complete = false
+		return
+	var patch := {
+		"ui_scale_percent": int(config.get_value("accessibility", "ui_scale_percent", 100)),
+		"reduced_flashing": bool(config.get_value("accessibility", "reduced_flashing", false)),
+		"reduced_motion": bool(config.get_value("accessibility", "reduced_motion", false)),
+		"master_volume_percent": int(config.get_value("accessibility", "master_volume_percent", 100)),
+		"non_speech_captions": bool(config.get_value("accessibility", "non_speech_captions", true)),
+		"input_method": String(config.get_value("accessibility", "input_method", "auto")),
+	}
+	var result := _accessibility_settings.apply_patch(patch)
+	_first_run_accessibility_complete = bool(config.get_value("accessibility", "first_run_complete", false)) and bool(result.get("ok", false))
+
+func _save_accessibility_preferences() -> void:
+	var config := ConfigFile.new()
+	var snapshot := _accessibility_settings.snapshot()
+	for key: String in snapshot.keys():
+		config.set_value("accessibility", key, snapshot[key])
+	config.set_value("accessibility", "first_run_complete", true)
+	config.save(ACCESSIBILITY_PREFS_PATH)
 
 func _vertical_slice_context(content_version: String) -> Dictionary:
 	var contract_payload: Dictionary = _payload(&"contracts", &"VS01"); var hold_payload: Dictionary = _payload(&"holds", &"VS_HOLD_01"); var species_by_id: Dictionary = {}
