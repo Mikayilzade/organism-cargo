@@ -8,68 +8,63 @@ Branch: `main`
 - 12C Full Gameplay Systems: **COMPLETE**
 - 12D Full Content Population: **COMPLETE**
 - 12E UX / Accessibility / Controller / Deck: **COMPLETE**
-- 12F Adversarial QA / Persistence / Recovery: **IN PROGRESS**
-- 12G Optimization / Platform Polish: **NO**
+- 12F Adversarial QA / Persistence / Recovery: **COMPLETE**
+- 12G Empirical validation / platform polish: **NO**
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 197
+## Current implementation checkpoint — Increment 198
 
 ### Phase / subsystem
-**12F adversarial QA — authored-content anti-dominance gates + Phase-11 coverage reconciliation**
+**12F final closure audit — deterministic coverage closed; remaining obligations classified for 12G empirical validation**
 
 ### Repository truth / entry validation
-- Re-read `IMPLEMENTATION_START_HERE.md`, this status file, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact content/adversarial authorities `CONTENT_ARCHITECTURE.md` and `ADVERSARIAL_REVIEW.md` before changing code.
-- Entry head: `ea3faa829878c102bee3006fa083fdf06b23e93a` (Increment 196).
-- Inspected all five Increment-196 workflows on the exact entry SHA. No executable workflow is red: `Godot Headless Tests`, `Content Population Validator`, `Phase 12F Persistence Adversarial`, `Phase 12F State Planning Campaign Adversarial`, and the new `Phase 12F Simulation Timing Adversarial` all completed successfully.
-- With Increment 196 green, this run followed the authored-content/dominant-strategy branch of the previous `NEXT ACTION`.
+- Re-read `IMPLEMENTATION_START_HERE.md`, this status file, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact current authorities `CONTENT_ARCHITECTURE.md`, `ADVERSARIAL_REVIEW.md`, and `PHASE12F_COVERAGE_RECONCILIATION.md`.
+- Entry head: `99f9afff5d2f6776889f2fa672c9bf016e61aff5` (Increment 197).
+- Inspected all six Increment-197 workflows on the exact entry SHA. No executable workflow is red: `Phase 12F Authored Content Dominance Adversarial`, `Phase 12F Simulation Timing Adversarial`, `Godot Headless Tests`, `Content Population Validator`, `Phase 12F Persistence Adversarial`, and `Phase 12F State Planning Campaign Adversarial` all completed successfully.
+- With Increment 197 green, this run followed the final 12F closure branch of the previous `NEXT ACTION`.
 
-### Implemented in Increment 197
-- Added `AuthoredContentAdversarialValidator` as a deterministic validator over the existing C17–C48 authored contract data and launch challenge definitions. It does not solve the game or invent a score; it only validates anti-dominance evidence already represented in canonical content.
-- Cooler+Filter dependence is attacked conservatively: joint authored availability is an upper bound on certified-primary dependence and must stay <=8. Current C17–C48 upper bound is **1**, so the frozen primary-pair ceiling cannot be exceeded by the present authored set.
-- Added executable Chapter 3–6 checks for:
-  - at least two maximum-spacing counterexamples per chapter;
-  - at least one explicit Cooler/Filter-inferior case per chapter with authored reason text;
-  - required permanent-growth-corner counterexamples (Chapter 3 >=1, Chapter 4 >=1, Chapter 6 >=2);
-  - helper/protector downside or familiar-helper-inferior evidence in Chapters 4–6.
-- Added generated-challenge anti-dominance checks for:
-  - `pure_maximum_spacing_best = false`;
-  - dynamic and timing significance retained for every launch template;
-  - per-template similarity within the declared policy;
-  - no more than three consecutive identical powered-support pairs;
-  - no exact same soother species + family + normalized fingerprint role repeated more than three times.
-- Added `phase12f_authored_content_dominance_adversarial_test_runner.gd`. Besides validating the current authored corpus, it mutates the data hostilely to prove the validator fails closed for Cooler+Filter overexposure, Chapter-3 maximum-spacing collapse, Chapter-6 permanent-corner collapse, missing Chapter-5 support counterexample, missing Chapter-4 helper counterexample, permissive generated maximum-spacing policy, four-in-a-row powered pairs, and repeated exact soother roles.
-- Added a dedicated `Phase 12F Authored Content Dominance Adversarial` GitHub Actions workflow pinned to Godot 4.7.1.
-- Added `PHASE12F_COVERAGE_RECONCILIATION.md`, mapping accumulated Phase-12/12F executable coverage back to the Phase-11 implementation-readiness index and separating deterministic gaps from empirical Phase-12G gates.
-- The reconciliation deliberately does **not** manufacture pass/fail evidence for authored normalized role-to-zone allocations, exact certified-Bronze `isolation_ratio`/`beneficial_relation_count`, or the >=70% species redundancy preference threshold because the required certified solution geometry/representative preference dataset is not currently present.
-- No gameplay rule, campaign node, support/species behavior, solver score, content requirement, progression rule or frozen design behavior was redesigned for convenience.
+### Implemented / audited in Increment 198
+- Performed the final 12F coverage audit against the Phase-11 implementation-readiness/adversarial obligations.
+- Searched the repository for authoritative certified-solution geometry or equivalent metadata capable of producing the remaining exact authored `isolation_ratio`, `beneficial_relation_count`, and normalized primary-Bronze role-to-zone streak metrics.
+- No authoritative certified solution corpus or equivalent derived metric source exists in the repository, so those metrics cannot be honestly converted into deterministic pass/fail assertions without inventing a solver score or fabricating geometry.
+- Classified the >=70% helper/protector preferred-placement/support/revision similarity threshold as empirical representative-evidence work, consistent with the frozen prototype gate.
+- Updated `PHASE12F_COVERAGE_RECONCILIATION.md` with the final deterministic-vs-empirical classification and explicit 12F closure decision.
+- Confirmed that all objectively testable Phase-11 adversarial obligations with available authoritative inputs have executable coverage and no known deterministic adversarial gap remains.
+- Marked Phase 12F **COMPLETE**. No gameplay rule, content requirement, progression rule, solver score, species/support behavior, platform assumption, or frozen design behavior was changed for convenience.
 
 ### Validation / policy
-- Increment-196 executable CI was checked before implementation and is green.
-- The new hostile runner uses the real authored JSON files from `content/contracts` and `content/challenges`; it does not duplicate their current values into a parallel test model.
-- Hostile mutations are made only in test-local duplicated dictionaries and do not alter canonical content.
-- Static review confirms the Cooler+Filter joint-availability check is a sound conservative upper bound: a pair cannot be certified primary in a contract where the pair is not jointly available.
-- Static review confirms unrepresentable solver/playtest gates are returned as explicit diagnostic gaps instead of being silently treated as passed.
-- Fresh Increment-197 GitHub Actions are the executable validation path for the new GDScript validator/runner. No speculative second CI repair is made in this run.
-- All source/test/workflow/reconciliation/status changes are batched into one Git tree + one normal checkpoint commit/push.
+- Increment-197 exact-SHA CI is green across all six workflows.
+- Repository search returned no authoritative certified-solution geometry for the remaining evidence-dependent authored layout metrics.
+- The closure does not waive those obligations; it moves them to evidence-driven 12G validation where they can be measured honestly if a certified solution corpus is produced.
+- No speculative code or fake human evidence was added merely to make closure appear complete.
+- This checkpoint changes only live implementation status/reconciliation documentation; the next run begins the first actual 12G empirical-evidence implementation cluster.
+- All meaningful changes are batched into one Git tree + one normal checkpoint commit/push.
 
 ### Blockers / cautions
-- No user-action blocker.
-- Fresh Increment-197 CI must confirm Godot 4.7.1 parses the new validator/hostile runner and that the current authored corpus passes every objectively represented anti-dominance gate.
-- 12F remains **IN PROGRESS** until the new CI is green and one final coverage audit classifies any remaining gaps as deterministic 12F work or empirical 12G evidence.
-- Exact normalized authored role-to-zone streaks and quantitative certified-Bronze isolation/beneficial-relation metrics cannot honestly be asserted from the current content metadata alone; they require certified solution geometry if they are to become deterministic checks.
+- No user-action blocker for beginning 12G instrumentation.
+- Human/prototype evidence itself cannot be synthesized by implementation tests. The 12G harness must capture real observations and evaluate the frozen thresholds separately from collection.
+- The two authored certified-Bronze geometry metrics remain evidence-dependent until an authoritative certified solution corpus exists; do not invent one solely to satisfy a metric.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the exact Increment-197 workflows, especially `Phase 12F Authored Content Dominance Adversarial`, plus `Phase 12F Simulation Timing Adversarial`, `Godot Headless Tests`, `Content Population Validator`, `Phase 12F Persistence Adversarial`, and `Phase 12F State Planning Campaign Adversarial`.
+Begin Phase 12G as one substantial empirical-validation infrastructure cluster. Re-read `PHASE11_FINAL_FREEZE.md`, `ADVERSARIAL_REVIEW.md`, and the UX/content authorities needed by the empirical gates.
 
-If any executable workflow is red, inspect the first exact executable failure and make one focused repair batch only.
+Implement a minimal, data-driven evidence-capture and evaluation harness that can record and validate, without changing gameplay rules:
+1. representative failed-run review outcome: whether the tester identifies a specific causal explanation and a specific intended revision before retry;
+2. memorable-outcome attribution: whether the cited outcome depended on post-launch state/footprint/channel/support-power change;
+3. first-launch planning duration for ordinary non-mastery contracts after rule familiarity;
+4. O06/O12/O16 and O05/O19/O20 preferred placement, support choice, and revision choice for redundancy comparison;
+5. demo identity response: transit-behavior planning vs static packing description;
+6. Causal Review usability: whether an actionable first cause is reached without raw-log reading, plus time/interaction count where practical.
 
-If all executable workflows are green, perform the final 12F closure audit from `PHASE12F_COVERAGE_RECONCILIATION.md` as one substantial cluster:
-1. inspect whether the remaining normalized role-to-zone and certified-Bronze isolation/beneficial-relation gates can be derived from already-existing authoritative solution geometry without inventing a solver score; implement them only if the required data actually exists;
-2. classify every remaining unresolved item explicitly as either deterministic 12F implementation work or an empirical 12G prototype gate, and repair any deterministic gap found;
-3. if no deterministic adversarial gap remains and all 12F workflows are green, mark 12F **COMPLETE** and set the exact next action to the first Phase-12G empirical validation cluster. Do not start 12G in the same run unless 12F closure itself requires no repository changes beyond status/reconciliation.
+Requirements for the harness:
+- keep raw observations separate from threshold evaluation;
+- include schema/versioning and deterministic aggregation tests;
+- reject malformed/incomplete samples fail-closed;
+- do not fabricate human observations in production data; tests may use explicit synthetic fixtures only to verify aggregation math;
+- add the most relevant automated checks and one coherent checkpoint.
 
 Do not report overall completion until `IMPLEMENTATION COMPLETE = YES`.
