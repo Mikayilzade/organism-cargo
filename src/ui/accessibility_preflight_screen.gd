@@ -24,6 +24,7 @@ var _rows: Dictionary = {}
 var _title: Label
 var _summary: Label
 var _root: VBoxContainer
+var _scroll: ScrollContainer
 
 func _init(model: AccessibilitySettingsModel = null) -> void:
 	_model = model if model != null else AccessibilitySettingsModelScript.new()
@@ -31,12 +32,14 @@ func _init(model: AccessibilitySettingsModel = null) -> void:
 func _ready() -> void:
 	if _root == null:
 		_build()
+	_apply_runtime_scale()
 	_refresh()
 
 func configure(first_run: bool) -> void:
 	_first_run = first_run
 	_row_index = 0
 	if _root != null:
+		_apply_runtime_scale()
 		_refresh()
 
 func settings_snapshot() -> Dictionary:
@@ -47,6 +50,21 @@ func focused_row() -> StringName:
 
 func focus_entry() -> void:
 	_focus_current()
+
+func runtime_scale_factor() -> float:
+	var window := get_window()
+	return 1.0 if window == null else window.content_scale_factor
+
+func has_vertical_scroll_path() -> bool:
+	return _scroll != null and _scroll.vertical_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED
+
+func focused_row_within_scroll_view() -> bool:
+	if _scroll == null:
+		return false
+	var button: Button = _rows.get(focused_row(), null)
+	if button == null:
+		return false
+	return _scroll.get_global_rect().intersects(button.get_global_rect())
 
 func dispatch(action: StringName) -> Dictionary:
 	match action:
@@ -85,6 +103,9 @@ func rendered_snapshot() -> Dictionary:
 		"wrap_enabled": true,
 		"semantic_only_operable": true,
 		"deck_safe_area_target": [1280, 800],
+		"runtime_scale_factor": runtime_scale_factor(),
+		"vertical_scroll_path": has_vertical_scroll_path(),
+		"focused_row_within_scroll_view": focused_row_within_scroll_view(),
 	}
 
 func _build() -> void:
@@ -96,12 +117,22 @@ func _build() -> void:
 	margin.add_theme_constant_override("margin_right", 32)
 	margin.add_theme_constant_override("margin_bottom", 28)
 	add_child(margin)
+	_scroll = ScrollContainer.new()
+	_scroll.name = "AccessibilityPreflightScroll"
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(_scroll)
 	_root = VBoxContainer.new()
+	_root.name = "AccessibilityPreflightRows"
+	_root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_root.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	margin.add_child(_root)
+	_scroll.add_child(_root)
 	_title = Label.new()
 	_title.text = "Accessibility preflight"
 	_title.add_theme_font_size_override("font_size", 28)
+	_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_root.add_child(_title)
 	_summary = Label.new()
 	_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -152,8 +183,16 @@ func _activate() -> Dictionary:
 func _apply(patch: Dictionary) -> Dictionary:
 	var result := _model.apply_patch(patch)
 	if bool(result.get("ok", false)):
+		_apply_runtime_scale()
 		_refresh()
 	return result
+
+func _apply_runtime_scale() -> void:
+	var window := get_window()
+	if window == null:
+		return
+	var percent: int = clampi(int(_model.snapshot().get("ui_scale_percent", 100)), 100, 200)
+	window.content_scale_factor = float(percent) / 100.0
 
 func _refresh() -> void:
 	if _root == null:
@@ -174,6 +213,8 @@ func _focus_current() -> void:
 	var button: Button = _rows.get(focused_row(), null)
 	if button != null:
 		button.grab_focus()
+		if _scroll != null:
+			_scroll.ensure_control_visible(button)
 
 func _all_rows_focusable() -> bool:
 	for key: StringName in ROWS:

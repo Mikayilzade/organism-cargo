@@ -4,6 +4,7 @@ const AppStateMachineScript := preload("res://src/state/app_state_machine.gd")
 const AtomicSaveStoreScript := preload("res://src/save/atomic_save_store.gd")
 const VerticalSliceFlowCoordinatorScript := preload("res://src/app/vertical_slice_flow_coordinator.gd")
 const VerticalSliceControlScript := preload("res://src/ui/vertical_slice_control.gd")
+const SettingsRemapScreenScript := preload("res://src/ui/settings_remap_screen.gd")
 const Phase12ERenderedCriticalSignalAcceptanceScript := preload("res://tests/unit/phase12e_rendered_critical_signal_acceptance.gd")
 const Phase12EReviewCodexAcceptanceScript := preload("res://tests/unit/phase12e_review_codex_acceptance.gd")
 const Phase12ERecoveryCompletionAcceptanceScript := preload("res://tests/unit/phase12e_recovery_completion_acceptance.gd")
@@ -23,11 +24,23 @@ func _run() -> void:
 		if FileAccess.file_exists(path):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 
+	# Execute the complete player-facing Phase-12E acceptance cluster under the
+	# frozen Deck stress target rather than only checking an abstract scale model.
+	var previous_window_size: Vector2i = root.size
+	var previous_content_scale: float = root.content_scale_factor
+	root.size = Vector2i(1280, 800)
+	root.content_scale_factor = 2.0
+	await process_frame
+	_expect(root.size == Vector2i(1280, 800), "rendered closure runs at Deck 1280x800")
+	_expect(absf(root.content_scale_factor - 2.0) < 0.001, "rendered closure runs at actual 200 percent Window content scale")
+
 	var state_machine: AppStateMachine = AppStateMachineScript.new()
 	_expect(state_machine.transition_to(AppStateMachine.State.TITLE), "boot -> title")
 	var store: AtomicSaveStore = AtomicSaveStoreScript.new(root_path)
 	var flow: VerticalSliceFlowCoordinator = VerticalSliceFlowCoordinatorScript.new(state_machine, store, Callable(self, "_next_run_id"))
 	var control: VerticalSliceControl = VerticalSliceControlScript.new()
+	control.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	control.custom_minimum_size = Vector2(640, 360)
 	root.add_child(control)
 	control.configure(flow, _context())
 	await process_frame
@@ -38,6 +51,8 @@ func _run() -> void:
 	_expect(bool(control.activate_primary_action().get("ok", false)), "campaign -> brief through UI")
 	_expect_equal(control.state_title(), "Contract Brief", "brief presentation")
 	_expect(bool(control.activate_primary_action().get("ok", false)), "brief -> planning through UI")
+	_expect(_control_inside_visible_rect(control.get_node_or_null("PrimaryAction") as Control), "Planning primary action remains on-screen at 1280x800/200 percent")
+	_expect(_control_inside_visible_rect(control.get_node_or_null("PlanningPanel") as Control), "Planning panel remains inside the rendered Deck viewport at 200 percent")
 
 	var revision := flow.apply_plan("revision-ui-a", _input(), _legal_facts())
 	_expect(bool(revision.get("structural_legal", false)), "legal plan available to presentation")
@@ -71,6 +86,28 @@ func _run() -> void:
 	var preflight_matrix_failures: Array[String] = await preflight_matrix.run(self)
 	for preflight_matrix_failure: String in preflight_matrix_failures:
 		_expect(false, "Phase12E preflight/matrix acceptance: %s" % preflight_matrix_failure)
+
+	# Controls/remapping has many mandatory rows, so maximum-scale acceptance
+	# requires a real scroll container plus independent keyboard/controller recovery.
+	var settings: SettingsRemapScreen = SettingsRemapScreenScript.new()
+	settings.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.add_child(settings)
+	await process_frame
+	var settings_snapshot: Dictionary = settings.rendered_snapshot()
+	_expect(bool(settings_snapshot.get("keyboard_focusable", false)), "Controls Settings keyboard tab is focusable at 200 percent")
+	_expect(bool(settings_snapshot.get("controller_focusable", false)), "Controls Settings controller tab is focusable at 200 percent")
+	_expect(bool(settings_snapshot.get("reset_focusable", false)), "Controls Settings reset remains reachable at 200 percent")
+	_expect(bool(settings_snapshot.get("close_focusable", false)), "Controls Settings close remains reachable at 200 percent")
+	_expect(_contains_scroll_container(settings), "Controls Settings uses a real scroll container for mandatory remap rows at maximum scale")
+	settings.focus_entry()
+	await process_frame
+	_expect(root.gui_get_focus_owner() != null, "Controls Settings keeps a keyboard/controller focus owner at maximum scale")
+	settings.queue_free()
+	await process_frame
+
+	root.content_scale_factor = previous_content_scale
+	root.size = previous_window_size
+	await process_frame
 
 	if failures == 0:
 		print("vertical_slice_control_test_runner: PASS")
@@ -140,6 +177,19 @@ func _stress_profile() -> Dictionary:
 		"panic_enter": 10,
 		"panic_exit": 7,
 	}
+
+func _control_inside_visible_rect(control: Control) -> bool:
+	if control == null or not control.is_visible_in_tree():
+		return false
+	return root.get_visible_rect().encloses(control.get_global_rect())
+
+func _contains_scroll_container(node: Node) -> bool:
+	if node is ScrollContainer:
+		return true
+	for child: Node in node.get_children():
+		if _contains_scroll_container(child):
+			return true
+	return false
 
 func _next_run_id() -> String:
 	run_sequence += 1

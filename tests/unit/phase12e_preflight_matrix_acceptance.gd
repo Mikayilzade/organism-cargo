@@ -20,6 +20,7 @@ func run(tree: SceneTree) -> Array[String]:
 	var initial := screen.rendered_snapshot()
 	_expect(bool(initial.get("all_rows_focusable", false)), "every preflight field is keyboard/controller focusable")
 	_expect_equal((initial.get("deck_safe_area_target", []) as Array), [1280, 800], "preflight declares Deck 1280x800 acceptance target")
+	_expect(bool(initial.get("vertical_scroll_path", false)), "preflight owns a vertical scroll path instead of allowing maximum-scale rows to fall off-screen")
 	_expect_equal(model.first_run_preflight_fields(), [&"ui_scale_percent", &"reduced_flashing", &"reduced_motion", &"master_volume_percent", &"non_speech_captions", &"input_method"], "preflight exposes the full frozen field set")
 	_expect(not bool(screen.dispatch(&"cancel").get("ok", true)), "first-run preflight cannot be silently skipped with Cancel")
 
@@ -28,7 +29,9 @@ func run(tree: SceneTree) -> Array[String]:
 	_expect(bool(screen.dispatch(&"navigate_right").get("ok", false)), "UI scale reaches 150 semantically")
 	_expect(bool(screen.dispatch(&"navigate_right").get("ok", false)), "UI scale reaches 175 semantically")
 	_expect(bool(screen.dispatch(&"navigate_right").get("ok", false)), "UI scale reaches 200 semantically")
+	await tree.process_frame
 	_expect_equal(int(model.snapshot().get("ui_scale_percent", 0)), 200, "maximum 200 percent scale is selectable before gameplay")
+	_expect(absf(screen.runtime_scale_factor() - 2.0) < 0.001, "200 percent model value is applied to the actual Window content scale")
 	_expect(bool(screen.dispatch(&"navigate_down").get("ok", false)), "focus reaches Reduced Flashing")
 	_expect(bool(screen.dispatch(&"accept").get("ok", false)), "Reduced Flashing toggles with Accept")
 	_expect(bool(screen.dispatch(&"navigate_down").get("ok", false)), "focus reaches Reduced Motion")
@@ -44,6 +47,8 @@ func run(tree: SceneTree) -> Array[String]:
 	_expect_equal(model.snapshot().get("input_method"), &"steam_deck", "Steam Deck can be chosen in first-run preflight")
 	_expect(bool(screen.dispatch(&"navigate_down").get("ok", false)), "focus reaches Continue")
 	_expect_equal(screen.focused_row(), &"continue", "Continue is a deterministic focus target")
+	await tree.process_frame
+	_expect(screen.focused_row_within_scroll_view(), "semantic focus scrolls Continue into the actual visible preflight viewport at 200 percent")
 
 	var max_profile := model.snapshot()
 	_expect(bool(max_profile.get("reduced_motion", false)), "matrix profile keeps Reduced Motion on")
