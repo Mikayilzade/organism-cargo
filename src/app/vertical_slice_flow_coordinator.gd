@@ -6,6 +6,7 @@ const LaunchCommitServiceScript := preload("res://src/run/launch_commit_service.
 const DeliveryCompletionRunnerScript := preload("res://src/sim/delivery_completion_runner.gd")
 const CausalReviewEvidenceBuilderScript := preload("res://src/sim/causal_review_evidence_builder.gd")
 const TargetedRetryServiceScript := preload("res://src/run/targeted_retry_service.gd")
+const CampaignProgressionGateScript := preload("res://src/run/campaign_progression_gate.gd")
 
 var _state_machine: AppStateMachine
 var _save_store: AtomicSaveStore
@@ -14,6 +15,8 @@ var _launch: LaunchCommitService
 var _delivery: DeliveryCompletionRunner = DeliveryCompletionRunnerScript.new()
 var _review_builder: CausalReviewEvidenceBuilder = CausalReviewEvidenceBuilderScript.new()
 var _retry: TargetedRetryService
+var _campaign_gate: CampaignProgressionGate
+var _campaign_profile: Dictionary = {}
 var _last_completed_result: Dictionary = {}
 var _last_review: Dictionary = {}
 
@@ -28,11 +31,69 @@ func _init(
 	_launch = LaunchCommitServiceScript.new(_state_machine, _save_store, p_run_id_factory)
 	_retry = TargetedRetryServiceScript.new(_state_machine, _planning)
 
+func configure_campaign_progression(campaign_graph: Dictionary, profile: Dictionary) -> Dictionary:
+	var gate: CampaignProgressionGate = CampaignProgressionGateScript.new()
+	var configured: Dictionary = gate.configure(campaign_graph)
+	if not bool(configured.get("ok", false)):
+		return configured
+	var profile_validation: Dictionary = gate.validate_profile(profile)
+	if not bool(profile_validation.get("ok", false)):
+		return profile_validation
+	_campaign_gate = gate
+	_campaign_profile = profile.duplicate(true)
+	return {"ok": true, "error": ""}
+
+func update_campaign_profile(profile: Dictionary) -> Dictionary:
+	if _campaign_gate == null:
+		return _failure("campaign_progression_not_configured")
+	var validation: Dictionary = _campaign_gate.validate_profile(profile)
+	if not bool(validation.get("ok", false)):
+		return validation
+	_campaign_profile = profile.duplicate(true)
+	return {"ok": true, "error": ""}
+
+func campaign_progression_snapshot() -> Dictionary:
+	if _campaign_gate == null:
+		return {"ok": false, "error": "campaign_progression_not_configured"}
+	var available_result: Dictionary = _campaign_gate.available_contract_ids(_campaign_profile)
+	var challenge_result: Dictionary = _campaign_gate.challenge_mode_unlocked(_campaign_profile)
+	var completion_result: Dictionary = _campaign_gate.campaign_complete_available(_campaign_profile)
+	if not bool(available_result.get("ok", false)):
+		return available_result
+	if not bool(challenge_result.get("ok", false)):
+		return challenge_result
+	if not bool(completion_result.get("ok", false)):
+		return completion_result
+	return {
+		"ok": true,
+		"error": "",
+		"available_contract_ids": available_result.get("contract_ids", []),
+		"challenge_mode_unlocked": bool(challenge_result.get("unlocked", false)),
+		"campaign_complete_available": bool(completion_result.get("available", false)),
+	}
+
 func enter_campaign_map() -> bool:
 	return _state_machine.transition_to(AppStateMachine.State.CAMPAIGN_MAP)
 
-func select_contract() -> bool:
+func select_contract(contract_id: String = "") -> bool:
+	if _campaign_gate != null:
+		var selection: Dictionary = _campaign_gate.can_select_contract(contract_id, _campaign_profile)
+		if not bool(selection.get("ok", false)):
+			return false
 	return _state_machine.transition_to(AppStateMachine.State.CONTRACT_BRIEF)
+
+func enter_challenge_select() -> Dictionary:
+	if _state_machine.current_state() not in [AppStateMachine.State.TITLE, AppStateMachine.State.CAMPAIGN_MAP, AppStateMachine.State.RESULTS]:
+		return _failure("invalid_state")
+	if _campaign_gate != null:
+		var challenge: Dictionary = _campaign_gate.challenge_mode_unlocked(_campaign_profile)
+		if not bool(challenge.get("ok", false)):
+			return challenge
+		if not bool(challenge.get("unlocked", false)):
+			return _failure("challenge_mode_locked")
+	if not _state_machine.transition_to(AppStateMachine.State.CHALLENGE_SELECT):
+		return _failure("challenge_select_transition_failed")
+	return {"ok": true, "error": ""}
 
 func begin_planning() -> bool:
 	return _state_machine.transition_to(AppStateMachine.State.PLANNING)
@@ -54,6 +115,12 @@ func finish_save_recovery() -> Dictionary:
 func enter_campaign_complete() -> Dictionary:
 	if _state_machine.current_state() not in [AppStateMachine.State.CAMPAIGN_MAP, AppStateMachine.State.RESULTS]:
 		return _failure("invalid_state")
+	if _campaign_gate != null:
+		var completion: Dictionary = _campaign_gate.campaign_complete_available(_campaign_profile)
+		if not bool(completion.get("ok", false)):
+			return completion
+		if not bool(completion.get("available", false)):
+			return _failure("campaign_not_complete")
 	if not _state_machine.transition_to(AppStateMachine.State.CAMPAIGN_COMPLETE):
 		return _failure("campaign_complete_transition_failed")
 	return {"ok": true, "error": ""}

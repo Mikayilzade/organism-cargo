@@ -17,51 +17,70 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 194
+## Current implementation checkpoint — Increment 195
 
 ### Phase / subsystem
-**12F focused CI repair — campaign root prerequisite hostile-runner typing**
+**12F adversarial QA — semantic/modal escape attacks + production campaign progression boundary guards**
 
 ### Repository truth / entry validation
 - Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`.
-- Re-read exact current subsystem authorities `PHASE11_UX_ACCESSIBILITY.md` and `PHASE11_PROGRESSION.md` before following the failed-CI branch of the prior `NEXT ACTION`.
-- Entry head: `56775f6b2c34cc6f06d95e06f2ea002ef47fa2f8` (Increment 193).
-- Inspected all four exact Increment-193 push workflows:
-  - `Content Population Validator` run `32853571541`: **success**;
-  - `Phase 12F State Planning Campaign Adversarial` run `32853571429`: **failure**;
-  - `Phase 12F Persistence Adversarial` run `32853571458`: **success**;
-  - `Godot Headless Tests` run `32853571417`: **success**.
-- Inspected failed job `97820012945` down to the first executable failure. Project import completed successfully; the dedicated hostile runner then failed to parse at `tests/unit/phase12f_state_planning_campaign_adversarial_test_runner.gd:117` because `.get("prerequisites", [])` is inferred as `Variant` and Godot 4.7.1 warnings-as-errors rejects calling `is_empty()` directly on it.
+- Re-read exact subsystem authorities `PHASE11_UX_ACCESSIBILITY.md` and `PHASE11_PROGRESSION.md` before following the green-CI branch of Increment 194 `NEXT ACTION`.
+- Entry head: `988db4cfab68796b487558808ba99ce6f2233a54` (Increment 194).
+- Inspected all four exact Increment-194 push workflows:
+  - `Content Population Validator` run `32859751027`: **success**;
+  - `Phase 12F Persistence Adversarial` run `32859751092`: **success**;
+  - `Godot Headless Tests` run `32859751161`: **success**;
+  - `Phase 12F State Planning Campaign Adversarial` run `32859751171`: **success**.
+- Because all executable workflows are green, this run followed the full hostile-input/progression branch instead of performing another CI repair.
 
-### Implemented in Increment 194
-- Followed the required red-CI repair branch only; no new adversarial scope was added.
-- Repaired the exact static-analysis defect by materializing C01 as a typed `Dictionary` and its prerequisite list as a typed `Array` before checking `is_empty()`.
-- Preserved the original assertion semantics: fresh profile must expose the C01 root with an empty prerequisite list.
-- No production gameplay, campaign graph, progression rule, structural validation, state-machine behavior, persistence behavior, workflow semantics or frozen design rule changed.
+### Implemented in Increment 195
+- Expanded 12F modal/focus attack coverage against the canonical keyboard/controller focus contract:
+  - region-next cannot escape a modal;
+  - direct region assignment cannot escape a modal;
+  - hidden HOLD grid navigation cannot mutate focus while INSPECTOR owns the modal;
+  - modal Accept remains scoped to the modal owner;
+  - region navigation resumes only after explicit modal release.
+- Found a real production progression bypass in `VerticalSliceFlowCoordinator`: `select_contract()` and `enter_campaign_complete()` previously trusted only state-machine legality and had no Bronze graph/C48 authority check. Challenge entry likewise had no coordinator-level Bronze(C16) gate.
+- Added `CampaignProgressionGate`, a deterministic data-driven production guard over the frozen `campaign_graph.json`:
+  - validates unique campaign IDs and authored prerequisite references;
+  - validates Bronze profile closure and rejects unknown/forged Bronze IDs;
+  - derives selectable contracts only from exact Bronze prerequisites;
+  - derives Challenge unlock only from Bronze(C16);
+  - derives campaign completion availability only from Bronze(C48);
+  - ignores medals/documented knowledge as unlock substitutes.
+- Integrated the gate into `VerticalSliceFlowCoordinator` through explicit campaign progression configuration/profile refresh APIs.
+- Guarded production coordinator transitions when campaign progression is configured:
+  - forged unavailable contract selection leaves the state at Campaign Map;
+  - early Challenge entry returns `challenge_mode_locked`;
+  - early campaign completion returns `campaign_not_complete` and leaves state unchanged;
+  - exact Bronze(C16)/Bronze(C48) states permit the corresponding transitions.
+- Preserved the isolated vertical-slice harness: if no full campaign progression context is configured, the existing tiny vertical-slice contract transition remains unchanged. No frozen gameplay rule, campaign graph data, medal semantics, simulation, persistence, accessibility behavior or content was redesigned.
+- Expanded the dedicated `phase12f_state_planning_campaign_adversarial_test_runner.gd` with hostile regressions for fresh-profile C01-only availability, forged C02/C99 profiles, impossible Bronze closure, medal/knowledge Challenge bypass attempts, exact C16/C48 boundaries, coordinator state non-mutation on rejected bypasses, and modal focus escape attempts.
 
 ### Validation / policy
-- The failed Increment-193 workflow proved project import and all preceding setup steps are green; the first exact failure is isolated to hostile-runner static typing.
-- `Godot Headless Tests`, `Content Population Validator`, and `Phase 12F Persistence Adversarial` were green on the exact Increment-193 head.
-- The repair is intentionally one focused batch per the anti-spam/failed-CI policy; no speculative follow-on fix is included in this run.
-- This runtime has no local Godot 4.7.1 binary; fresh GitHub Actions from this single Increment-194 checkpoint are the executable validation path.
+- Increment-194 executable workflows were all green before implementation.
+- New hostile coverage remains in the dedicated `Phase 12F State Planning Campaign Adversarial` workflow and also compiles under the normal project import/headless suites on the next push.
+- Static review traced the new production gate directly to `content/campaign/campaign_graph.json` and the frozen Bronze-only rules in `PHASE11_PROGRESSION.md`; no duplicated alternative unlock graph was authored.
+- This runtime has no local Godot 4.7.1 binary; fresh GitHub Actions from this single Increment-195 checkpoint are the executable validation path.
+- All code/test/status work is batched into one Git tree and one checkpoint commit/push; no speculative second CI repair is made in this run.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh Increment-194 CI must confirm the dedicated state/planning/campaign hostile runner now parses and executes.
-- If fresh CI exposes another failure, the next run must inspect the first exact executable failure and make one focused repair batch only.
-- 12F remains incomplete; do not begin 12G yet.
+- Fresh Increment-195 CI must confirm Godot 4.7.1 static typing for the new campaign gate/coordinator APIs and execute the expanded hostile runner.
+- If fresh CI exposes a failure, the next run must inspect the first exact executable failure and make one focused repair batch only.
+- 12F remains incomplete; deterministic simulation timing/edge attacks, dominant-strategy/adversarial content checks, and any remaining non-persistence hostile surfaces still need coverage before 12G.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the exact Increment-194 `Phase 12F State Planning Campaign Adversarial`, `Godot Headless Tests`, `Content Population Validator`, and `Phase 12F Persistence Adversarial` workflows.
+At the start of the next run, inspect the exact Increment-195 `Phase 12F State Planning Campaign Adversarial`, `Godot Headless Tests`, `Content Population Validator`, and `Phase 12F Persistence Adversarial` workflows.
 
 If any executable workflow is red, inspect the first exact executable failure and make one focused repair batch only; do not stack speculative fixes.
 
 If all executable workflows are green:
-1. expand the non-persistence 12F attack surface into duplicate/hostile semantic input ordering and modal/focus escape attempts across Planning, Launch Confirm, Transit and Causal Review, using `PHASE11_UX_ACCESSIBILITY.md` as authority;
-2. attack content/progression boundary conditions not already exhausted by 12D validation: forged unavailable contract selection, impossible prerequisite combinations, Challenge entry before Bronze(C16), and campaign-completion transition before Bronze(C48); repair production gates if a real bypass exists;
-3. then continue into deterministic simulation edge/timing attacks and dominant-strategy/adversarial content checks required by 12F.
+1. continue 12F into deterministic simulation timing/edge attacks: hostile simultaneous events, boundary ticks, same-tick Brownout/effect ordering, blocked-growth episode reset boundaries, sleep/wake suppression and retry-boundary identity; repair only proven specification bypasses;
+2. add adversarial content/dominant-strategy checks required by the frozen design, especially Cooler+Filter dependence, maximum-spacing/universal-protector/helper patterns, permanent-growth-corner behavior and repeated role-zone templates, reusing authored launch content rather than inventing balance rules;
+3. then reconcile remaining 12F attack coverage against `ADVERSARIAL_REVIEW.md` validation obligations and the Phase-11 acceptance index before deciding whether 12F can close.
 
 Keep 12G blocked until 12F has no known specification-breaking blocker. Do not report overall completion until `IMPLEMENTATION COMPLETE = YES`.
