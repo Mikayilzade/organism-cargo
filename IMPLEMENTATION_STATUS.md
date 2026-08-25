@@ -17,45 +17,47 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 181
+## Current implementation checkpoint — Increment 182
 
 ### Phase / subsystem
-**12E UX / Accessibility / Controller / Deck — focused editor-import repair for AccessibleVerticalSliceControl preload coupling**
+**12E UX / Accessibility / Controller / Deck — focused editor-import repair by removing shell-time dependency on accessibility global classes**
 
 ### Repository truth / entry validation
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, plus `PHASE11_UX_ACCESSIBILITY.md` and `PHASE11_TECH_PERSISTENCE.md` for the active 12E subsystem.
-- Entry head: `5ff6df04dfee38145cd522c31fee5cc8b33540ee` (Increment 180).
-- Inspected Increment-180 `godot-headless` run `32795095218`, job `97644621630`: executable `Run headless contract suite` completed **success**.
-- Inspected Increment-180 `content-population` run `32795095155`, job `97644621170`: executable `Import and validate frozen content population contracts` failed at the first `--headless --editor` import gate.
-- The exact first failure remains `Could not preload/resolve res://src/ui/accessible_vertical_slice_control.gd` from `src/app/shell.gd`; the same editor scan successfully registers `AccessibleVerticalSliceControl` and `CriticalSignalPresentationBuilder` global class names before shell reload.
-- Because the non-editor full headless suite is green while editor import alone fails, the remaining fault is now treated as editor global-class/preload coupling rather than gameplay/runtime semantics or missing files.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the active-domain authorities `PHASE11_UX_ACCESSIBILITY.md` and `PHASE11_TECH_PERSISTENCE.md`.
+- Entry head: `a24c908aab103e1e398e71bb678aa149d2c70248` (Increment 181).
+- Inspected Increment-181 `godot-headless` run `32798529157`: workflow completed **success**, preserving the full non-editor gameplay/headless contract suite.
+- Inspected Increment-181 `content-population` run `32798529208`, job `97654705546`: executable editor import still failed at `src/app/shell.gd:6` while resolving `preload("res://src/ui/accessible_vertical_slice_control.gd")`.
+- The same editor scan completed global-class registration, including `AccessibleVerticalSliceControl`, `CriticalSignalPresentationBuilder` and `SemanticVerticalSliceInput`, before the shell dependency was resolved. This confirms the remaining failure is shell-time global-class/preload coupling in editor import, not missing files or a failing runtime acceptance path.
 
-### Implemented in Increment 181
+### Implemented in Increment 182
 - Followed the red-CI branch of the prior `NEXT ACTION`; no Retry/Reset/map/Codex feature expansion was started.
-- Removed eager script-resource preloads for `AccessibilitySettingsModel` and `CriticalSignalPresentationBuilder` from the global `AccessibleVerticalSliceControl` class body.
-- Replaced those compile-time dependencies with string resource paths plus a single `_new_script_instance(...)` runtime boundary using built-in `GDScript`/`Object` types.
-- Accessibility settings are now instantiated only when control configuration/context loading actually occurs; critical-signal presentation builder is instantiated only when Causal Review rendering needs it.
-- This preserves the existing rendered critical-signal behavior and its focused headless acceptance while reducing editor global-class registration to the same lightweight inheritance surface that parsed successfully before Increment 177.
-- No simulation rule, authoritative tick order, checksums, progression, persistence, content, Launch/Results ownership, campaign state, or frozen gameplay semantics changed.
+- Removed shell-level eager preloads and static type dependencies on `AccessibleVerticalSliceControl` and `SemanticVerticalSliceInput`.
+- `shell.gd` now keeps only stable base/built-in ownership types (`VerticalSliceControl` and `Node`) and loads the concrete accessible control / semantic input scripts at runtime through a single `_new_script_instance(...)` boundary.
+- Runtime construction explicitly validates that the accessible instance derives from `VerticalSliceControl` and the semantic input instance derives from `Node` before attaching either to the shell.
+- The semantic input configure call is made through the runtime object boundary, so editor import no longer has to resolve the accessibility subclass graph merely to parse the persistent shell.
+- `slice_control()` still returns `VerticalSliceControl`, preserving existing shell playability/test call sites; the concrete runtime object remains the same `AccessibleVerticalSliceControl` implementation.
+- Settings visibility/input ownership behavior is unchanged, and the normal runtime path still instantiates the same accessibility and semantic scripts, so the already-green headless suite remains the executable guard for behavior preservation.
+- No simulation rule, authoritative tick order, checksum, persistence semantics, campaign progression, content, Launch/Results ownership, or frozen gameplay behavior changed.
 
 ### Validation / policy
-- Inspected the exact Increment-180 workflow jobs and full failing content-validator log before editing.
-- Confirmed the full non-editor Godot headless suite is green on Increment 180, including the rendered accessibility acceptance, so this repair deliberately targets only editor-time resource coupling rather than rewriting working runtime behavior.
-- Static review confirms the new runtime loader validates `GDScript` availability and returns `Object`; existing guarded `has_method`/`call` boundaries continue to validate dynamic helper results.
-- Local executable Godot remains unavailable in this runtime, so fresh GitHub Actions are the executable validation path.
-- One coherent Git tree/commit is used for source + status; no speculative second CI push is made in this run.
+- Inspected the exact failing Increment-181 content-validator job log before editing and confirmed the first executable failure is still the shell preload at line 6.
+- Confirmed Increment-181 full non-editor headless workflow is green before making this repair.
+- Static dependency review verifies `shell.gd` no longer mentions `AccessibleVerticalSliceControl` or `SemanticVerticalSliceInput` as preload constants or variable/return types; both are deferred until runtime after normal project execution begins.
+- Existing shell tests type the returned player-facing control as `VerticalSliceControl`, which remains compatible with the concrete accessibility subclass.
+- Local network access prevents reproducing the GitHub-hosted Godot binary in this runtime; fresh GitHub Actions remain the executable editor-import validation path.
+- One coherent source/status checkpoint is used; no speculative second CI repair is made in this run.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh Increment-181 CI must confirm `--headless --editor` can now resolve `AccessibleVerticalSliceControl` and that both content-population and the full headless suite are green.
-- If either fresh executable workflow is red, inspect the first exact failure and make one focused repair batch only.
+- Fresh Increment-182 CI must confirm `--headless --editor` now imports the project without resolving the accessibility subclass through `shell.gd`, while the normal full headless suite still instantiates and exercises the runtime accessibility path successfully.
+- If either executable workflow is red, inspect the first exact failure and make one focused repair batch only.
 - If both are green, resume the substantial 12E acceptance cluster: complete Retry / Reset / Return to map with semantic keyboard/controller/Deck access, then implement Codex exact-rule reachability at maximum UI scale in the same coherent cluster if test quality remains strong.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the actual linked `content-population` and `godot-headless` executable logs/statuses for Increment 181.
+At the start of the next run, inspect the actual linked `content-population` and `godot-headless` executable logs/statuses for Increment 182.
 
 If either executable workflow is red, inspect the first exact executable failure and make one focused repair batch only.
 

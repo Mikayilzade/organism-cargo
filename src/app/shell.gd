@@ -3,8 +3,8 @@ extends Control
 const AppBootstrapServiceScript := preload("res://src/app/app_bootstrap_service.gd")
 const AtomicSaveStoreScript := preload("res://src/save/atomic_save_store.gd")
 const VerticalSliceFlowCoordinatorScript := preload("res://src/app/vertical_slice_flow_coordinator.gd")
-const AccessibleVerticalSliceControlScript := preload("res://src/ui/accessible_vertical_slice_control.gd")
-const SemanticVerticalSliceInputScript := preload("res://src/ui/semantic_vertical_slice_input.gd")
+const ACCESSIBLE_VERTICAL_SLICE_CONTROL_PATH := "res://src/ui/accessible_vertical_slice_control.gd"
+const SEMANTIC_VERTICAL_SLICE_INPUT_PATH := "res://src/ui/semantic_vertical_slice_input.gd"
 const InputActionCatalogScript := preload("res://src/ui/input_action_catalog.gd")
 const InputRemapModelScript := preload("res://src/ui/input_remap_model.gd")
 const AccessibilitySettingsModelScript := preload("res://src/ui/accessibility_settings_model.gd")
@@ -16,8 +16,8 @@ const SAVE_ROOT := "user://organism_cargo"
 var _bootstrap_service: AppBootstrapService
 var _save_store: AtomicSaveStore
 var _slice_flow: VerticalSliceFlowCoordinator
-var _slice_control: AccessibleVerticalSliceControl
-var _semantic_input: SemanticVerticalSliceInput
+var _slice_control: VerticalSliceControl
+var _semantic_input: Node
 var _accessibility_settings: AccessibilitySettingsModel
 var _input_remap: InputRemapModel
 var _settings_screen: SettingsRemapScreen
@@ -31,17 +31,31 @@ func _ready() -> void:
 	_save_store = AtomicSaveStoreScript.new(SAVE_ROOT)
 	_slice_flow = VerticalSliceFlowCoordinatorScript.new(_bootstrap_service.state_machine(), _save_store)
 	var context: Dictionary = _vertical_slice_context(String(result["content_version"]))
-	_slice_control = AccessibleVerticalSliceControlScript.new(); _slice_control.name = "VerticalSliceControl"; _slice_control.set_anchors_and_offsets_preset(Control.PRESET_CENTER); _slice_control.custom_minimum_size = Vector2(640, 360); add_child(_slice_control); _slice_control.configure(_slice_flow, context)
-	_semantic_input = SemanticVerticalSliceInputScript.new(); _semantic_input.name = "SemanticVerticalSliceInput"; add_child(_semantic_input)
-	var semantic_result: Dictionary = _semantic_input.configure(_slice_control, _slice_flow, context)
+	var slice_instance: Object = _new_script_instance(ACCESSIBLE_VERTICAL_SLICE_CONTROL_PATH)
+	if not slice_instance is VerticalSliceControl:
+		print("Organism Cargo accessible control blocked: script unavailable")
+		return
+	_slice_control = slice_instance as VerticalSliceControl
+	_slice_control.name = "VerticalSliceControl"; _slice_control.set_anchors_and_offsets_preset(Control.PRESET_CENTER); _slice_control.custom_minimum_size = Vector2(640, 360); add_child(_slice_control)
+	var configure_value: Variant = _slice_control.call("configure", _slice_flow, context)
+	if configure_value != null and configure_value is Dictionary and not bool((configure_value as Dictionary).get("ok", true)):
+		print("Organism Cargo accessible control blocked: %s" % String((configure_value as Dictionary).get("error", "unknown")))
+		return
+	var semantic_instance: Object = _new_script_instance(SEMANTIC_VERTICAL_SLICE_INPUT_PATH)
+	if not semantic_instance is Node:
+		print("Organism Cargo semantic input blocked: script unavailable")
+		return
+	_semantic_input = semantic_instance as Node; _semantic_input.name = "SemanticVerticalSliceInput"; add_child(_semantic_input)
+	var semantic_result_value: Variant = _semantic_input.call("configure", _slice_control, _slice_flow, context)
+	var semantic_result: Dictionary = semantic_result_value if semantic_result_value is Dictionary else {"ok": false, "error": "invalid_semantic_config_result"}
 	if not bool(semantic_result.get("ok", false)): print("Organism Cargo semantic input blocked: %s" % String(semantic_result.get("error", "unknown")))
 	# Keep Settings above the gameplay surface after the slice nodes are created.
 	move_child(_settings_screen, get_child_count() - 1); move_child(_settings_button, get_child_count() - 1)
 	print("Organism Cargo bootstrap ready: content=%s state=%s" % [String(result["content_version"]), str(_bootstrap_service.state_machine().current_state())])
 
 func flow_controller() -> VerticalSliceFlowCoordinator: return _slice_flow
-func slice_control() -> AccessibleVerticalSliceControl: return _slice_control
-func semantic_input_controller() -> SemanticVerticalSliceInput: return _semantic_input
+func slice_control() -> VerticalSliceControl: return _slice_control
+func semantic_input_controller() -> Node: return _semantic_input
 func settings_screen() -> SettingsRemapScreen: return _settings_screen
 func settings_button() -> Button: return _settings_button
 func accessibility_settings_snapshot() -> Dictionary: return {} if _accessibility_settings == null else _accessibility_settings.snapshot()
@@ -96,3 +110,9 @@ func _legal_facts() -> Dictionary:
 
 func _stress_profile() -> Dictionary:
 	return {"heat_safe_max":2,"stress_per_heat_unit":2,"stress_min":0,"stress_max":20,"agitated_enter":5,"agitated_exit":3,"panic_enter":10,"panic_exit":7}
+
+func _new_script_instance(path: String) -> Object:
+	var script: GDScript = load(path) as GDScript
+	if script == null:
+		return null
+	return script.new()
