@@ -18,9 +18,14 @@ func resolve_phase_b(
 		var organism: Dictionary = ordered[index]
 		index_by_id[String(organism["instance_id"])] = index
 
+	# Active hazards are an authoritative same-tick set. Normalize processing order so
+	# simultaneous H02 wake requests cannot make causal ownership depend on caller order.
+	var ordered_hazard_ids: PackedStringArray = active_hazard_ids.duplicate()
+	ordered_hazard_ids.sort()
+
 	var events: Array = []
 	var wake_event_id_by_instance_id: Dictionary = {}
-	for hazard_id: String in active_hazard_ids:
+	for hazard_id: String in ordered_hazard_ids:
 		if not hazards_by_id.has(hazard_id) or not hazards_by_id[hazard_id] is Dictionary:
 			return _failure("missing_active_hazard:%s" % hazard_id)
 		var hazard: Dictionary = hazards_by_id[hazard_id]
