@@ -99,7 +99,7 @@ func _test_impossible_planning_layouts() -> void:
 	_expect(not bool(_facts(zone_violation).get("zones_valid", true)), "zone-restricted organism cannot be placed outside authored zone")
 
 func _test_campaign_lock_semantics() -> void:
-	var doc := _load_json("res://content/campaign/campaign_graph.json")
+	var doc: Dictionary = _load_json("res://content/campaign/campaign_graph.json")
 	_expect(not doc.is_empty(), "campaign graph fixture loads")
 	var payload: Dictionary = doc.get("payload", {}) if doc.get("payload", {}) is Dictionary else {}
 	_expect_equal(String(payload.get("progression_currency", "")), "Bronze completion", "campaign graph declares Bronze-only progression")
