@@ -11,74 +11,72 @@ Branch: `main`
 - 12B Vertical Slice: **COMPLETE**
 - 12C Core Systems: **COMPLETE**
 - 12D Content Population: **COMPLETE**
-- 12E UX / Accessibility / Controller / Deck: **IN PROGRESS — CLOSURE CANDIDATE PENDING FRESH CI**
-- 12F Adversarial QA: **NO**
+- 12E UX / Accessibility / Controller / Deck: **COMPLETE**
+- 12F Adversarial QA: **IN PROGRESS**
 - 12G Empirical Gates: **NO**
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 186
+## Current implementation checkpoint — Increment 187
 
 ### Phase / subsystem
-**12E UX / Accessibility / Controller / Deck — actual 1280x800/200% rendered-scale closure audit + production scale application**
+**12E closure + 12F adversarial persistence/run-identity attack cluster**
 
 ### Repository truth / entry validation
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the active-domain authority `PHASE11_UX_ACCESSIBILITY.md`.
-- Entry head: `19b8e4ecab0f51c8b3f54560e1f2eed8d84efaed` (Increment 185).
-- Inspected exact Increment-185 workflows: `Godot Headless Tests` run `32812793496` completed **success** and `Content Population Validator` run `32812793508` completed **success**.
-- Both executable workflows were green, so this run followed the final rendered 12E audit branch rather than a CI-repair branch.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact 12E/12F authorities `PHASE11_UX_ACCESSIBILITY.md` and `PHASE11_TECH_PERSISTENCE.md`.
+- Entry head: `5804bdd415be46ad4af079f90548f28d3b995dda` (Increment 186).
+- Inspected exact Increment-186 workflows on that SHA:
+  - `Content Population Validator` run `32817470182` completed **success**;
+  - `Godot Headless Tests` run `32817470296` completed **success**.
+- The full rendered 1280x800 / 200% maximum-scale acceptance from Increment 186 therefore executed successfully on Godot 4.7.1.
 
-### Rendered audit finding
-- The audit found one concrete production gap rather than treating the previous model-only scale contract as sufficient: `ui_scale_percent` was persisted and exposed by the accessibility model/preflight, but the production Window was never actually assigned that scale.
-- Therefore selecting 200% previously proved the preference value but did **not** prove that the real Planning/Review/Recovery/Codex/Settings/Completion surfaces survived an actual doubled UI scale.
-- Controls/remapping already used a real `ScrollContainer`, Codex already used a real vertical `ScrollContainer` with wrapped exact-rule text, and the compact Recovery/Campaign Completion action surfaces were already semantic/focusable. The first-run preflight itself did not have a scroll container and could become vertically unsafe once real scaling was applied.
+### 12E closure decision
+- Re-checked the mandatory item list in `PHASE11_UX_ACCESSIBILITY.md` against the accumulated player-facing acceptance cluster.
+- Required complete paths now have executable coverage for first-run preflight/menu, brief/planning, placement/move/rotate/remove, support configuration and Brownout priority, objectives/inspection, launch/cancel, Transit controls/inspection, Causal Review navigation, Retry/Reset/Return-to-map, Codex, Settings/remapping, save-recovery choices and campaign-completion flow.
+- Representative acceptance has been repeated under the required stress dimensions: actual 1280x800, 200% UI scale, master audio 0, non-color signaling equivalents, Reduced Motion, Reduced Flashing, keyboard/controller semantic input and remapped bindings.
+- No known mandatory 12E path remains missing after the green Increment-186 run.
+- **12E UX / Accessibility / Controller / Deck is now COMPLETE.**
 
-### Implemented in Increment 186
-- `AccessibilityPreflightScreen` now applies the selected/persisted UI scale to the actual Godot `Window.content_scale_factor`:
-  - 100% -> `1.0`;
-  - 200% -> `2.0`;
-  - changes apply immediately while the preflight/Accessibility Settings surface is open;
-  - the already-loaded model is applied on `_ready()`, so a persisted scale is active when the production shell creates the player-facing surfaces.
-- Converted the first-run/later Accessibility Settings rows to a real vertical `ScrollContainer` with horizontal scrolling disabled, wrapped text and semantic focus-follow scrolling.
-- Focus movement now calls `ensure_control_visible(...)`, so keyboard/controller/Deck navigation can bring the bottom `Continue` / `Save and close` action into the visible viewport at maximum scale without pointer scrolling.
-- Extended the preflight acceptance to prove that selecting 200% changes the real Window scale to `2.0`, that a vertical scroll path exists, and that semantic focus brings the Continue row inside the actual scroll viewport.
-- Strengthened `vertical_slice_control_test_runner.gd` so the complete player-facing 12E acceptance cluster executes under an actual `1280x800` Window with `content_scale_factor = 2.0`, not merely an abstract `PlanningLayoutReachability` calculation.
-- Under that real maximum-scale target the suite now exercises:
-  - Title/brief/Planning and Launch/Retry through the actual player-facing control;
-  - rendered dynamic Transit/Causal Review critical signaling and no-audio/non-color/reduced-presentation behavior;
-  - rendered Review Retry/Reset/Return-to-map and scroll-safe Codex exact rules;
-  - rendered save-recovery choices and Campaign Completion navigation;
-  - first-run accessibility preflight and its 200%/Deck/no-audio/reduced-motion/reduced-flashing profile;
-  - actual Controls/remapping screen with keyboard/controller tabs, Reset, Close and its real scroll container.
-- Added explicit on-screen assertions for the production-sized Planning panel/primary action at 1280x800/200%, and explicit maximum-scale focus/scroll assertions for Controls Settings.
-- The test restores the prior Window size/content scale before exiting, so the stress configuration does not leak into unrelated runners.
-- No simulation rule, tick ordering, deterministic checksum, save envelope, campaign graph, Bronze authority, Challenge gate, content balance, Launch ownership or frozen gameplay behavior changed.
+### Implemented in Increment 187 — first 12F attack cluster
+- Began 12F with the highest-risk persistence/run-identity invariants from `PHASE11_TECH_PERSISTENCE.md` rather than redesigning frozen gameplay.
+- Added `tests/unit/phase12f_persistence_adversarial_test_runner.gd`, an integrated hostile-state regression cluster that attacks four boundaries already implemented separately but not previously exercised together as an adversarial scenario set:
+  1. **duplicate Launch under callback payload drift** — after a durable commit, a repeated callback for the same planning revision deliberately changes seed/orientation payload. The test requires the original `run_id` to be returned, requires no second run-id allocation, and proves immutable committed input/checksum are not rewritten;
+  2. **duplicate Results after service recreation** — applies one successful completion, recreates `ResultsProgressionService` to remove in-memory protection as a factor, reopens Results, and proves the durable `completion_id` ledger blocks a second award while Bronze/knowledge remain set-like;
+  3. **primary + backup corruption attack** — corrupts the primary generation and proves only the validated backup is exposed; then corrupts the backup too and proves the store reports `no_valid_generation`, fabricates no campaign progress, and retains both corrupt files for diagnostics;
+  4. **transit reconstruction hostile cursor/checksum attack** — proves an invalid presentation cursor is recovery class A and cannot change authoritative final checksum, then injects a hostile stored final checksum and requires recovery class C, durable `RECONSTRUCTION_MISMATCH`, preserved run identity/committed baseline and explicit diagnostics.
+- Added a dedicated `Phase 12F Persistence Adversarial` GitHub Actions workflow so this cluster is executable independently of the broad headless suite and reports a hard failure rather than being hidden behind broad-suite noise.
+- Existing broad headless tests remain unchanged and continue to cover exactly-once Launch, Results idempotency, atomic storage/backup recovery and transit reconstruction individually; this checkpoint adds cross-boundary hostile regression coverage.
+- No simulation rule, tick order, checksum algorithm, progression rule, campaign graph, save-envelope semantics, content balance or frozen gameplay behavior changed.
 
 ### Validation / policy
-- Increment-185 Content Population Validator and Godot Headless Tests were verified green before implementation.
-- Static review traced the production scale application to presentation-only `Window.content_scale_factor`; it does not feed simulation, persistence authority or deterministic run hashes.
-- Static rendered audit confirms the mandatory long-text/long-list surfaces now have real scroll paths where required: Accessibility preflight/Settings, Controls/remapping and Codex.
-- Existing semantic-action/remap coverage continues to prove independent keyboard/controller bindings; this checkpoint changes the actual rendered Window scale while re-running those shared player-facing paths.
-- Fresh Increment-186 GitHub Actions are the executable Godot 4.7.1 parse/runtime validation path; this runtime still has no directly runnable local Godot binary.
-- All source/test/status changes are batched into one checkpoint commit/push; no speculative follow-up CI fix is made in this run.
+- Increment-186 executable CI was verified green before closing 12E.
+- Static review of the new adversarial runner uses only public production boundaries already exercised by existing runners: `LaunchCommitService`, `ResultsProgressionService`, `AtomicSaveStore` and `TransitReconstructionService`.
+- The Launch attack explicitly verifies that repeated payload drift cannot mutate the durable committed record even though the duplicate callback is absorbed by planning-revision identity.
+- The Results attack recreates the service before replay, ensuring idempotency is durable rather than an in-memory artifact.
+- The corruption attack checks truthful fallback/no-generation behavior and diagnostic retention rather than guessing progress from damaged JSON.
+- The reconstruction attack checks both non-authoritative presentation recovery and authoritative checksum quarantine in the same fixture.
+- This runtime still has no directly runnable local Godot binary; fresh GitHub Actions from this single checkpoint push are the executable validation path.
+- All meaningful source/test/workflow/status changes are batched into one Git tree + one checkpoint commit/push. No speculative second CI repair is made in this run.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh Increment-186 CI must confirm Godot 4.7.1 accepts `Window.content_scale_factor`, `ScrollContainer.ensure_control_visible(...)`, the viewport enclosure assertions and the full player-facing suite under actual 1280x800/200% scaling.
-- 12E is intentionally **not yet marked COMPLETE** in this checkpoint because the new rendered-scale acceptance has not yet executed on fresh CI. The implementation/audit has no known remaining 12E feature gap; closure now depends on executable confirmation of this exact checkpoint.
-- If Increment-186 CI exposes a concrete clipping/focus/runtime problem, that failure remains a 12E release blocker and must be repaired before 12F.
+- Fresh Increment-187 CI must confirm the new integrated adversarial runner parses and passes under Godot 4.7.1.
+- 12F is not complete. The canonical persistence acceptance list still requires broader hostile coverage for migrations, cloud/profile monotonic merge and divergent-session conflict, legacy challenge/version rejection, demo-import idempotency/bounds, additional interruption points, and wider deterministic-resume repetitions.
+- If fresh adversarial CI exposes a concrete failure, the next run must inspect the first exact executable failure and make one focused repair batch only.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the exact Increment-186 `content-population` and `godot-headless` executable workflows.
+At the start of the next run, inspect the exact Increment-187 workflows, including the dedicated `Phase 12F Persistence Adversarial` run plus the normal `Godot Headless Tests` and `Content Population Validator` runs.
 
-If either executable workflow is red, inspect the first exact executable failure and make one focused 12E repair batch only. Do not begin 12F in that run unless the repaired 12E acceptance is demonstrably green without requiring speculative extra pushes.
+If the dedicated adversarial workflow or broad executable suite is red, inspect the first exact executable failure and make one focused 12F repair batch only; do not stack speculative fixes.
 
-If both executable workflows are green:
-1. re-read the mandatory item list in `PHASE11_UX_ACCESSIBILITY.md` against the now-executed 1280x800/200% rendered acceptance cluster;
-2. if no required path is missing, mark **12E UX / Accessibility / Controller / Deck = COMPLETE**;
-3. in the same substantial checkpoint begin **12F Adversarial QA** with the highest-risk frozen persistence/run-identity attack cluster: duplicate Launch / duplicate Results, atomic save/recovery corruption and deterministic transit-resume edge cases, adding regression coverage for any discovered break.
+If all executable workflows are green, continue one substantial 12F persistence attack cluster from `PHASE11_TECH_PERSISTENCE.md`:
+1. attack profile/cloud monotonic merge and divergent active-session conflict handling, proving different profile UUIDs never auto-merge and permanent Bronze/medal/completion progress cannot roll back;
+2. attack migration/legacy-version boundaries, including failed migration source preservation and unsupported legacy challenge rejection without silent regeneration;
+3. attack demo-import idempotency/bounds so only mapped D01-D08 can grant C01-C08 Bronze, D09/D10 never clear C09+, and imported knowledge cannot unlock Challenge before Bronze(C16).
+
+Keep the next cluster coherent and recoverable; do not begin 12G until 12F adversarial acceptance has no known specification-breaking blocker.
 
 Do not report overall completion until `IMPLEMENTATION COMPLETE = YES`.
