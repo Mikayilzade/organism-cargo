@@ -114,7 +114,9 @@ func _test_campaign_lock_semantics() -> void:
 			_expect(not id.is_empty() and not by_id.has(id), "campaign node ids are unique")
 			by_id[id] = node
 			_expect(bool(node.get("bronze_prerequisites_only", false)), "%s cannot use medal/knowledge lock bypass" % id)
-	_expect(by_id.has("C01") and (by_id["C01"] as Dictionary).get("prerequisites", []).is_empty(), "fresh profile exposes C01 root")
+	var c01: Dictionary = by_id["C01"] if by_id.has("C01") and by_id["C01"] is Dictionary else {}
+	var c01_prerequisites: Array = c01.get("prerequisites", []) if c01.get("prerequisites", []) is Array else []
+	_expect(by_id.has("C01") and c01_prerequisites.is_empty(), "fresh profile exposes C01 root")
 	_expect_equal((by_id["C16"] as Dictionary).get("prerequisites", []), ["C14", "C15"], "C16 exact capstone dependencies remain frozen")
 	_expect_equal((by_id["C48"] as Dictionary).get("prerequisites", []), ["C47"], "final node cannot bypass C47")
 	var fake_profile := {"cleared_bronze_contract_ids":["C15"], "best_medal_by_contract":{"C01":"GOLD","C02":"GOLD","C15":"GOLD"}, "documented_fact_ids":["everything"], "achievements":["all"]}

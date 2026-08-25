@@ -17,37 +17,37 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 193
+## Current implementation checkpoint — Increment 194
 
 ### Phase / subsystem
-**12F focused CI repair — state/planning/campaign adversarial runner static typing**
+**12F focused CI repair — campaign root prerequisite hostile-runner typing**
 
 ### Repository truth / entry validation
 - Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`.
 - Re-read exact current subsystem authorities `PHASE11_UX_ACCESSIBILITY.md` and `PHASE11_PROGRESSION.md` before following the failed-CI branch of the prior `NEXT ACTION`.
-- Entry head: `51b0ec65ecf3a8cfb15a0c97934ebe90f0227b68` (Increment 192).
-- Inspected all four exact Increment-192 push workflows:
-  - `Content Population Validator` run `32847788479`: **success**;
-  - `Phase 12F State Planning Campaign Adversarial` run `32847788477`: **failure**;
-  - `Phase 12F Persistence Adversarial` run `32847788535`: **success**;
-  - `Godot Headless Tests` run `32847788490`: **success**.
-- Inspected failed job `97801428257` down to the first executable failure. Project import completed successfully; the dedicated hostile runner then failed to parse because Godot 4.7.1 warnings-as-errors inferred `doc` as `Variant` and rejected `doc.is_empty()` at `tests/unit/phase12f_state_planning_campaign_adversarial_test_runner.gd:117`.
+- Entry head: `56775f6b2c34cc6f06d95e06f2ea002ef47fa2f8` (Increment 193).
+- Inspected all four exact Increment-193 push workflows:
+  - `Content Population Validator` run `32853571541`: **success**;
+  - `Phase 12F State Planning Campaign Adversarial` run `32853571429`: **failure**;
+  - `Phase 12F Persistence Adversarial` run `32853571458`: **success**;
+  - `Godot Headless Tests` run `32853571417`: **success**.
+- Inspected failed job `97820012945` down to the first executable failure. Project import completed successfully; the dedicated hostile runner then failed to parse at `tests/unit/phase12f_state_planning_campaign_adversarial_test_runner.gd:117` because `.get("prerequisites", [])` is inferred as `Variant` and Godot 4.7.1 warnings-as-errors rejects calling `is_empty()` directly on it.
 
-### Implemented in Increment 193
+### Implemented in Increment 194
 - Followed the required red-CI repair branch only; no new adversarial scope was added.
-- Repaired the exact static-analysis defect by declaring the campaign JSON document variable as `Dictionary`, matching `_load_json()`'s declared return type and the runner's intended dictionary operations.
-- No production gameplay, state-machine behavior, structural validation, campaign graph, progression rule, persistence behavior, workflow semantics or frozen design rule changed.
+- Repaired the exact static-analysis defect by materializing C01 as a typed `Dictionary` and its prerequisite list as a typed `Array` before checking `is_empty()`.
+- Preserved the original assertion semantics: fresh profile must expose the C01 root with an empty prerequisite list.
+- No production gameplay, campaign graph, progression rule, structural validation, state-machine behavior, persistence behavior, workflow semantics or frozen design rule changed.
 
 ### Validation / policy
-- The failed workflow proved project import and all preceding setup steps were already green; the first exact failure is isolated to the runner's local static type inference.
-- The repair is intentionally minimal and type-only. It does not alter the assertions or expected adversarial behavior.
-- Existing broad `Godot Headless Tests`, `Content Population Validator`, and `Phase 12F Persistence Adversarial` workflows were green on Increment 192.
-- This runtime has no local Godot 4.7.1 binary; fresh GitHub Actions from this single Increment-193 checkpoint are the executable validation path.
-- All meaningful repair/status changes are batched into one checkpoint commit/push; no speculative second CI repair is made in this run.
+- The failed Increment-193 workflow proved project import and all preceding setup steps are green; the first exact failure is isolated to hostile-runner static typing.
+- `Godot Headless Tests`, `Content Population Validator`, and `Phase 12F Persistence Adversarial` were green on the exact Increment-193 head.
+- The repair is intentionally one focused batch per the anti-spam/failed-CI policy; no speculative follow-on fix is included in this run.
+- This runtime has no local Godot 4.7.1 binary; fresh GitHub Actions from this single Increment-194 checkpoint are the executable validation path.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh Increment-193 CI must confirm the dedicated state/planning/campaign runner now parses and executes.
+- Fresh Increment-194 CI must confirm the dedicated state/planning/campaign hostile runner now parses and executes.
 - If fresh CI exposes another failure, the next run must inspect the first exact executable failure and make one focused repair batch only.
 - 12F remains incomplete; do not begin 12G yet.
 
@@ -55,7 +55,7 @@ Branch: `main`
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the exact Increment-193 `Phase 12F State Planning Campaign Adversarial`, `Godot Headless Tests`, `Content Population Validator`, and `Phase 12F Persistence Adversarial` workflows.
+At the start of the next run, inspect the exact Increment-194 `Phase 12F State Planning Campaign Adversarial`, `Godot Headless Tests`, `Content Population Validator`, and `Phase 12F Persistence Adversarial` workflows.
 
 If any executable workflow is red, inspect the first exact executable failure and make one focused repair batch only; do not stack speculative fixes.
 
