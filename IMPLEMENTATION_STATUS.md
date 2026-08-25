@@ -13,62 +13,63 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 196
+## Current implementation checkpoint — Increment 197
 
 ### Phase / subsystem
-**12F adversarial QA — deterministic simulation timing and boundary attacks**
+**12F adversarial QA — authored-content anti-dominance gates + Phase-11 coverage reconciliation**
 
 ### Repository truth / entry validation
-- Re-read `IMPLEMENTATION_START_HERE.md`, this status file, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact simulation authorities `MECHANICS.md` and `ADVERSARIAL_REVIEW.md` before changing code.
-- Entry head: `3c5490ea2d36ace71c0eed0c8c32737909831a76` (Increment 195).
-- Inspected all four Increment-195 workflows on the exact entry SHA. All executable workflows are green:
-  - `Godot Headless Tests` run `32866267175` — **success**;
-  - `Phase 12F Persistence Adversarial` run `32866267186` — **success**;
-  - `Content Population Validator` run `32866267203` — **success**;
-  - `Phase 12F State Planning Campaign Adversarial` run `32866267188` — **success**.
-- With the prior checkpoint green, this run followed the `NEXT ACTION` simulation-timing branch rather than making a CI repair.
+- Re-read `IMPLEMENTATION_START_HERE.md`, this status file, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact content/adversarial authorities `CONTENT_ARCHITECTURE.md` and `ADVERSARIAL_REVIEW.md` before changing code.
+- Entry head: `ea3faa829878c102bee3006fa083fdf06b23e93a` (Increment 196).
+- Inspected all five Increment-196 workflows on the exact entry SHA. No executable workflow is red: `Godot Headless Tests`, `Content Population Validator`, `Phase 12F Persistence Adversarial`, `Phase 12F State Planning Campaign Adversarial`, and the new `Phase 12F Simulation Timing Adversarial` all completed successfully.
+- With Increment 196 green, this run followed the authored-content/dominant-strategy branch of the previous `NEXT ACTION`.
 
-### Implemented in Increment 196
-- Found and repaired a real same-tick determinism edge in `SleepWakeKernel.resolve_phase_b(...)`.
-- Before this increment, simultaneous active H02 wake hazards were processed in caller-provided `active_hazard_ids` order. If two H02 hazards targeted the same sleeping organism on the same tick, the first input hazard woke it and therefore became the single causal owner. Reversing the same hazard set could change the emitted wake event ID and parent ancestry despite identical authoritative state.
-- `SleepWakeKernel` now duplicates and lexicographically sorts the active hazard ID set before H02 processing. Organisms and each hazard's target list were already canonicalized; the remaining hazard-order dependency is now removed without changing wake semantics.
-- Added `phase12f_simulation_timing_adversarial_test_runner.gd` as a hostile boundary cluster covering:
-  - reversed simultaneous H02 input order producing identical organism state, wake-event identity and causal ancestry;
-  - exactly one canonical wake event when multiple same-tick H02 requests target the same sleeping organism;
-  - blocked-growth signature invariance under required/illegal/occupied-cell permutation;
-  - deterministic sorting of blocked-growth material parents;
-  - unchanged obstruction/retry boundary not re-firing an entry consequence;
-  - changed retry boundary creating one new blocked-growth episode as frozen by canon;
-  - legal growth clearing the episode so a later renewed obstruction can create a genuinely new episode;
-  - explicit-only sleep gating (sleep does not silently disable non-sleep-gated behavior);
-  - Phase-A Brownout authority/checksum and same-tick effect eligibility remaining invariant to installed-support array order;
-  - invalid tick-zero and malformed growth-boundary inputs failing closed with stable errors.
-- Added a dedicated `Phase 12F Simulation Timing Adversarial` GitHub Actions workflow that imports the Godot project and runs this hostile cluster under the pinned Godot 4.7.1 runtime.
-- No gameplay rule, A–I phase ordering, hazard semantics, Brownout priority, retry policy, progression, scoring, economy, content or frozen design behavior was redesigned for convenience.
+### Implemented in Increment 197
+- Added `AuthoredContentAdversarialValidator` as a deterministic validator over the existing C17–C48 authored contract data and launch challenge definitions. It does not solve the game or invent a score; it only validates anti-dominance evidence already represented in canonical content.
+- Cooler+Filter dependence is attacked conservatively: joint authored availability is an upper bound on certified-primary dependence and must stay <=8. Current C17–C48 upper bound is **1**, so the frozen primary-pair ceiling cannot be exceeded by the present authored set.
+- Added executable Chapter 3–6 checks for:
+  - at least two maximum-spacing counterexamples per chapter;
+  - at least one explicit Cooler/Filter-inferior case per chapter with authored reason text;
+  - required permanent-growth-corner counterexamples (Chapter 3 >=1, Chapter 4 >=1, Chapter 6 >=2);
+  - helper/protector downside or familiar-helper-inferior evidence in Chapters 4–6.
+- Added generated-challenge anti-dominance checks for:
+  - `pure_maximum_spacing_best = false`;
+  - dynamic and timing significance retained for every launch template;
+  - per-template similarity within the declared policy;
+  - no more than three consecutive identical powered-support pairs;
+  - no exact same soother species + family + normalized fingerprint role repeated more than three times.
+- Added `phase12f_authored_content_dominance_adversarial_test_runner.gd`. Besides validating the current authored corpus, it mutates the data hostilely to prove the validator fails closed for Cooler+Filter overexposure, Chapter-3 maximum-spacing collapse, Chapter-6 permanent-corner collapse, missing Chapter-5 support counterexample, missing Chapter-4 helper counterexample, permissive generated maximum-spacing policy, four-in-a-row powered pairs, and repeated exact soother roles.
+- Added a dedicated `Phase 12F Authored Content Dominance Adversarial` GitHub Actions workflow pinned to Godot 4.7.1.
+- Added `PHASE12F_COVERAGE_RECONCILIATION.md`, mapping accumulated Phase-12/12F executable coverage back to the Phase-11 implementation-readiness index and separating deterministic gaps from empirical Phase-12G gates.
+- The reconciliation deliberately does **not** manufacture pass/fail evidence for authored normalized role-to-zone allocations, exact certified-Bronze `isolation_ratio`/`beneficial_relation_count`, or the >=70% species redundancy preference threshold because the required certified solution geometry/representative preference dataset is not currently present.
+- No gameplay rule, campaign node, support/species behavior, solver score, content requirement, progression rule or frozen design behavior was redesigned for convenience.
 
 ### Validation / policy
-- Existing Increment-195 headless, content, persistence and state/planning/campaign hostile workflows were verified green before implementation.
-- The new hostile runner directly exercises the repaired production `SleepWakeKernel`, `BlockedGrowthEpisodeResolver`, and `PhaseAPowerResolver` boundaries rather than testing a duplicate model.
-- Existing Phase-A production tests already prove Brownout-disabled supports provide zero same-tick mitigation; this increment adds hostile order/boundary coverage instead of duplicating that entire suite.
-- Fresh Increment-196 GitHub Actions are the executable validation path for the new checkpoint. No speculative follow-up CI push is made in this run.
-- All source/test/workflow/status changes are batched into one Git tree + one normal checkpoint commit/push.
+- Increment-196 executable CI was checked before implementation and is green.
+- The new hostile runner uses the real authored JSON files from `content/contracts` and `content/challenges`; it does not duplicate their current values into a parallel test model.
+- Hostile mutations are made only in test-local duplicated dictionaries and do not alter canonical content.
+- Static review confirms the Cooler+Filter joint-availability check is a sound conservative upper bound: a pair cannot be certified primary in a contract where the pair is not jointly available.
+- Static review confirms unrepresentable solver/playtest gates are returned as explicit diagnostic gaps instead of being silently treated as passed.
+- Fresh Increment-197 GitHub Actions are the executable validation path for the new GDScript validator/runner. No speculative second CI repair is made in this run.
+- All source/test/workflow/reconciliation/status changes are batched into one Git tree + one normal checkpoint commit/push.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh Increment-196 CI must confirm Godot 4.7.1 parses the new hostile runner and the new canonical H02 ordering behaves as statically reviewed.
-- 12F remains **IN PROGRESS**; content/dominant-strategy hostile coverage and final 12F reconciliation remain outstanding.
+- Fresh Increment-197 CI must confirm Godot 4.7.1 parses the new validator/hostile runner and that the current authored corpus passes every objectively represented anti-dominance gate.
+- 12F remains **IN PROGRESS** until the new CI is green and one final coverage audit classifies any remaining gaps as deterministic 12F work or empirical 12G evidence.
+- Exact normalized authored role-to-zone streaks and quantitative certified-Bronze isolation/beneficial-relation metrics cannot honestly be asserted from the current content metadata alone; they require certified solution geometry if they are to become deterministic checks.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the exact Increment-196 workflows, especially `Phase 12F Simulation Timing Adversarial`, plus `Godot Headless Tests`, `Content Population Validator`, `Phase 12F Persistence Adversarial`, and `Phase 12F State Planning Campaign Adversarial`.
+At the start of the next run, inspect the exact Increment-197 workflows, especially `Phase 12F Authored Content Dominance Adversarial`, plus `Phase 12F Simulation Timing Adversarial`, `Godot Headless Tests`, `Content Population Validator`, `Phase 12F Persistence Adversarial`, and `Phase 12F State Planning Campaign Adversarial`.
 
 If any executable workflow is red, inspect the first exact executable failure and make one focused repair batch only.
 
-If all executable workflows are green, continue 12F with one substantial authored-content/dominant-strategy adversarial cluster:
-1. implement hostile validation against `ADVERSARIAL_REVIEW.md` for the measurable launch-content gates, prioritizing Cooler+Filter certified-primary dependence, maximum-spacing/isolation dominance, permanent-growth-corner behavior, repeated helper/universal-protector roles, and repeated normalized role-to-zone templates;
-2. use existing authored campaign/content data as the authority and add validators/diagnostics only where the frozen gate is objectively representable — do not invent hidden scoring or redesign content rules merely to satisfy a test;
-3. repair only proven canonical violations, then reconcile the accumulated 12F adversarial coverage against the Phase-11 acceptance index to identify the remaining closure gaps before 12G.
+If all executable workflows are green, perform the final 12F closure audit from `PHASE12F_COVERAGE_RECONCILIATION.md` as one substantial cluster:
+1. inspect whether the remaining normalized role-to-zone and certified-Bronze isolation/beneficial-relation gates can be derived from already-existing authoritative solution geometry without inventing a solver score; implement them only if the required data actually exists;
+2. classify every remaining unresolved item explicitly as either deterministic 12F implementation work or an empirical 12G prototype gate, and repair any deterministic gap found;
+3. if no deterministic adversarial gap remains and all 12F workflows are green, mark 12F **COMPLETE** and set the exact next action to the first Phase-12G empirical validation cluster. Do not start 12G in the same run unless 12F closure itself requires no repository changes beyond status/reconciliation.
 
-Do not begin 12G until 12F adversarial coverage/reconciliation is green and explicitly closed. Do not report overall completion until `IMPLEMENTATION COMPLETE = YES`.
+Do not report overall completion until `IMPLEMENTATION COMPLETE = YES`.
