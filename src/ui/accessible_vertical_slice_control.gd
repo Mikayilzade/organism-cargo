@@ -1,12 +1,12 @@
 class_name AccessibleVerticalSliceControl
 extends VerticalSliceControl
 
-const AccessibilitySettingsModelScript := preload("res://src/ui/accessibility_settings_model.gd")
-const CriticalSignalPresentationBuilderScript := preload("res://src/ui/critical_signal_presentation_builder.gd")
+const ACCESSIBILITY_SETTINGS_SCRIPT_PATH := "res://src/ui/accessibility_settings_model.gd"
+const CRITICAL_SIGNAL_BUILDER_SCRIPT_PATH := "res://src/ui/critical_signal_presentation_builder.gd"
 
 var _semantic_focus_label: Label
 var _support_config_label: Label
-var _accessibility_settings_model: Object = AccessibilitySettingsModelScript.new()
+var _accessibility_settings_model: Object
 var _critical_signal_panel: VBoxContainer
 var _critical_signal_summary: Label
 var _critical_signal_list: VBoxContainer
@@ -159,7 +159,7 @@ func planning_render_semantic_state(router_snapshot: Dictionary, support_snapsho
 	]
 
 func _load_accessibility_settings(context: Dictionary) -> void:
-	_accessibility_settings_model = AccessibilitySettingsModelScript.new()
+	_accessibility_settings_model = _new_script_instance(ACCESSIBILITY_SETTINGS_SCRIPT_PATH)
 	var settings_value: Variant = context.get("accessibility_settings", {})
 	if typeof(settings_value) != TYPE_DICTIONARY:
 		return
@@ -168,7 +168,7 @@ func _load_accessibility_settings(context: Dictionary) -> void:
 		return
 	var applied_value: Variant = _accessibility_settings_model.call("apply_patch", settings)
 	if not applied_value is Dictionary or not bool((applied_value as Dictionary).get("ok", false)):
-		_accessibility_settings_model = AccessibilitySettingsModelScript.new()
+		_accessibility_settings_model = _new_script_instance(ACCESSIBILITY_SETTINGS_SCRIPT_PATH)
 
 func _sync_critical_signal_panel() -> void:
 	_ensure_critical_signal_panel()
@@ -189,7 +189,7 @@ func _sync_critical_signal_panel() -> void:
 		_critical_signal_summary.text = "TRANSIT SIGNALS — authoritative transit is resolving; critical cues remain visual and text-addressable."
 		_clear_critical_signal_rows()
 		return
-	var builder: Object = CriticalSignalPresentationBuilderScript.new()
+	var builder: Object = _new_script_instance(CRITICAL_SIGNAL_BUILDER_SCRIPT_PATH)
 	if builder == null or not builder.has_method("build"):
 		_critical_signal_summary.text = "CRITICAL TRANSIT / REVIEW SIGNALS — presentation unavailable."
 		_clear_critical_signal_rows()
@@ -272,3 +272,9 @@ func _ensure_critical_signal_panel() -> void:
 	_critical_signal_list = VBoxContainer.new()
 	_critical_signal_list.name = "CriticalSignalList"
 	_critical_signal_panel.add_child(_critical_signal_list)
+
+func _new_script_instance(path: String) -> Object:
+	var script: GDScript = load(path) as GDScript
+	if script == null:
+		return null
+	return script.new()
