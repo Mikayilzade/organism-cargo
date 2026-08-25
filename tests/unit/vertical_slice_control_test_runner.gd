@@ -6,6 +6,7 @@ const VerticalSliceFlowCoordinatorScript := preload("res://src/app/vertical_slic
 const VerticalSliceControlScript := preload("res://src/ui/vertical_slice_control.gd")
 const Phase12ERenderedCriticalSignalAcceptanceScript := preload("res://tests/unit/phase12e_rendered_critical_signal_acceptance.gd")
 const Phase12EReviewCodexAcceptanceScript := preload("res://tests/unit/phase12e_review_codex_acceptance.gd")
+const Phase12ERecoveryCompletionAcceptanceScript := preload("res://tests/unit/phase12e_recovery_completion_acceptance.gd")
 
 var failures: int = 0
 var run_sequence: int = 0
@@ -59,6 +60,11 @@ func _run() -> void:
 	var review_codex_failures: Array[String] = await review_codex.run(self, Callable(self, "_next_run_id"))
 	for review_codex_failure: String in review_codex_failures:
 		_expect(false, "Phase12E review/Codex acceptance: %s" % review_codex_failure)
+
+	var recovery_completion: Phase12ERecoveryCompletionAcceptance = Phase12ERecoveryCompletionAcceptanceScript.new()
+	var recovery_completion_failures: Array[String] = await recovery_completion.run(self)
+	for recovery_completion_failure: String in recovery_completion_failures:
+		_expect(false, "Phase12E recovery/completion acceptance: %s" % recovery_completion_failure)
 
 	if failures == 0:
 		print("vertical_slice_control_test_runner: PASS")

@@ -88,6 +88,10 @@ func dispatch(action: StringName) -> Dictionary:
 			result = _dispatch_review(action)
 		AppStateMachine.State.CODEX:
 			result = _dispatch_codex(action)
+		AppStateMachine.State.SAVE_RECOVERY:
+			result = _dispatch_recovery(action)
+		AppStateMachine.State.CAMPAIGN_COMPLETE:
+			result = _dispatch_campaign_complete(action)
 	if _flow.current_state() == AppStateMachine.State.PLANNING:
 		_render_planning_semantics()
 	_sync_navigation_surface()
@@ -102,7 +106,9 @@ func snapshot() -> Dictionary:
 		"state": -1 if _flow == null else _flow.current_state(),
 		"transit": {} if _transit_review == null else _transit_review.transit_snapshot(),
 		"review": {} if _transit_review == null else _transit_review.review_snapshot(),
-		"review_exit_action": &"" if _navigation_surface == null or not _navigation_surface.has_method("selected_review_action") else _navigation_surface.call("selected_review_action"),
+		"review_exit_action": _surface_value("selected_review_action"),
+		"recovery_action": _surface_value("selected_recovery_action"),
+		"campaign_complete_action": _surface_value("selected_campaign_complete_action"),
 	}
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -131,7 +137,6 @@ func _dispatch_planning(action: StringName) -> Dictionary:
 		return _control.planning_remove_selected()
 	if action == &"inspect" and _router.current_region() == &"TOOLBAR":
 		return _navigation_call("open_codex")
-
 	var region: StringName = _router.current_region()
 	if region == &"OBJECTIVES_SUPPORTS" and _support_config.has_supports():
 		if action in [&"navigate_up", &"navigate_down", &"navigate_left", &"navigate_right", &"accept", &"overlay_previous", &"overlay_next", &"inspect"]:
@@ -168,11 +173,7 @@ func _dispatch_transit(action: StringName) -> Dictionary:
 			if not bool(configured.get("ok", false)):
 				return configured
 		return completed
-	if action in [
-		&"pause_playback", &"speed_up", &"speed_down", &"tick_step",
-		&"navigate_up", &"navigate_down", &"navigate_left", &"navigate_right",
-		&"region_next", &"region_previous", &"panel_next", &"panel_previous", &"inspect"
-	]:
+	if action in [&"pause_playback", &"speed_up", &"speed_down", &"tick_step", &"navigate_up", &"navigate_down", &"navigate_left", &"navigate_right", &"region_next", &"region_previous", &"panel_next", &"panel_previous", &"inspect"]:
 		return _transit_review.transit_command(action)
 	return _fail("action_not_available_in_transit")
 
@@ -190,10 +191,7 @@ func _dispatch_review(action: StringName) -> Dictionary:
 		return _flow.return_to_campaign_map()
 	if action == &"inspect":
 		return _navigation_call("open_codex")
-	if action in [
-		&"review_event_previous", &"review_event_next", &"jump_failed_predicate", &"jump_root_cause",
-		&"compare_start_final", &"panel_next", &"panel_previous", &"region_next", &"region_previous"
-	]:
+	if action in [&"review_event_previous", &"review_event_next", &"jump_failed_predicate", &"jump_root_cause", &"compare_start_final", &"panel_next", &"panel_previous", &"region_next", &"region_previous"]:
 		return _transit_review.review_command(action)
 	return _fail("action_not_available_in_review")
 
@@ -205,6 +203,28 @@ func _dispatch_codex(action: StringName) -> Dictionary:
 	if action == &"navigate_down" or action == &"panel_next":
 		return _navigation_call("codex_scroll", 1)
 	return _fail("action_not_available_in_codex")
+
+func _dispatch_recovery(action: StringName) -> Dictionary:
+	if action == &"navigate_left" or action == &"navigate_up" or action == &"region_previous":
+		return _navigation_call("recovery_move", -1)
+	if action == &"navigate_right" or action == &"navigate_down" or action == &"region_next":
+		return _navigation_call("recovery_move", 1)
+	if action == &"accept":
+		return _navigation_call("recovery_activate_selected")
+	return _fail("action_not_available_in_save_recovery")
+
+func _dispatch_campaign_complete(action: StringName) -> Dictionary:
+	if action == &"navigate_left" or action == &"navigate_up" or action == &"region_previous":
+		return _navigation_call("campaign_complete_move", -1)
+	if action == &"navigate_right" or action == &"navigate_down" or action == &"region_next":
+		return _navigation_call("campaign_complete_move", 1)
+	if action == &"accept":
+		return _navigation_call("campaign_complete_activate_selected")
+	if action == &"cancel":
+		return _flow.return_to_campaign_map()
+	if action == &"inspect":
+		return _navigation_call("open_codex")
+	return _fail("action_not_available_in_campaign_complete")
 
 func _ensure_review_configured() -> Dictionary:
 	var review_snapshot: Dictionary = _transit_review.review_snapshot()
@@ -220,12 +240,7 @@ func _move_manifest_focus(action: StringName) -> Dictionary:
 		return _fail("manifest_empty")
 	var direction: int = -1 if action == &"navigate_left" or action == &"navigate_up" else 1
 	_manifest_focus_index = posmod(_manifest_focus_index + direction, _manifest_ids.size())
-	return {
-		"ok": true,
-		"error": "",
-		"region": &"MANIFEST",
-		"manifest_focus_id": _manifest_ids[_manifest_focus_index],
-	}
+	return {"ok": true, "error": "", "region": &"MANIFEST", "manifest_focus_id": _manifest_ids[_manifest_focus_index]}
 
 func _render_planning_semantics() -> void:
 	if _control == null or _router == null or _support_config == null:
@@ -243,6 +258,11 @@ func _navigation_call(method: StringName, arg: Variant = null) -> Dictionary:
 	if not value is Dictionary:
 		return _fail("phase12e_navigation_surface_invalid_result")
 	return value
+
+func _surface_value(method: StringName) -> Variant:
+	if _navigation_surface == null or not _navigation_surface.has_method(method):
+		return &""
+	return _navigation_surface.call(method)
 
 func _sync_navigation_surface() -> void:
 	if _navigation_surface != null and _navigation_surface.has_method("sync_from_flow"):

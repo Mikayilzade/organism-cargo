@@ -2,6 +2,7 @@ extends Control
 
 const AppBootstrapServiceScript := preload("res://src/app/app_bootstrap_service.gd")
 const AtomicSaveStoreScript := preload("res://src/save/atomic_save_store.gd")
+const SaveRecoveryServiceScript := preload("res://src/save/save_recovery_service.gd")
 const VerticalSliceFlowCoordinatorScript := preload("res://src/app/vertical_slice_flow_coordinator.gd")
 const ACCESSIBLE_VERTICAL_SLICE_CONTROL_PATH := "res://src/ui/accessible_vertical_slice_control.gd"
 const SEMANTIC_VERTICAL_SLICE_INPUT_PATH := "res://src/ui/semantic_vertical_slice_input.gd"
@@ -15,6 +16,7 @@ const SAVE_ROOT := "user://organism_cargo"
 
 var _bootstrap_service: AppBootstrapService
 var _save_store: AtomicSaveStore
+var _save_recovery_service: SaveRecoveryService
 var _slice_flow: VerticalSliceFlowCoordinator
 var _slice_control: VerticalSliceControl
 var _semantic_input: Node
@@ -29,7 +31,13 @@ func _ready() -> void:
 	_bootstrap_service = AppBootstrapServiceScript.new(); var result: Dictionary = _bootstrap_service.boot(CORE_CONTENT_PATHS)
 	if not result["ok"]: print("Organism Cargo bootstrap blocked: %s" % String(result["error"])); return
 	_save_store = AtomicSaveStoreScript.new(SAVE_ROOT)
+	_save_recovery_service = SaveRecoveryServiceScript.new(_save_store)
 	_slice_flow = VerticalSliceFlowCoordinatorScript.new(_bootstrap_service.state_machine(), _save_store)
+	var recovery_assessment: Dictionary = _save_recovery_service.assess(&"profile")
+	if bool(recovery_assessment.get("recovery_required", false)):
+		var recovery_entry: Dictionary = _slice_flow.enter_save_recovery()
+		if not bool(recovery_entry.get("ok", false)):
+			print("Organism Cargo save recovery blocked: %s" % String(recovery_entry.get("error", "unknown"))); return
 	var context: Dictionary = _vertical_slice_context(String(result["content_version"]))
 	var slice_instance: Object = _new_script_instance(ACCESSIBLE_VERTICAL_SLICE_CONTROL_PATH)
 	if not slice_instance is VerticalSliceControl:
@@ -49,7 +57,6 @@ func _ready() -> void:
 	var semantic_result_value: Variant = _semantic_input.call("configure", _slice_control, _slice_flow, context)
 	var semantic_result: Dictionary = semantic_result_value if semantic_result_value is Dictionary else {"ok": false, "error": "invalid_semantic_config_result"}
 	if not bool(semantic_result.get("ok", false)): print("Organism Cargo semantic input blocked: %s" % String(semantic_result.get("error", "unknown")))
-	# Keep Settings above the gameplay surface after the slice nodes are created.
 	move_child(_settings_screen, get_child_count() - 1); move_child(_settings_button, get_child_count() - 1)
 	print("Organism Cargo bootstrap ready: content=%s state=%s" % [String(result["content_version"]), str(_bootstrap_service.state_machine().current_state())])
 
@@ -58,6 +65,7 @@ func slice_control() -> VerticalSliceControl: return _slice_control
 func semantic_input_controller() -> Node: return _semantic_input
 func settings_screen() -> SettingsRemapScreen: return _settings_screen
 func settings_button() -> Button: return _settings_button
+func save_recovery_service() -> SaveRecoveryService: return _save_recovery_service
 func accessibility_settings_snapshot() -> Dictionary: return {} if _accessibility_settings == null else _accessibility_settings.snapshot()
 func input_remap_snapshot() -> Dictionary: return {} if _input_remap == null else _input_remap.snapshot()
 
@@ -95,7 +103,8 @@ func _vertical_slice_context(content_version: String) -> Dictionary:
 	var contract_checksum: String = JSON.stringify(contract_payload, "", true, true).sha256_text()
 	return {"planning_contract_payload":contract_payload, "planning_hold_payload":hold_payload, "planning_species_by_id":species_by_id, "planning_route_id":"route-slice", "planning_seed":101,
 		"launch_request_token":"shell-vs01-launch", "profile_uuid":"local-profile", "contract_id":"VS01", "rules_version":"vertical-slice-r1", "content_version":content_version,
-		"contract_definition_checksum":contract_checksum, "accessibility_settings":accessibility_settings_snapshot(), "input_remap":input_remap_snapshot(), "total_ticks":1,
+		"contract_definition_checksum":contract_checksum, "accessibility_settings":accessibility_settings_snapshot(), "input_remap":input_remap_snapshot(), "save_recovery_service":_save_recovery_service,
+		"campaign_completed_contract_count":48, "campaign_total_contract_count":48, "campaign_medal_summary":"Campaign medals remain maxima and every completed node stays replayable.", "campaign_challenge_summary":"Challenge access remains governed by the frozen Bronze(C16) progression gate.", "total_ticks":1,
 		"simulation_defs":{"route_profile":{"id":"route-slice","tick_count":1,"events":[]}, "hold_definition":{"dimensions":[3,2],"blocked_cells":[[2,1]]}, "hazards_by_id":{},
 			"thermal_rules":{"heat_min":0,"heat_max":20,"transfer_edges":[],"vent_by_cell":{}}, "organism_definitions":{"specimen-a":{"initial_stress":1,"initial_state":"CALM","stress_profile":_stress_profile()}, "specimen-b":{"initial_stress":1,"initial_state":"CALM","stress_profile":_stress_profile()}}},
 		"mandatory_predicates":[{"id":"vs01-state","kind":"PRIMARY_STATE_IS","instance_id":"specimen-a","value":"CALM"}], "retry_revision_id":"shell-vs01-retry", "retry_structural_facts":_legal_facts()}

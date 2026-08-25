@@ -37,6 +37,27 @@ func select_contract() -> bool:
 func begin_planning() -> bool:
 	return _state_machine.transition_to(AppStateMachine.State.PLANNING)
 
+func enter_save_recovery() -> Dictionary:
+	if _state_machine.current_state() != AppStateMachine.State.TITLE:
+		return _failure("invalid_state")
+	if not _state_machine.transition_to(AppStateMachine.State.SAVE_RECOVERY):
+		return _failure("save_recovery_transition_failed")
+	return {"ok": true, "error": ""}
+
+func finish_save_recovery() -> Dictionary:
+	if _state_machine.current_state() != AppStateMachine.State.SAVE_RECOVERY:
+		return _failure("invalid_state")
+	if not _state_machine.transition_to(AppStateMachine.State.TITLE):
+		return _failure("save_recovery_exit_failed")
+	return {"ok": true, "error": ""}
+
+func enter_campaign_complete() -> Dictionary:
+	if _state_machine.current_state() not in [AppStateMachine.State.CAMPAIGN_MAP, AppStateMachine.State.RESULTS]:
+		return _failure("invalid_state")
+	if not _state_machine.transition_to(AppStateMachine.State.CAMPAIGN_COMPLETE):
+		return _failure("campaign_complete_transition_failed")
+	return {"ok": true, "error": ""}
+
 func apply_plan_from_content(
 	planning_revision_id: String,
 	canonical_input: Dictionary,
@@ -151,10 +172,17 @@ func reset_contract(reset_revision_id: String, canonical_input: Dictionary, stru
 	return snapshot
 
 func return_to_campaign_map() -> Dictionary:
-	if _state_machine.current_state() not in [AppStateMachine.State.CAUSAL_REVIEW, AppStateMachine.State.RESULTS, AppStateMachine.State.PLANNING, AppStateMachine.State.CONTRACT_BRIEF]:
+	if _state_machine.current_state() not in [AppStateMachine.State.CAUSAL_REVIEW, AppStateMachine.State.RESULTS, AppStateMachine.State.PLANNING, AppStateMachine.State.CONTRACT_BRIEF, AppStateMachine.State.CAMPAIGN_COMPLETE]:
 		return _failure("invalid_state")
 	if not _state_machine.transition_to(AppStateMachine.State.CAMPAIGN_MAP):
 		return _failure("campaign_map_transition_failed")
+	return {"ok": true, "error": ""}
+
+func return_to_title() -> Dictionary:
+	if _state_machine.current_state() != AppStateMachine.State.CAMPAIGN_COMPLETE:
+		return _failure("invalid_state")
+	if not _state_machine.transition_to(AppStateMachine.State.TITLE):
+		return _failure("title_transition_failed")
 	return {"ok": true, "error": ""}
 
 func open_codex() -> Dictionary:
