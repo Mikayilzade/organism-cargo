@@ -101,13 +101,14 @@ func _test_migration_source_preservation_and_sequential_boundary() -> void:
 		"applied_completion_ids": ["old-completion"],
 	}
 	_expect(bool(store.write(&"profile", source).get("ok", false)), "migration fixture source is durable")
+	var durable_source: Dictionary = _load_payload(store, &"profile")
 	var failed: Dictionary = service.migrate_profile_in_store(store, 3, {
 		"1->2": Callable(self, "_migration_1_to_2"),
 		"2->3": Callable(self, "_migration_fail_2_to_3"),
 	})
 	_expect(not bool(failed.get("ok", true)), "failed migration does not install partial target")
 	_expect(String(failed.get("error", "")).contains("migration_step_failed:2->3"), "failed migration identifies exact sequential step")
-	_expect_equal(_dict(failed.get("source_recovery", {})), source, "failed migration returns immutable original recovery payload")
+	_expect_equal(_dict(failed.get("source_recovery", {})), durable_source, "failed migration returns the exact durable pre-migration recovery payload")
 	var after_failure: Dictionary = _load_payload(store, &"profile")
 	_expect_equal(int(after_failure.get("save_format_version", 0)), 1, "failed migration does not partially advance stored format version")
 	_expect_strings(after_failure.get("cleared_bronze_contract_ids", []), ["C01", "C02"], "failed migration preserves permanent Bronze")
