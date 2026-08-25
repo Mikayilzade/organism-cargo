@@ -17,87 +17,66 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 188
+## Current implementation checkpoint — Increment 189
 
 ### Phase / subsystem
-**12F adversarial persistence reconciliation — cloud/profile conflicts + migration/legacy boundaries + demo import bounds**
+**12F adversarial persistence — Results crash window + interrupted atomic writes + reconstruction repetition/cursors + stale-cloud completion replay**
 
 ### Repository truth / entry validation
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact current persistence authority `PHASE11_TECH_PERSISTENCE.md`.
-- Entry head: `609132f21cfb8b7f160a8c8c026c0f1f5721ada2` (Increment 187).
-- Inspected all exact Increment-187 workflows on that SHA:
-  - `Content Population Validator` run `32821629732` completed **success**;
-  - dedicated `Phase 12F Persistence Adversarial` run `32821629726` completed **success**;
-  - `Godot Headless Tests` run `32821629748` completed **success**.
-- The first 12F persistence attack cluster is therefore executable-green under Godot 4.7.1, so this run followed the green branch of the previous `NEXT ACTION`.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact current authority `PHASE11_TECH_PERSISTENCE.md`.
+- Entry head: `ec305c2e579224710e954a439b40ae26c938f7e2` (Increment 188).
+- Inspected exact Increment-188 observable workflows on that SHA:
+  - `Content Population Validator` run `32826777583`: published status **success**;
+  - `Godot Headless Tests` run `32826777746`: GitHub workflow conclusion **success** even though the commit-status residue reports `organism-cargo/godot-headless = failure`; executable workflow conclusion is treated as truth.
+- The connector's commit-workflow listing does not surface push-triggered runs for the dedicated `Phase 12F Persistence Adversarial` workflow, so its exact Increment-188 run could not be enumerated through that endpoint in this runtime. The dedicated workflow remains hard-fail and is extended below so fresh Increment-189 CI is the direct executable persistence gate.
 
-### Implemented in Increment 188 — second 12F persistence attack cluster
-- Added production `PersistenceReconciliationService` at `src/save/persistence_reconciliation_service.gd` to make the remaining Phase-11 persistence conflict rules explicit/testable rather than leaving them as UI/platform policy.
-- Implemented **monotonic profile/cloud reconciliation**:
-  - only schema-compatible branches with the same immutable `profile_uuid` may merge;
-  - Bronze clears, documented facts, applied completion IDs, permanent unlock flags and demo-import IDs merge by set union;
-  - best medal per contract merges by canonical Bronze < Silver < Gold maximum;
-  - Challenge availability is re-derived from Bronze(C16), not copied from a counter/knowledge flag;
-  - different profile UUIDs return an explicit keep-separate conflict with both branches retained rather than auto-merging.
-- Implemented **active-session conflict reconciliation**:
-  - same run ID + committed-input checksum may select a strictly later canonical lifecycle state;
-  - divergent run IDs/checksums are never combined cell-by-cell and instead retain both recoverable copies for explicit player choice;
-  - non-orderable/incomplete session identity also falls back to retain-both rather than guessing a winner.
-- Implemented **sequential migration enforcement against `AtomicSaveStore`**:
-  - source profile is first rewritten as the same validated generation so the atomic store retains an on-disk source backup before any transformation;
-  - migration steps must be exact sequential `vN -> vN+1` callables;
-  - each step must preserve profile UUID and monotonic permanent progress;
-  - any missing/failed/rollback step returns failure without installing a partially advanced version and exposes the original source recovery payload;
-  - successful target is atomically installed and an already-current pipeline is a no-op.
-- Implemented **legacy generated-challenge identity validation**:
-  - challenge identity requires template, seed, generator, rules and content versions;
-  - only an exact supported compatibility package may construct gameplay;
-  - unsupported identity returns explicit `legacy_challenge_version`, preserves the original identity for diagnostics and cannot silently regenerate a different puzzle from the visible seed.
-- Implemented **demo -> full import reconciliation** using the canonical `content/demo/public_demo_mapping.json` contract:
-  - deterministic `import_id` derives from target profile UUID, demo profile UUID, demo revision and import schema version;
-  - only explicit D01-D08 -> C01-C08 Bronze mappings can add campaign clears;
-  - D09/D10 are ignored for Bronze and cannot clear C09+;
-  - documented knowledge transfers by union and settings may transfer because the canonical mapping permits them;
-  - existing stronger full-game medals/progress remain untouched;
-  - demo mechanical-power fields are deliberately never copied;
-  - Challenge remains locked unless the resulting full profile actually has Bronze(C16);
-  - replaying the same import ID is an idempotent no-op.
-- Added `tests/unit/phase12f_reconciliation_adversarial_test_runner.gd` with hostile fixtures covering all four boundaries above, including profile rollback attempts, divergent committed layouts, migration failure after a successful intermediate step, unsupported legacy generator version, D09/D10 overreach attempts, imported-knowledge Challenge bypass attempts and repeat-import replay.
-- Extended the existing dedicated `Phase 12F Persistence Adversarial` workflow to execute both the original run-identity/corruption/reconstruction cluster and the new reconciliation cluster after a single project import/parse gate.
-- No simulation rule, tick order, checksum algorithm, campaign graph, Challenge gate, demo mapping, gameplay balance or frozen design behavior changed.
+### Implemented in Increment 189 — third 12F persistence attack cluster
+- Added `tests/unit/phase12f_crash_resume_cloud_adversarial_test_runner.gd` and wired it into the existing dedicated `Phase 12F Persistence Adversarial` workflow as one additional hard-fail step.
+- Added an explicit **Results crash-window attack** matching canonical steps 10 -> 11:
+  - seeds a durable profile containing the deterministic `completion_id` while leaving session lifecycle at `REVIEWABLE`, modeling process death after profile save but before session update;
+  - recreates `ResultsProgressionService` and reopens the same authoritative result;
+  - proves the durable completion ledger causes duplicate detection, no Bronze/medal/fact re-award, and only repairs session lifecycle to `COMPLETION_APPLIED` with the same completion/result checksums;
+  - repeats reopening again to prove the repaired state remains idempotent.
+- Added a filesystem-level **interrupted atomic-write attack** against `AtomicSaveStore`:
+  - creates two validated generations;
+  - models the precise window after primary -> backup rotation but before temp -> primary installation;
+  - leaves a valid temp with no primary and proves load recovers the validated backup generation;
+  - then replaces temp with torn/corrupt bytes and proves the validated backup still survives and both recovery/diagnostic files are retained.
+- Added aggressive **deterministic reconstruction/resume repetition**:
+  - reconstructs the same immutable committed input 128 times;
+  - mutates only hostile presentation metadata (`playback_speed`, pause, Reduced Motion/Flashing, audio volume, presentation skip) between repetitions;
+  - proves every repetition keeps the exact tick checksum sequence and final result checksum;
+  - seeds stored authoritative hashes and repeats reconstruction from every valid playback cursor `0..3`, proving each cursor restores exactly without changing any authoritative hash.
+- Added **stale cloud completion replay attacks** across permanent profile and active session reconciliation:
+  - merges a completed profile with a stale cloud branch missing C16, Gold and the completion ledger entry, proving monotonic union/max prevents rollback and re-derives Challenge availability from Bronze(C16);
+  - reconciles same-lineage `REVIEWABLE` vs `COMPLETION_APPLIED` sessions and proves the later lifecycle wins only because run/checksum identity agrees;
+  - then deliberately persists the already-merged permanent profile together with the stale Reviewable session and replays Results, proving the existing completion ledger prevents a second award while repairing the stale session back to `COMPLETION_APPLIED`.
+- No production gameplay rule, simulation phase, checksum algorithm, campaign graph, Challenge gate, save format or cloud merge semantics were redesigned. This increment is adversarial coverage against the already-implemented persistence contract.
 
 ### Validation / policy
-- Increment-187 dedicated adversarial, broad Godot headless and content-validator workflows were verified green before implementation.
-- The new reconciliation runner is wired into the same dedicated hard-fail 12F workflow; no second workflow or burst of CI checkpoints was added.
-- Static review ties every new policy directly to `PHASE11_TECH_PERSISTENCE.md` sections 8–11: sequential migrations, cloud conflict policy, legacy generated/versioned challenge identity and demo import.
-- Cloud profile merge is monotonic only; non-monotonic active-session data is never merged.
-- Migration failure never writes the intermediate in-memory result; the persisted profile remains at the source version and a validated source backup generation exists before transformation begins.
-- Demo import consumes the existing canonical public mapping rather than inventing a new D->C translation.
-- This runtime has no directly runnable local Godot binary; fresh GitHub Actions from this single checkpoint push are the executable validation path.
-- All meaningful source/test/workflow/status changes are batched into one Git tree + one checkpoint commit/push. No speculative post-push CI repair is made in this run.
+- Pre-change broad Increment-188 content validation and Godot workflow conclusions are green.
+- Static review traces every new assertion directly to `PHASE11_TECH_PERSISTENCE.md` sections 3, 5, 7, 9 and acceptance tests in section 12.
+- The third runner is executed inside the existing dedicated persistence workflow after the original run-identity/corruption/reconstruction cluster and reconciliation/migration/cloud/demo cluster; there is still one persistence CI surface rather than a burst of new workflows.
+- This runtime has no local Godot 4.7.1 binary. Fresh GitHub Actions from the single Increment-189 checkpoint are the executable validation path.
+- All meaningful test/workflow/status changes are batched into one Git tree + one checkpoint commit/push. No speculative post-push repair is made in this run.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh Increment-188 CI must confirm Godot 4.7.1 parses the new reconciliation service/runner and that both dedicated persistence attack clusters pass together.
-- 12F is still not complete. Persistence acceptance still needs hostile coverage for crash/interruption boundaries around durable Launch/Results writes, wider deterministic reconstruction/resume repetition, interrupted atomic-write generation survival, and additional cloud restore/replay interactions after already-applied completion.
-- After the persistence acceptance list is exhausted, 12F must continue into the remaining non-persistence adversarial specification attacks before any 12G empirical gate work begins.
-- If fresh CI exposes a concrete failure, the next run must inspect the first exact executable failure and make one focused repair batch only.
+- Fresh Increment-189 CI must confirm Godot 4.7.1 parses the new runner and all three dedicated persistence attack clusters pass together.
+- If fresh CI fails, inspect the first exact executable failure and make one focused repair batch only next run.
+- 12F remains incomplete. Once this persistence cluster is green, assess whether the persistence acceptance list has any uncovered canonical boundary; if not, move to the remaining adversarial gameplay/content/state-machine attacks rather than beginning 12G.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the exact Increment-188 `Phase 12F Persistence Adversarial`, `Godot Headless Tests`, and `Content Population Validator` workflows.
+At the start of the next run, inspect the exact Increment-189 `Phase 12F Persistence Adversarial`, `Godot Headless Tests`, and `Content Population Validator` workflows.
 
-If any executable workflow is red, inspect the first exact executable failure and make one focused 12F repair batch only; do not stack speculative fixes.
+If any executable workflow is red, inspect the first exact executable failure and make one focused repair batch only; do not stack speculative fixes.
 
-If all executable workflows are green, take one substantial third 12F persistence attack cluster from `PHASE11_TECH_PERSISTENCE.md`:
-1. attack crash/interruption boundaries around Launch and Results, including the profile-written/session-not-yet-updated Results window and interrupted atomic writes, proving at least one valid generation survives and completion cannot be re-awarded;
-2. repeat deterministic reconstruction/resume aggressively (100+ same committed-input runs plus every valid playback cursor) and prove pause/speed/presentation metadata cannot alter authoritative tick/final hashes;
-3. attack cloud restoration of an already-applied completion and same-lineage session lifecycle conflicts after permanent-profile merge, proving restored/stale state cannot roll back Bronze/medals or award the same completion twice.
-
-Keep that cluster coherent and recoverable. When the persistence acceptance list is green, move 12F to the remaining adversarial gameplay/content/state-machine boundaries rather than beginning 12G prematurely.
-
-Do not begin 12G until 12F adversarial acceptance has no known specification-breaking blocker.
+If all executable workflows are green:
+1. reconcile the persistence acceptance checklist in `PHASE11_TECH_PERSISTENCE.md` against all three dedicated 12F runners and identify any still-uncovered persistence invariant; cover remaining persistence gaps in one coherent batch if any exist;
+2. if persistence acceptance is exhausted, move 12F to a substantial non-persistence adversarial cluster: hostile state-machine/UI event ordering, impossible/edge planning layouts and campaign/content lock bypass attempts, using the frozen authority for each subsystem;
+3. keep 12G blocked until 12F has no known specification-breaking blocker.
 
 Do not report overall completion until `IMPLEMENTATION COMPLETE = YES`.
