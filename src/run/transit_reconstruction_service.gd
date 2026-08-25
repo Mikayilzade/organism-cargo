@@ -20,7 +20,8 @@ func resume_current(compatibility: Dictionary) -> Dictionary:
 	var record: Dictionary = record_value
 	var reconstructed: Dictionary = reconstruct_record(record, compatibility)
 	if not bool(reconstructed.get("ok", false)):
-		if String(reconstructed.get("recovery_class", "")) == "C":
+		var recovery_class: String = String(reconstructed.get("recovery_class", ""))
+		if recovery_class == "C":
 			var mismatch_record: Dictionary = record.duplicate(true)
 			mismatch_record["lifecycle_state"] = "RECONSTRUCTION_MISMATCH"
 			var diagnostics_value: Variant = reconstructed.get("diagnostics", {})
@@ -30,6 +31,23 @@ func resume_current(compatibility: Dictionary) -> Dictionary:
 			var mismatch_write: Dictionary = _save_store.write(&"session", payload)
 			if not bool(mismatch_write.get("ok", false)):
 				return _failure("mismatch_persist_failed:%s" % String(mismatch_write.get("error", "unknown")))
+		elif recovery_class == "D":
+			var baseline_value: Variant = record.get("canonical_committed_input", {})
+			var planning_baseline: Dictionary = baseline_value.duplicate(true) if baseline_value is Dictionary else {}
+			var invalidated_record: Dictionary = record.duplicate(true)
+			invalidated_record["lifecycle_state"] = "ABANDONED/INVALIDATED"
+			invalidated_record["compatibility_recovery_reason"] = String(reconstructed.get("error", "missing_compatibility_package"))
+			invalidated_record["planning_baseline"] = planning_baseline.duplicate(true)
+			invalidated_record["restart_under_current_version_required"] = true
+			invalidated_record.erase("reconstruction_diagnostics")
+			payload["committed_run"] = invalidated_record
+			var invalidated_write: Dictionary = _save_store.write(&"session", payload)
+			if not bool(invalidated_write.get("ok", false)):
+				return _failure("compatibility_invalidation_persist_failed:%s" % String(invalidated_write.get("error", "unknown")))
+			reconstructed["record"] = invalidated_record.duplicate(true)
+			reconstructed["planning_baseline"] = planning_baseline.duplicate(true)
+			reconstructed["restart_required"] = true
+			reconstructed["recovery_action"] = "restart_from_committed_layout_under_current_version"
 		return reconstructed
 
 	var verified_record: Dictionary = record.duplicate(true)

@@ -42,3 +42,7 @@ jobs:
       - name: Run Phase 12F crash resume cloud attack cluster
         shell: bash
         run: /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/phase12f_crash_resume_cloud_adversarial_test_runner.gd
+
+      - name: Run Phase 12F compatibility recovery attack cluster
+        shell: bash
+        run: /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/phase12f_compatibility_recovery_adversarial_test_runner.gd

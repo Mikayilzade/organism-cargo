@@ -17,53 +17,59 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 190
+## Current implementation checkpoint — Increment 191
 
 ### Phase / subsystem
-**12F adversarial persistence — focused CI repair for migration recovery fixture normalization**
+**12F adversarial persistence — compatibility recovery class D + retained-legacy reconstruction acceptance**
 
 ### Repository truth / entry validation
 - Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact current authority `PHASE11_TECH_PERSISTENCE.md`.
-- Entry head: `97be81fa52e98794f40bc6990658002dba3e9b59` (Increment 189).
-- Inspected all three exact Increment-189 push workflows on that SHA:
-  - `Godot Headless Tests` run `32832442446`: **success**;
-  - `Content Population Validator` run `32832442544`: **success**;
-  - `Phase 12F Persistence Adversarial` run `32832442574`: **failure**.
-- Inspected failing persistence job `97753906904` down to the first executable failure. Project import and the original persistence attack cluster passed; the reconciliation cluster failed one migration-recovery assertion before the new crash/resume/cloud runner could execute.
-- Exact failure: the test compared the original in-memory fixture (`save_format_version = 1`, integer Variant) against the payload returned from the durable JSON save (`save_format_version = 1.0`, float Variant). Godot's JSON round-trip normalization preserves the numeric value but not the integer Variant type, so the assertion was testing pre-save representation identity instead of the canonical requirement: preservation of the exact durable source generation.
+- Entry head: `23c824acedba2b8c4318c4764a0ba193771aeafd` (Increment 190).
+- Inspected the exact Increment-190 push runs on that SHA. All three required workflows completed successfully: `Phase 12F Persistence Adversarial` run `32837107804`, `Godot Headless Tests`, and `Content Population Validator`.
+- Reconciled the dedicated 12F persistence coverage against `PHASE11_TECH_PERSISTENCE.md` section 12 and the checksum-mismatch policy in section 4.
+- Found one concrete uncovered production invariant: `_validate_compatibility()` already classified missing/incorrect compatibility as recovery class D, but `resume_current()` only persisted class C quarantine. A class-D Continue could therefore return an error without durably invalidating the obsolete run or retaining an explicit editable planning baseline, contrary to the canonical missing-compatibility behavior.
 
-### Implemented in Increment 190 — one focused repair batch only
-- Repaired only `tests/unit/phase12f_reconciliation_adversarial_test_runner.gd` as required by the red-CI branch of `NEXT ACTION`.
-- After the migration source fixture is successfully written, the test now reloads the validated durable source payload before attempting migration.
-- On forced `2->3` migration failure, `source_recovery` is compared against that exact persisted pre-migration payload rather than against the pre-serialization in-memory dictionary.
-- This strengthens the intended invariant: failed migration must return/preserve the same source generation that actually exists on disk, including canonical JSON normalization details.
-- Existing checks still separately prove the failed migration leaves stored format version at 1, preserves Bronze progress, and creates a validated backup recovery generation.
-- No production persistence code, migration semantics, save schema, gameplay rule, simulation behavior, campaign progression or content changed.
+### Implemented in Increment 191
+- Extended `TransitReconstructionService.resume_current()` with explicit recovery-class-D handling.
+- When an in-progress run references a rules/content/contract package that cannot reconstruct it exactly, the service now:
+  - refuses to simulate under the supplied current-but-different package;
+  - preserves the immutable old `run_id` and `canonical_committed_input` for diagnostics/history;
+  - durably changes lifecycle to `ABANDONED/INVALIDATED`;
+  - stores an exact `planning_baseline` clone of the committed layout;
+  - records the compatibility failure reason and `restart_under_current_version_required = true`;
+  - returns the truthful recovery action `restart_from_committed_layout_under_current_version`;
+  - does not fabricate a final-result checksum or old outcome.
+- Added `phase12f_compatibility_recovery_adversarial_test_runner.gd` and wired it into the single existing hard-fail persistence workflow.
+- The new runner attacks both sides of the compatibility boundary:
+  - a retained exact legacy rules/content/contract package reconstructs the old committed run deterministically and preserves its run identity;
+  - a missing legacy package represented by current-but-different compatibility enters class D, durably invalidates only the resumable session, preserves the exact committed layout as restart baseline, does not fabricate an outcome, and cannot silently resume again.
+- The class-D attack also seeds permanent Bronze/Gold/completion-ledger profile state and proves session invalidation cannot roll historical permanent progression back.
+- No gameplay mechanic, simulation phase, checksum algorithm, campaign graph, content definition, medal rule or save schema was redesigned.
 
 ### Validation / policy
-- Increment-189 broad `Godot Headless Tests` and `Content Population Validator` are green.
-- The exact dedicated persistence failure was inspected from executable job logs before changing anything.
-- Static review confirms the repair changes only the adversarial assertion baseline; it does not relax any canonical persistence requirement from `PHASE11_TECH_PERSISTENCE.md` section 8/12.
-- This runtime has no local Godot 4.7.1 binary. Fresh GitHub Actions from the single Increment-190 checkpoint are the executable validation path.
-- Per anti-spam policy, no additional persistence scope or speculative follow-up fix is included in this run.
+- Increment-190 dedicated persistence CI, broad Godot headless CI and content validation are green before this change.
+- Static review traces the new behavior directly to `PHASE11_TECH_PERSISTENCE.md` section 4 class D and section 12 reconstruction acceptance.
+- The new focused runner is added to the existing persistence workflow rather than creating another workflow surface.
+- This runtime has no local Godot 4.7.1 binary. Fresh GitHub Actions from this single Increment-191 checkpoint are the executable validation path.
+- All meaningful code/test/workflow/status changes are batched into one checkpoint commit/push.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh Increment-190 CI must confirm the reconciliation runner now passes and allows the third crash/resume/cloud attack runner to execute.
-- If any fresh executable workflow is red, inspect the first exact failure and make one focused repair batch only next run.
+- Fresh Increment-191 CI must confirm Godot 4.7.1 parsing and all four dedicated persistence attack runners together.
+- Persistence acceptance should be reconciled one final time after CI; any still-uncovered canonical invariant must be covered before leaving this domain.
 - 12F remains incomplete; do not begin 12G yet.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the exact Increment-190 `Phase 12F Persistence Adversarial`, `Godot Headless Tests`, and `Content Population Validator` workflows.
+At the start of the next run, inspect the exact Increment-191 `Phase 12F Persistence Adversarial`, `Godot Headless Tests`, and `Content Population Validator` workflows.
 
 If any executable workflow is red, inspect the first exact executable failure and make one focused repair batch only; do not stack speculative fixes.
 
 If all executable workflows are green:
-1. reconcile the persistence acceptance checklist in `PHASE11_TECH_PERSISTENCE.md` against all three dedicated 12F runners and identify any still-uncovered persistence invariant; cover remaining persistence gaps in one coherent batch if any exist;
-2. if persistence acceptance is exhausted, move 12F to a substantial non-persistence adversarial cluster: hostile state-machine/UI event ordering, impossible/edge planning layouts and campaign/content lock bypass attempts, using the frozen authority for each subsystem;
+1. perform a final line-by-line reconciliation of the mandatory persistence acceptance list in `PHASE11_TECH_PERSISTENCE.md` against the four dedicated 12F runners plus already-green broad persistence tests; cover any remaining concrete gap in one coherent batch;
+2. if persistence acceptance is exhausted, move immediately to a substantial non-persistence 12F adversarial cluster: hostile state-machine/UI event ordering plus impossible/edge planning layouts and campaign/content lock-bypass attempts, reading the frozen authority chain for those exact subsystems first;
 3. keep 12G blocked until 12F has no known specification-breaking blocker.
 
 Do not report overall completion until `IMPLEMENTATION COMPLETE = YES`.
