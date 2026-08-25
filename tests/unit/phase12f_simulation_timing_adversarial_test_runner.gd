@@ -94,7 +94,9 @@ func _test_phase_a_brownout_is_input_order_invariant() -> void:
 		{"instance_id": "cooler-a", "powered": true, "power_draw": 4, "supports_degraded_operation": false},
 		{"instance_id": "monitor-a", "powered": true, "power_draw": 1, "supports_degraded_operation": false},
 	]
-	var supports_b: Array = [supports_a[1].duplicate(true), supports_a[0].duplicate(true)]
+	var monitor_support: Dictionary = supports_a[1]
+	var cooler_support: Dictionary = supports_a[0]
+	var supports_b: Array = [monitor_support.duplicate(true), cooler_support.duplicate(true)]
 	var priority: Array = ["cooler-a", "monitor-a"]
 	var first: Dictionary = resolver.resolve(4, supports_a, priority)
 	var second: Dictionary = resolver.resolve(4, supports_b, priority)
