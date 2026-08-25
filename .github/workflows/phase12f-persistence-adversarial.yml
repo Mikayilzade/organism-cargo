@@ -34,3 +34,7 @@ jobs:
       - name: Run Phase 12F persistence attack cluster
         shell: bash
         run: /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/phase12f_persistence_adversarial_test_runner.gd
+
+      - name: Run Phase 12F reconciliation attack cluster
+        shell: bash
+        run: /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/phase12f_reconciliation_adversarial_test_runner.gd
