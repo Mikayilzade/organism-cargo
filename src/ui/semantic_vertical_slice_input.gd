@@ -5,12 +5,14 @@ const InputActionCatalogScript := preload("res://src/ui/input_action_catalog.gd"
 const PlanningFocusRouterScript := preload("res://src/ui/planning_focus_router.gd")
 const PlanningSupportConfigModelScript := preload("res://src/ui/planning_support_config_model.gd")
 const TransitReviewNavigationModelScript := preload("res://src/ui/transit_review_navigation_model.gd")
+const PHASE12E_NAVIGATION_SURFACE_PATH := "res://src/ui/phase12e_navigation_surface.gd"
 
 var _control: AccessibleVerticalSliceControl
 var _flow: VerticalSliceFlowCoordinator
 var _router: PlanningFocusRouter
 var _support_config: PlanningSupportConfigModel
 var _transit_review: TransitReviewNavigationModel
+var _navigation_surface: Object
 var _manifest_ids: Array[String] = []
 var _manifest_focus_index: int = 0
 
@@ -48,6 +50,13 @@ func configure(control: AccessibleVerticalSliceControl, flow: VerticalSliceFlowC
 	var transit_configured: Dictionary = _transit_review.configure_transit(context)
 	if not bool(transit_configured.get("ok", false)):
 		return transit_configured
+	_navigation_surface = _new_navigation_surface()
+	if _navigation_surface == null or not _navigation_surface is Control or not _navigation_surface.has_method("configure"):
+		return _fail("phase12e_navigation_surface_unavailable")
+	_control.add_child(_navigation_surface as Control)
+	var nav_configured_value: Variant = _navigation_surface.call("configure", _control, _flow, context)
+	if not nav_configured_value is Dictionary or not bool((nav_configured_value as Dictionary).get("ok", false)):
+		return _fail("phase12e_navigation_surface_configure_failed")
 	_render_planning_semantics()
 	return {"ok": true, "error": "", "snapshot": snapshot()}
 
@@ -61,6 +70,8 @@ func dispatch(action: StringName) -> Dictionary:
 		AppStateMachine.State.TITLE, AppStateMachine.State.CAMPAIGN_MAP, AppStateMachine.State.CONTRACT_BRIEF:
 			if action == &"accept":
 				result = _control.activate_primary_action()
+			elif action == &"inspect":
+				result = _navigation_call("open_codex")
 		AppStateMachine.State.PLANNING:
 			result = _dispatch_planning(action)
 		AppStateMachine.State.LAUNCH_CONFIRM:
@@ -75,8 +86,11 @@ func dispatch(action: StringName) -> Dictionary:
 			result = _dispatch_transit(action)
 		AppStateMachine.State.CAUSAL_REVIEW:
 			result = _dispatch_review(action)
+		AppStateMachine.State.CODEX:
+			result = _dispatch_codex(action)
 	if _flow.current_state() == AppStateMachine.State.PLANNING:
 		_render_planning_semantics()
+	_sync_navigation_surface()
 	return result
 
 func snapshot() -> Dictionary:
@@ -88,6 +102,7 @@ func snapshot() -> Dictionary:
 		"state": -1 if _flow == null else _flow.current_state(),
 		"transit": {} if _transit_review == null else _transit_review.transit_snapshot(),
 		"review": {} if _transit_review == null else _transit_review.review_snapshot(),
+		"review_exit_action": &"" if _navigation_surface == null or not _navigation_surface.has_method("selected_review_action") else _navigation_surface.call("selected_review_action"),
 	}
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -114,6 +129,8 @@ func _dispatch_planning(action: StringName) -> Dictionary:
 		return _control.planning_rotate_selected()
 	if action == &"remove":
 		return _control.planning_remove_selected()
+	if action == &"inspect" and _router.current_region() == &"TOOLBAR":
+		return _navigation_call("open_codex")
 
 	var region: StringName = _router.current_region()
 	if region == &"OBJECTIVES_SUPPORTS" and _support_config.has_supports():
@@ -164,13 +181,30 @@ func _dispatch_review(action: StringName) -> Dictionary:
 	if not bool(ensure_result.get("ok", false)):
 		return ensure_result
 	if action == &"accept":
-		return _control.activate_primary_action()
+		return _navigation_call("review_activate_selected")
+	if action == &"navigate_left":
+		return _navigation_call("review_move", -1)
+	if action == &"navigate_right":
+		return _navigation_call("review_move", 1)
+	if action == &"cancel":
+		return _flow.return_to_campaign_map()
+	if action == &"inspect":
+		return _navigation_call("open_codex")
 	if action in [
 		&"review_event_previous", &"review_event_next", &"jump_failed_predicate", &"jump_root_cause",
-		&"compare_start_final", &"panel_next", &"panel_previous", &"region_next", &"region_previous", &"inspect"
+		&"compare_start_final", &"panel_next", &"panel_previous", &"region_next", &"region_previous"
 	]:
 		return _transit_review.review_command(action)
 	return _fail("action_not_available_in_review")
+
+func _dispatch_codex(action: StringName) -> Dictionary:
+	if action == &"cancel" or action == &"accept":
+		return _navigation_call("close_codex")
+	if action == &"navigate_up" or action == &"panel_previous":
+		return _navigation_call("codex_scroll", -1)
+	if action == &"navigate_down" or action == &"panel_next":
+		return _navigation_call("codex_scroll", 1)
+	return _fail("action_not_available_in_codex")
 
 func _ensure_review_configured() -> Dictionary:
 	var review_snapshot: Dictionary = _transit_review.review_snapshot()
@@ -197,6 +231,22 @@ func _render_planning_semantics() -> void:
 	if _control == null or _router == null or _support_config == null:
 		return
 	_control.planning_render_semantic_state(_router.snapshot(), _support_config.snapshot(), "" if _manifest_ids.is_empty() else _manifest_ids[_manifest_focus_index])
+
+func _new_navigation_surface() -> Object:
+	var script: GDScript = load(PHASE12E_NAVIGATION_SURFACE_PATH) as GDScript
+	return null if script == null else script.new()
+
+func _navigation_call(method: StringName, arg: Variant = null) -> Dictionary:
+	if _navigation_surface == null or not _navigation_surface.has_method(method):
+		return _fail("phase12e_navigation_surface_unavailable")
+	var value: Variant = _navigation_surface.call(method) if arg == null else _navigation_surface.call(method, arg)
+	if not value is Dictionary:
+		return _fail("phase12e_navigation_surface_invalid_result")
+	return value
+
+func _sync_navigation_surface() -> void:
+	if _navigation_surface != null and _navigation_surface.has_method("sync_from_flow"):
+		_navigation_surface.call("sync_from_flow")
 
 static func _fail(error: String) -> Dictionary:
 	return {"ok": false, "error": error}

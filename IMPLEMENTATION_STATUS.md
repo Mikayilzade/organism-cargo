@@ -17,53 +17,56 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 182
+## Current implementation checkpoint — Increment 183
 
 ### Phase / subsystem
-**12E UX / Accessibility / Controller / Deck — focused editor-import repair by removing shell-time dependency on accessibility global classes**
+**12E UX / Accessibility / Controller / Deck — rendered post-run Retry/Reset/Map navigation + scroll-safe exact-rule Codex path**
 
 ### Repository truth / entry validation
-- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the active-domain authorities `PHASE11_UX_ACCESSIBILITY.md` and `PHASE11_TECH_PERSISTENCE.md`.
-- Entry head: `a24c908aab103e1e398e71bb678aa149d2c70248` (Increment 181).
-- Inspected Increment-181 `godot-headless` run `32798529157`: workflow completed **success**, preserving the full non-editor gameplay/headless contract suite.
-- Inspected Increment-181 `content-population` run `32798529208`, job `97654705546`: executable editor import still failed at `src/app/shell.gd:6` while resolving `preload("res://src/ui/accessible_vertical_slice_control.gd")`.
-- The same editor scan completed global-class registration, including `AccessibleVerticalSliceControl`, `CriticalSignalPresentationBuilder` and `SemanticVerticalSliceInput`, before the shell dependency was resolved. This confirms the remaining failure is shell-time global-class/preload coupling in editor import, not missing files or a failing runtime acceptance path.
+- Re-read `IMPLEMENTATION_START_HERE.md`, `IMPLEMENTATION_STATUS.md`, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the active-domain authority `PHASE11_UX_ACCESSIBILITY.md` and supporting `UX_ARCHITECTURE.md` post-run/Codex rules.
+- Entry head: `3742f6b52608d86e29758fee3aa6e40317afc278` (Increment 182).
+- Inspected Increment-182 `godot-headless` run `32801334309`: workflow completed **success**.
+- Inspected Increment-182 `content-population` run `32801334310`: workflow completed **success**, confirming the prior editor-import dependency repair worked.
+- Both executable workflows are green, so this run resumed the substantial green-CI branch rather than continuing repair churn.
 
-### Implemented in Increment 182
-- Followed the red-CI branch of the prior `NEXT ACTION`; no Retry/Reset/map/Codex feature expansion was started.
-- Removed shell-level eager preloads and static type dependencies on `AccessibleVerticalSliceControl` and `SemanticVerticalSliceInput`.
-- `shell.gd` now keeps only stable base/built-in ownership types (`VerticalSliceControl` and `Node`) and loads the concrete accessible control / semantic input scripts at runtime through a single `_new_script_instance(...)` boundary.
-- Runtime construction explicitly validates that the accessible instance derives from `VerticalSliceControl` and the semantic input instance derives from `Node` before attaching either to the shell.
-- The semantic input configure call is made through the runtime object boundary, so editor import no longer has to resolve the accessibility subclass graph merely to parse the persistent shell.
-- `slice_control()` still returns `VerticalSliceControl`, preserving existing shell playability/test call sites; the concrete runtime object remains the same `AccessibleVerticalSliceControl` implementation.
-- Settings visibility/input ownership behavior is unchanged, and the normal runtime path still instantiates the same accessibility and semantic scripts, so the already-green headless suite remains the executable guard for behavior preservation.
-- No simulation rule, authoritative tick order, checksum, persistence semantics, campaign progression, content, Launch/Results ownership, or frozen gameplay behavior changed.
+### Implemented in Increment 183
+- Added a rendered `Phase12ENavigationSurface` attached to the player-facing accessible control through the semantic-input layer.
+- Causal Review now renders the three frozen post-run actions as discrete focusable controls: `Retry from last launch`, `Reset contract`, and `Return to map`.
+- Review action navigation is fully semantic: Left/Right moves among the three focus targets; Accept activates the selected action. Default focus remains Retry, preserving the existing safe failure-review behavior.
+- `Reset contract` now has an explicit flow operation separate from targeted Retry. It returns to Planning with an authored initial/reset canonical baseline; the reset baseline may be structurally incomplete, which is valid because planning is where the player rebuilds it.
+- `Return to map` now has a direct flow/state path from Causal Review (and other safe post-contract states) instead of requiring pointer-only escape or an undefined intermediate state.
+- Added Codex entry/return ownership to the state machine. Codex remembers the state it was opened from and returns to that state on Cancel/Accept.
+- Added semantic Codex entry from non-transit contract navigation via the remappable Inspect action. In Codex, Up/Down and panel previous/next scroll, while Cancel/Accept returns.
+- Added a rendered Codex panel using `ScrollContainer + RichTextLabel`, word wrapping, no horizontal precision requirement and no ellipsis. Exact data is derived from documented species payloads already supplied to the planning context rather than a parallel invented rules database.
+- This gives maximum-scale-safe access to exact numeric/arithmetic rule data through scrolling instead of clipping or hiding text.
+- Existing Causal Review event navigation remains on its frozen dedicated actions (`review_event_*`, failed predicate/root cause, compare and panel actions); only Left/Right is reserved for the new post-run action strip.
+- No simulation rule, tick ordering, checksum, persistence authority, content balance, campaign graph, Launch ownership or deterministic outcome behavior changed.
 
 ### Validation / policy
-- Inspected the exact failing Increment-181 content-validator job log before editing and confirmed the first executable failure is still the shell preload at line 6.
-- Confirmed Increment-181 full non-editor headless workflow is green before making this repair.
-- Static dependency review verifies `shell.gd` no longer mentions `AccessibleVerticalSliceControl` or `SemanticVerticalSliceInput` as preload constants or variable/return types; both are deferred until runtime after normal project execution begins.
-- Existing shell tests type the returned player-facing control as `VerticalSliceControl`, which remains compatible with the concrete accessibility subclass.
-- Local network access prevents reproducing the GitHub-hosted Godot binary in this runtime; fresh GitHub Actions remain the executable editor-import validation path.
-- One coherent source/status checkpoint is used; no speculative second CI repair is made in this run.
+- Increment-182 editor-import and full headless workflows were both verified green before feature work.
+- Added focused `Phase12EReviewCodexAcceptance`, invoked from the existing `vertical_slice_control_test_runner.gd` workflow case so no extra CI workflow churn is required.
+- The focused acceptance exercises: map -> Codex without pointer, exact-rule text presence, word wrapping, scroll-container access, semantic Codex scrolling/return, full launch/transit -> Causal Review, rendered Retry/Reset/Map strip, semantic Reset, reset-to-initial empty placement baseline, and semantic Return to map.
+- The existing vertical-slice control acceptance continues to cover the default Retry path; the new acceptance adds the previously missing Reset and Return-to-map branches.
+- Fresh Increment-183 GitHub Actions are the executable parse/runtime validation path; this runtime still cannot download a local Godot binary.
+- All code/test/status changes are batched into one coherent checkpoint; no speculative follow-up push is made in this run.
 
 ### Blockers / cautions
 - No user-action blocker.
-- Fresh Increment-182 CI must confirm `--headless --editor` now imports the project without resolving the accessibility subclass through `shell.gd`, while the normal full headless suite still instantiates and exercises the runtime accessibility path successfully.
-- If either executable workflow is red, inspect the first exact failure and make one focused repair batch only.
-- If both are green, resume the substantial 12E acceptance cluster: complete Retry / Reset / Return to map with semantic keyboard/controller/Deck access, then implement Codex exact-rule reachability at maximum UI scale in the same coherent cluster if test quality remains strong.
+- Fresh Increment-183 CI must confirm Godot 4.7.1 editor import and the full headless suite accept the new navigation surface, Codex return-state handling and focused acceptance helper.
+- The Codex surface currently proves exact documented rule reachability for data present in the representative planning/species context; later 12E work may broaden its authored entry categories without changing this accessibility contract.
+- 12E remains incomplete: save-recovery choice UX, campaign-completion UX, first-run/onboarding completeness and remaining representative maximum-scale/device matrix repetition are still outstanding.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the actual linked `content-population` and `godot-headless` executable logs/statuses for Increment 182.
+At the start of the next run, inspect the actual linked `content-population` and `godot-headless` executable logs/statuses for Increment 183.
 
 If either executable workflow is red, inspect the first exact executable failure and make one focused repair batch only.
 
 If both executable workflows are green, take the next substantial 12E acceptance cluster:
-1. implement and render the complete `Retry / Reset / Return to map` required path with semantic keyboard/controller/Deck access and focused headless coverage;
-2. in the same coherent cluster, implement the required Codex entry/navigation surface far enough to prove exact rule/arithmetic text remains reachable at maximum UI scale without pointer-only interaction;
-3. leave save-recovery and campaign-completion as the following acceptance cluster unless they can be included without weakening recoverability or test quality.
+1. implement the complete save-recovery choice surface and semantic keyboard/controller/Deck path, preserving `PHASE11_TECH_PERSISTENCE.md` deterministic reconstruction/atomic recovery authority;
+2. implement campaign-completion navigation/presentation with semantic access and focused acceptance coverage;
+3. then audit the remaining 12E matrix gaps (first-run/preflight, maximum-scale representative repetition and device-path coverage) and close as many as can be coherently tested in one checkpoint.
 
 Do not begin 12F until the full 12E acceptance matrix is implemented and green. Do not report overall completion until `IMPLEMENTATION COMPLETE = YES`.

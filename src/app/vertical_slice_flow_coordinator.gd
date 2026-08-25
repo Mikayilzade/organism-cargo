@@ -137,6 +137,36 @@ func begin_retry(retry_revision_id: String, structural_facts: Dictionary) -> Dic
 		return _failure("missing_committed_run")
 	return _retry.begin_retry(loaded["committed_run"], retry_revision_id, structural_facts)
 
+func reset_contract(reset_revision_id: String, canonical_input: Dictionary, structural_facts: Dictionary) -> Dictionary:
+	if _state_machine.current_state() != AppStateMachine.State.CAUSAL_REVIEW:
+		return _failure("invalid_state")
+	if reset_revision_id.strip_edges().is_empty():
+		return _failure("missing_reset_revision_id")
+	if not _state_machine.transition_to(AppStateMachine.State.PLANNING):
+		return _failure("reset_transition_failed")
+	var snapshot: Dictionary = _planning.apply_revision(reset_revision_id, canonical_input, structural_facts)
+	if not bool(snapshot.get("ok", false)):
+		return _failure("reset_seed_failed:%s" % String(snapshot.get("error", "unknown")))
+	snapshot["reset_contract"] = true
+	return snapshot
+
+func return_to_campaign_map() -> Dictionary:
+	if _state_machine.current_state() not in [AppStateMachine.State.CAUSAL_REVIEW, AppStateMachine.State.RESULTS, AppStateMachine.State.PLANNING, AppStateMachine.State.CONTRACT_BRIEF]:
+		return _failure("invalid_state")
+	if not _state_machine.transition_to(AppStateMachine.State.CAMPAIGN_MAP):
+		return _failure("campaign_map_transition_failed")
+	return {"ok": true, "error": ""}
+
+func open_codex() -> Dictionary:
+	if not _state_machine.enter_codex():
+		return _failure("codex_transition_failed")
+	return {"ok": true, "error": "", "return_state": _state_machine.codex_return_state()}
+
+func close_codex() -> Dictionary:
+	if not _state_machine.exit_codex():
+		return _failure("codex_return_failed")
+	return {"ok": true, "error": "", "state": _state_machine.current_state()}
+
 func current_state() -> AppStateMachine.State:
 	return _state_machine.current_state()
 

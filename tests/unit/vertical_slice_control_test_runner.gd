@@ -5,6 +5,7 @@ const AtomicSaveStoreScript := preload("res://src/save/atomic_save_store.gd")
 const VerticalSliceFlowCoordinatorScript := preload("res://src/app/vertical_slice_flow_coordinator.gd")
 const VerticalSliceControlScript := preload("res://src/ui/vertical_slice_control.gd")
 const Phase12ERenderedCriticalSignalAcceptanceScript := preload("res://tests/unit/phase12e_rendered_critical_signal_acceptance.gd")
+const Phase12EReviewCodexAcceptanceScript := preload("res://tests/unit/phase12e_review_codex_acceptance.gd")
 
 var failures: int = 0
 var run_sequence: int = 0
@@ -53,6 +54,11 @@ func _run() -> void:
 	var rendered_failures: Array[String] = await acceptance.run(self, Callable(self, "_next_run_id"))
 	for rendered_failure: String in rendered_failures:
 		_expect(false, "Phase12E rendered critical signal acceptance: %s" % rendered_failure)
+
+	var review_codex: Phase12EReviewCodexAcceptance = Phase12EReviewCodexAcceptanceScript.new()
+	var review_codex_failures: Array[String] = await review_codex.run(self, Callable(self, "_next_run_id"))
+	for review_codex_failure: String in review_codex_failures:
+		_expect(false, "Phase12E review/Codex acceptance: %s" % review_codex_failure)
 
 	if failures == 0:
 		print("vertical_slice_control_test_runner: PASS")
