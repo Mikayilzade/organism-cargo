@@ -1,0 +1,11 @@
+{
+  "schema_version": "phase12g-bronze-geometry-v1",
+  "corpus_metadata": {
+    "corpus_id": "phase12g-certified-bronze-production",
+    "solver_version": "UNASSIGNED",
+    "content_version": "UNASSIGNED",
+    "authoritative_corpus": false,
+    "status": "AWAITING_AUTHORITATIVE_CERTIFIED_SOLUTIONS"
+  },
+  "solutions": []
+}

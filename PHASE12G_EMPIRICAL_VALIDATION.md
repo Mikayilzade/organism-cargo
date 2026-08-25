@@ -1,71 +1,94 @@
 # PHASE 12G EMPIRICAL VALIDATION HARNESS
 
-Status: **IN PROGRESS — EVIDENCE INFRASTRUCTURE ONLY**
+Status: **IN PROGRESS — EVIDENCE INFRASTRUCTURE / COLLECTION SUPPORT**
 
-This file documents the Phase-12G empirical evidence harness. It is not a gameplay design amendment and does not claim any human/prototype gate has passed. `PHASE11_FINAL_FREEZE.md` remains the highest implementation-sensitive authority.
+This file documents the Phase-12G empirical evidence path. It is not a gameplay design amendment and does not claim any human/prototype gate has passed. `PHASE11_FINAL_FREEZE.md` remains the highest implementation-sensitive authority.
 
 ## Separation of concerns
 
-Production observations live in `validation/phase12g/observations.v1.json`. That file starts with an empty `samples` array and must contain real observations only. Synthetic observations belong only in tests.
+Production human observations live in `validation/phase12g/observations.v1.json`. Synthetic observations belong only in tests. The production file remains empty until real study observations are supplied.
 
-`src/validation/phase12g_empirical_evidence_evaluator.gd` validates the observation schema and derives an evaluation report. The evaluator never mutates gameplay state, campaign state, saves, simulation inputs, contract content, or the production observation file.
+`Phase12GEmpiricalEvidenceEvaluator` validates the frozen six observation kinds and evaluates the already-frozen thresholds. `Phase12GEmpiricalEvidenceStore` provides atomic raw capture. Neither mutates gameplay, campaign state, saves, simulation inputs, or content.
 
-Malformed samples fail closed. Unknown schema versions, sample kinds, species-cluster membership, post-launch dependency categories, missing required fields, duplicate sample IDs, and invalid numeric values are rejected rather than silently omitted.
+Increment 200 adds an operator layer rather than changing the base evidence math: `Phase12GEvidenceReportService` imports an external versioned JSON dataset, validates provenance/cohort declarations, filters only explicitly eligible cohorts, and emits stable machine-readable JSON plus a fixed-order human-readable gate report. `tools/phase12g_evidence_report.gd` is the command-line entry point.
 
-## Schema version
+## Observation schema
 
-Current schema: `phase12g-evidence-v1`.
+Evidence schema: `phase12g-evidence-v1`.
 
-Every sample has:
-- `sample_id`: unique non-empty observation identifier;
-- `sample_type`: one of the six kinds below;
-- `tester_id`: non-empty participant identifier chosen by the study operator;
-- `captured_at_unix`: positive observation timestamp.
+Every sample still requires:
+- `sample_id`;
+- `sample_type`;
+- `tester_id`;
+- `captured_at_unix`;
+- the type-specific fields frozen in Increment 199.
 
-The harness does not prescribe collection of personally identifying data. Tester IDs can and should be study-local pseudonyms where possible.
+Operator-import datasets additionally require:
+- non-empty `dataset_id`;
+- `collection_metadata.metadata_version = phase12g-collection-v1`;
+- non-empty `source_id`, `collection_owner`, and `cohort_policy_version`;
+- an explicit `cohort` on every observation.
 
-## Observation kinds
+Production metadata uses an explicit `UNASSIGNED_OPERATOR` / `EMPTY_AWAITING_REAL_OBSERVATIONS` state rather than fabricating study provenance.
 
-### `failed_review_retry`
-Required additional fields: `contract_id`, `causal_explanation`, `intended_revision`, `blind_shuffle`.
+## Cohort policy
 
-The frozen >=70% retry gate counts a sample as hypothesis-driven only when the tester supplies both a non-empty specific causal explanation and a non-empty intended revision and the observation is not marked as blind shuffle.
+Allowed cohorts are:
+- `POST_ONBOARDING_FAMILIAR_ORDINARY`;
+- `POST_ONBOARDING_MASTERY`;
+- `TUTORIAL_ONBOARDING`;
+- `DEMO_TEST`;
+- `REDUNDANCY_CLUSTER`.
 
-### `memorable_outcome`
-Required: `outcome_description`, `post_launch_dependency`.
+Filtering is deterministic and happens before threshold evaluation:
+- failed-review retry, memorable-outcome, and Review-usability evidence may use post-onboarding ordinary or mastery observations;
+- the frozen <=8 minute planning median uses only `POST_ONBOARDING_FAMILIAR_ORDINARY`, and those samples must also carry `ordinary_non_mastery=true` and `rule_familiarity=true`;
+- mastery planning observations remain preserved in the source dataset but are excluded from that median;
+- tutorial/onboarding samples cannot silently enter post-onboarding gates;
+- `demo_identity` requires `DEMO_TEST`;
+- `species_decision` requires `REDUNDANCY_CLUSTER`.
 
-Allowed dependency classifications: `STATE`, `FOOTPRINT`, `CHANNEL`, `SUPPORT_POWER`, `NONE`, `UNKNOWN`. The first four count toward the frozen >=50% post-launch-change target.
+This filtering does not alter any frozen threshold.
 
-### `planning_duration`
-Required: `contract_id`, `duration_seconds`, `ordinary_non_mastery`, `rule_familiarity`.
+## Frozen empirical gates
 
-Only samples explicitly marked ordinary non-mastery and after rule familiarity enter the frozen <=8 minute median calculation.
+The base evaluator continues to apply:
+- hypothesis-driven failed Retry >=70%;
+- memorable outcomes depending on post-launch state/footprint/channel/support-power >=50%;
+- ordinary familiar first-launch planning median <=480 seconds;
+- O06/O12/O16 and O05/O19/O20 exact preferred decision similarity >=70% is a redundancy risk;
+- demo `TRANSIT_BEHAVIOR` classification must be a strict majority;
+- Causal Review usability remains `MEASURE_ONLY` because canon freezes no numeric speed/interaction cutoff.
 
-### `species_decision`
-Required: `contract_id`, `cluster_id`, `species_id`, `placement_choice`, `support_choice`, `revision_choice`.
+A valid empty evidence dataset evaluates `INCOMPLETE`, never PASS.
 
-Frozen comparison clusters are:
-- `SOOTHER_HELPER`: O06, O12, O16;
-- `PROTECTOR_HELPER`: O05, O19, O20.
+## Operator report path
 
-Comparison is paired by `tester_id + contract_id`. The harness reports placement, support, revision and exact three-field similarity per species pair. Exact preferred-decision tuple similarity >=70% is flagged as representative redundancy risk, matching the Phase-12F empirical classification; it does not automatically rewrite or merge content.
+Example invocation from the repository root:
 
-### `demo_identity`
-Required: `response_text`, `classification`.
+`godot --headless --path . --script tools/phase12g_evidence_report.gd -- --evidence=res://validation/phase12g/observations.v1.json --json-out=user://phase12g/report.json --text-out=user://phase12g/report.txt`
 
-Allowed classifications: `TRANSIT_BEHAVIOR`, `STATIC_PACKING`, `OTHER`. Canon says most demo testers should describe planning for transit behavior, so the evaluator requires a strict >50% `TRANSIT_BEHAVIOR` share when evidence exists.
+A gate result of PASS, FAIL, INCOMPLETE, or MEASURE_ONLY is valid report output; malformed evidence/provenance is an import error. The operator tool never writes back into gameplay/content data.
 
-### `review_usability`
-Required: `contract_id`, `actionable_first_cause`, `raw_log_read`. Optional: `time_to_first_cause_seconds`, `interaction_count`.
+## Certified-Bronze geometry evidence
 
-The evaluator reports the actionable-without-raw-log rate plus median time and interaction count when supplied. Phase 11 freezes no numeric speed/interaction cutoff, so this gate is intentionally `MEASURE_ONLY` rather than inventing a threshold.
+Phase 12F proved that no authoritative certified-solution geometry corpus currently exists. Increment 200 therefore adds a **separate** fail-closed schema rather than inventing solution data:
 
-## Evaluation states
+- schema: `phase12g-bronze-geometry-v1`;
+- production template: `validation/phase12g/bronze_geometry.v1.json`;
+- evaluator: `Phase12GBronzeGeometryEvidenceEvaluator`.
 
-Each gate returns `PASS`, `FAIL`, `INSUFFICIENT_EVIDENCE`, or `MEASURE_ONLY` as applicable. A structurally valid empty production dataset therefore evaluates to `INCOMPLETE`, never PASS.
+Each future solution entry carries a certified solution identity, contract/chapter/order, `isolation_ratio`, `beneficial_relation_count`, symmetry-normalized `normalized_role_to_zone`, high-isolation classification, and certified/primary-family flags.
 
-Automated tests use explicit synthetic fixtures generated inside `tests/unit/phase12g_empirical_evidence_test_runner.gd` only to verify aggregation math, threshold boundaries, exclusion rules, species-pair comparison, and hostile malformed-input rejection.
+The evaluator can check the frozen evidence-dependent content obligations once an authoritative corpus exists:
+- Chapters 2–6 each need at least two certified Bronze contracts where high isolation is inferior or impossible for a rule-based reason;
+- after Chapter 2, the certified primary Bronze family may not repeat the same normalized role-to-zone allocation for more than three consecutive campaign contracts;
+- isolation/beneficial-relation values are reported as measurements without inventing a new global numeric threshold.
 
-## Current evidence state
+The production geometry template has `authoritative_corpus=false` and zero solutions. Its overall state is therefore `INSUFFICIENT_EVIDENCE`. Synthetic authoritative geometry exists only in the focused unit runner to verify aggregation and boundary logic.
 
-No real human observations have been added by this implementation increment. Phase 12G remains open until representative evidence is actually collected and evaluated, including any future certified-Bronze geometry evidence required for the remaining authored isolation/beneficial-relation and normalized role-to-zone obligations.
+## Validation policy
+
+Unknown schema versions, malformed metadata, duplicate sample/solution IDs, invalid cohort membership, impossible numeric ranges, multiple primary solution families for one contract, and invalid classifications fail closed.
+
+Harness existence is not empirical evidence. Phase 12G remains open until real human observations and, where required, an authoritative certified-Bronze corpus are actually supplied and evaluated.

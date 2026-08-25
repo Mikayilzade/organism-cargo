@@ -2,5 +2,12 @@
   "schema_version": "phase12g-evidence-v1",
   "dataset_id": "phase12g-production-observations",
   "description": "Production empirical observations only. Do not add synthetic/test fixtures here.",
+  "collection_metadata": {
+    "metadata_version": "phase12g-collection-v1",
+    "source_id": "phase12g-production",
+    "collection_owner": "UNASSIGNED_OPERATOR",
+    "cohort_policy_version": "phase12g-cohort-policy-v1",
+    "collection_state": "EMPTY_AWAITING_REAL_OBSERVATIONS"
+  },
   "samples": []
 }
