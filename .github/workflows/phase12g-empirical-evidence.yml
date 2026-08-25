@@ -41,3 +41,7 @@ jobs:
       - name: Validate operator import reporting cohorts and Bronze geometry evidence
         shell: bash
         run: /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/phase12g_operator_report_geometry_test_runner.gd
+
+      - name: Validate study merge manifest and certified Bronze ingestion infrastructure
+        shell: bash
+        run: /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/phase12g_study_infrastructure_test_runner.gd
