@@ -310,7 +310,15 @@ func _write_json(path: String, payload: Dictionary) -> Dictionary:
     return {"ok": true, "error": "", "path": path}
 
 static func _checksum(value: Variant) -> String:
-    return JSON.stringify(value, "", true, true).sha256_text()
+    # Hash the same Variant shape that a persisted JSON document will produce.
+    # Godot parses JSON numbers as floats, so hashing a pre-write tree containing
+    # integer Variants and then validating the reloaded tree can otherwise change
+    # the lexical JSON representation and falsely trip the checksum boundary.
+    var serialized: String = JSON.stringify(value, "", true, true)
+    var normalized: Variant = JSON.parse_string(serialized)
+    if normalized == null:
+        return serialized.sha256_text()
+    return JSON.stringify(normalized, "", true, true).sha256_text()
 
 static func _failure(error: String) -> Dictionary:
     return {"ok": false, "error": error}
