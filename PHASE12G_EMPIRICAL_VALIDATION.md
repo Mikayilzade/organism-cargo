@@ -1,6 +1,6 @@
 # PHASE 12G EMPIRICAL VALIDATION HARNESS
 
-Status: **IN PROGRESS — EVIDENCE INFRASTRUCTURE / COLLECTION SUPPORT**
+Status: **AUTOMATABLE PLATFORM COMPLETE — PHASE 12G BLOCKED ON GENUINE EXTERNAL EVIDENCE**
 
 This file documents the Phase-12G empirical evidence path. It is not a gameplay design amendment and does not claim any human/prototype gate has passed. `PHASE11_FINAL_FREEZE.md` remains the highest implementation-sensitive authority.
 
@@ -87,8 +87,24 @@ The evaluator can check the frozen evidence-dependent content obligations once a
 
 The production geometry template has `authoritative_corpus=false` and zero solutions. Its overall state is therefore `INSUFFICIENT_EVIDENCE`. Synthetic authoritative geometry exists only in the focused unit runner to verify aggregation and boundary logic.
 
+## Automatable platform closure
+
+Increment 205 corrected persisted canonical checksum normalization across study manifests and certified-Bronze imports. Exact-head Increment-205 GitHub Actions then completed green across all seven workflows. The dedicated Phase-12G harness executed successfully through project import, evidence evaluator/store/report/geometry coverage, study infrastructure, session-bound package validation, operator package orchestration, and the actual `tools/phase12g_operator_package.gd` dry-run smoke.
+
+Reconciliation against `PHASE12G_STUDY_PACKAGE.md` and `PHASE12G_OPERATOR_TOOLING.md` identifies no remaining automatable Phase-12G platform obligation. The implemented platform already covers fail-closed schema validation, atomic evidence capture, cohort filtering, deterministic multi-study merge/provenance, pre-collection manifests and data minimization, session/build/rules/content binding, package auditing/missing-evidence reporting, trusted/checksummed certified-Bronze ingestion, CLI orchestration, dry-run behavior, and source-overwrite protection.
+
+This closes only the **automatable platform subproblem**. It does not close Phase 12G and does not authorize Phase 12H.
+
+## External evidence boundary
+
+The only legitimate Phase-12G continuation trigger is genuine external evidence supplied through the validated interfaces:
+- representative human observations bound to valid pre-collection manifests; and/or
+- an externally certified authoritative Bronze solver export/corpus from an operator-approved trusted authority with a valid canonical checksum.
+
+Until such evidence exists, automation must not fabricate samples, certify synthetic solver data, populate production placeholders, loosen trust rules, reinterpret thresholds, invent proxy metrics, or add speculative gameplay/tooling solely to create progress. `INCOMPLETE`, `MEASURE_ONLY`, and `INSUFFICIENT_EVIDENCE` remain valid states.
+
 ## Validation policy
 
 Unknown schema versions, malformed metadata, duplicate sample/solution IDs, invalid cohort membership, impossible numeric ranges, multiple primary solution families for one contract, and invalid classifications fail closed.
 
-Harness existence is not empirical evidence. Phase 12G remains open until real human observations and, where required, an authoritative certified-Bronze corpus are actually supplied and evaluated.
+Harness existence is not empirical evidence. Phase 12G remains open until real human observations and, where required, an authoritative certified-Bronze corpus are actually supplied and evaluated. Only after genuine evidence satisfies the frozen empirical obligations may Phase 12G close and Phase 12H begin.

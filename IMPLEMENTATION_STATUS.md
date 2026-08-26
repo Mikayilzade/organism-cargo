@@ -9,56 +9,53 @@ Branch: `main`
 - 12D Full Content Population: **COMPLETE**
 - 12E UX / Accessibility / Controller / Deck: **COMPLETE**
 - 12F Adversarial QA / Persistence / Recovery: **COMPLETE**
-- 12G Empirical validation / platform polish: **IN PROGRESS**
+- 12G Empirical validation / platform polish: **IN PROGRESS — BLOCKED ON GENUINE EXTERNAL EVIDENCE**
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 205
+## Current implementation checkpoint — Increment 206
 
 ### Phase / subsystem
-**12G empirical validation — focused Increment-204 CI repair for persisted canonical checksums in operator study manifests and certified-Bronze imports**
+**12G empirical validation — automatable-platform closure verification and explicit external-evidence handoff**
 
 ### Repository truth / entry validation
-- Re-read `IMPLEMENTATION_START_HERE.md`, this status file, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact current authorities `ADVERSARIAL_REVIEW.md`, `PHASE11_UX_ACCESSIBILITY.md`, `CONTENT_ARCHITECTURE.md`, `PHASE12F_COVERAGE_RECONCILIATION.md`, `PHASE12G_EMPIRICAL_VALIDATION.md`, `PHASE12G_STUDY_PACKAGE.md`, and `PHASE12G_OPERATOR_TOOLING.md`.
-- Entry head: `649e099f02b615e54429999f9b955418ef0eb85a` (Increment 204), commit `12G: add operator study package tooling`.
-- Inspected all seven exact-head Increment-204 workflows. `Content Population Validator`, the four Phase-12F adversarial workflows, and the executable `Godot Headless Tests` job were green. The combined `godot-headless` status contained stale failure residue, but direct job inspection showed its full executable suite completed successfully.
-- The dedicated `Phase 12G Empirical Evidence Harness` run `32915957105`, job `98019616979`, was the one real failure. Project import and the first five Phase-12G evidence/study-package validation steps passed; step `Validate operator package CLI orchestration and immutable sources` failed in `phase12g_operator_package_test_runner.gd`, and the actual CLI smoke was consequently skipped.
-- Inspected the full failing job log. The first failure was persisted session-manifest validation, followed by dependent bind/package failures. The same runner also rejected a persisted certified-Bronze fixture whose checksum had been generated before writing. These failures had one shared persistence-boundary cause rather than nineteen independent operator-tool defects.
+- Re-read `IMPLEMENTATION_START_HERE.md`, this status file, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact current subsystem authorities `PHASE12G_EMPIRICAL_VALIDATION.md`, `PHASE12G_STUDY_PACKAGE.md`, and `PHASE12G_OPERATOR_TOOLING.md`.
+- Entry head: `bcfab160520cc060accee21d67c5df4bf31e800b` (Increment 205), commit `12G: normalize persisted evidence checksums`.
+- Inspected all seven exact-head Increment-205 GitHub Actions workflows. Every workflow completed **success**: `Content Population Validator`, `Godot Headless Tests`, `Phase 12G Empirical Evidence Harness`, and all four Phase-12F adversarial suites.
+- Inspected the executable `Phase 12G Empirical Evidence Harness` job `98029588352` directly. Project import, empirical evaluator/store/report/geometry tests, study infrastructure, session-bound package tests, operator package orchestration, and the actual `tools/phase12g_operator_package.gd` dry-run smoke all completed **success**.
+- Inspected the executable headless job `98029588173` directly. Godot 4.7.1 installation, the full headless contract suite, and status publication completed **success**.
 
-### Implemented in Increment 205
-- Made one focused repair batch only, as required by the red-CI branch of Increment-204 `NEXT ACTION`.
-- Corrected `Phase12GStudyInfrastructure._checksum(...)` so `sha256-canonical-json-v1` hashes the JSON-normalized Variant tree rather than the pre-persistence in-memory Variant tree.
-- The checksum path now serializes, parses back through Godot JSON normalization, then hashes the canonical serialization. This deliberately matches the representation that persisted JSON will have when it is later loaded.
-- This fixes the concrete Godot numeric-type boundary exposed by CI: integral values can exist as integer Variants before persistence but reload as JSON numeric/floating Variants, which could previously change lexical serialization and falsely produce `session_manifest_checksum_mismatch` / `bronze_export_checksum_mismatch` despite unchanged source data.
-- The repair is shared by session manifests, certified-Bronze export checksums, deterministic dataset/source-manifest hashes, and aggregate hashes, preserving one canonical checksum rule rather than adding operator-tool bypasses or weakening validation.
-- No trust rule was relaxed: manifest tampering still changes the checksum; certified-Bronze imports still require certified/authoritative metadata, a caller-approved authority ID, and a matching canonical checksum; source evidence remains immutable.
-- No production evidence placeholders, gameplay, simulation, campaign, save/runtime behavior, empirical thresholds, cohort rules, or frozen content were changed.
+### Implemented in Increment 206
+- Confirmed the Increment-205 persistence-boundary checksum repair is executable-green on the exact committed SHA, including the operator manifest/bind/package path and certified-Bronze import path that previously failed.
+- Reconciled the Phase-12G platform state against all three current Phase-12G authority documents. No remaining automatable implementation, validation, ingestion, operator, provenance, cohort, checksum, merge, report, dry-run, overwrite-guard, or certified-Bronze boundary obligation is identified.
+- Recorded the distinction explicitly in repository state: the **automatable Phase-12G platform is complete**, while Phase 12G itself remains **IN PROGRESS** because the frozen empirical gates require evidence that automation must not fabricate.
+- Updated `PHASE12G_EMPIRICAL_VALIDATION.md` to make that boundary unambiguous and to define the only legitimate continuation trigger: genuine human observations and/or an externally certified authoritative Bronze solver corpus supplied through the already-validated ingestion paths.
+- No production evidence placeholder was populated or altered. No synthetic observation or solver result was promoted to production evidence.
+- No gameplay, simulation, campaign, content, save/runtime behavior, empirical threshold, cohort rule, trust rule, or frozen design was changed.
 
 ### Validation / policy
-- Exact Increment-204 CI failure was inspected down to the first executable failing test and its dependent assertions before code changes.
-- Existing `phase12g_operator_package_test_runner.gd` already provides the relevant regression coverage: create manifest -> persist -> reload/validate -> bind -> package; malformed evidence fail-closed behavior; and checksum generation -> persist certified export -> trusted Bronze dry-run/import. No speculative new test surface was added for the same defect.
-- The earlier Phase-12G harness steps were green on Increment 204, including empirical schema/evaluator, evidence store, report/geometry, study infrastructure, and session-bound study package tests.
-- The implementation change is limited to canonical hashing at the persistence boundary. Static review confirms all call sites continue to use the same validators and fail-closed contracts.
-- No directly runnable local Godot 4.7.1 binary is available in this execution environment. Fresh GitHub Actions after this single checkpoint push are the executable verification path.
-- All meaningful source/status changes are batched into one Git tree + one normal checkpoint commit/push. No second speculative CI repair is made in this run.
+- Exact-head CI is fully green before this checkpoint.
+- The dedicated Phase-12G harness proves the actual operator CLI entry point, not only unit-level services.
+- The production placeholders remain intentionally non-evidence: `validation/phase12g/observations.v1.json` awaits real representative human observations, and `validation/phase12g/bronze_geometry.v1.json` remains non-authoritative until a trusted certified solver corpus exists.
+- Per `PHASE11_FINAL_FREEZE.md`, empirical gates are mandatory validation obligations and cannot be closed by tooling existence, synthetic fixtures, or guessed measurements.
+- Because the repository identifies no further automatable 12G work, inventing additional tooling merely to create another increment would widen scope without satisfying a frozen gate. This checkpoint therefore closes the automatable subproblem and preserves the external-evidence blocker as repository truth.
 
 ### Blockers / cautions
-- Fresh Increment-205 CI must confirm the focused operator runner and actual operator CLI smoke are green under Godot 4.7.1 and that the previously green Phase-12G/core/adversarial workflows remain green.
-- If Increment-205 CI is green, the frozen authority chain currently identifies no further automatable Phase-12G platform obligation after the operator handoff tooling.
-- Genuine external evidence is still absent: representative human observations for all frozen prototype evidence classes and a real externally certified authoritative Bronze solver corpus.
-- Those external evidence dependencies cannot be fabricated. Phase 12G remains **IN PROGRESS** and 12H must not begin until genuine evidence is supplied and evaluated against the frozen gates.
+- **External evidence blocker only.** Required real evidence is still absent for: failed-Retry hypothesis quality, memorable post-launch significance, ordinary familiar first-launch planning duration, species decision distinctness/redundancy, demo identity description, Causal Review actionability, and externally certified authoritative Bronze geometry.
+- Phase 12G must remain **IN PROGRESS** until genuine supplied evidence is ingested and evaluated against the frozen gates.
+- Phase 12H must **not** begin while Phase 12G is open.
+- This is not `IMPLEMENTATION COMPLETE = YES`; the implementation automation should remain available for the moment genuine evidence appears in repository state.
 
 ### Canonical contradictions
 - **NONE discovered.**
 
 ## NEXT ACTION
-At the start of the next run, inspect the exact Increment-205 workflow set on the new SHA, especially `Phase 12G Empirical Evidence Harness`, the `phase12g_operator_package_test_runner.gd` step, and the actual `tools/phase12g_operator_package.gd` dry-run smoke; also verify project import/core/adversarial workflows directly rather than trusting combined-status residue.
+At the start of the next run, re-read the required repository authority chain and inspect repository state for newly supplied genuine Phase-12G evidence.
 
-If any executable workflow is red, inspect the first exact executable failure and make one focused repair batch only; do not widen scope unless repository evidence proves a deeper defect.
-
-If Increment-205 is green:
-1. re-read `PHASE12G_EMPIRICAL_VALIDATION.md`, `PHASE12G_STUDY_PACKAGE.md`, and `PHASE12G_OPERATOR_TOOLING.md` and confirm no automatable Phase-12G platform obligation remains;
-2. if none remains, record Phase 12G as blocked only on genuine external human/certified-solver evidence, keep production evidence placeholders unchanged, and do not begin 12H;
-3. when genuine evidence is supplied, ingest it only through the validated manifest/bind/package/certified-Bronze paths and advance only if the actual frozen empirical gates pass.
+1. If no new genuine external human observations or trusted certified-Bronze solver export/corpus exists, make **no speculative gameplay/tooling changes**, keep Phase 12G blocked on external evidence, preserve production placeholders, and do not begin 12H.
+2. If genuine human evidence exists, validate and ingest it only through the pre-collection manifest -> bind -> package/report path defined by `PHASE12G_STUDY_PACKAGE.md` and `PHASE12G_OPERATOR_TOOLING.md`; evaluate the exact frozen empirical gates and record PASS/FAIL/INCOMPLETE/MEASURE_ONLY without reinterpretation.
+3. If a genuine certified solver export exists, accept it only through the trusted-authority + canonical-checksum certified-Bronze import boundary; then evaluate the frozen geometry obligations.
+4. Advance Phase 12G only when the actual required evidence is sufficient and the frozen gates genuinely pass. If a gate fails, record the evidence and reopen only the minimum affected canonical rule under the design-change protocol.
+5. Begin 12H only after Phase 12G is genuinely closed.
 
 Do not report overall completion until Phase 12G is genuinely closed, 12H is completed, and `IMPLEMENTATION COMPLETE = YES`.
