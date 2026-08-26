@@ -49,3 +49,22 @@ jobs:
       - name: Validate session-bound study package merge and audit
         shell: bash
         run: /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/phase12g_study_package_test_runner.gd
+
+      - name: Validate operator package CLI orchestration and immutable sources
+        shell: bash
+        run: /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tests/unit/phase12g_operator_package_test_runner.gd
+
+      - name: Smoke actual operator CLI dry-run entry point
+        shell: bash
+        run: |
+          /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --script tools/phase12g_operator_package.gd -- \
+            --mode=manifest-create \
+            --session-id=ci-smoke \
+            --prototype-build-id=ci-build \
+            --rules-version=ci-rules \
+            --content-version=ci-content \
+            --cohort=POST_ONBOARDING_FAMILIAR_ORDINARY \
+            --sample-type=planning_duration \
+            --contract-id=C10 \
+            --created-at-unix=1800000204 \
+            --dry-run

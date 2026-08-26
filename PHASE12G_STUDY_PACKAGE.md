@@ -1,6 +1,6 @@
 # PHASE 12G STUDY PACKAGE / COLLECTION INTEGRITY
 
-Status: **AUTOMATABLE PLATFORM COMPLETE FOR SESSION-BOUND EVIDENCE; REAL EVIDENCE STILL REQUIRED**
+Status: **AUTOMATABLE PLATFORM AND OPERATOR HANDOFF COMPLETE; REAL EVIDENCE STILL REQUIRED**
 
 This document is an implementation/validation companion to `PHASE12G_EMPIRICAL_VALIDATION.md`. It does not change frozen gameplay or empirical thresholds. `PHASE11_FINAL_FREEZE.md` remains the highest implementation-sensitive authority.
 
@@ -29,6 +29,17 @@ Multi-study aggregation additionally requires one compatible prototype build/rul
 
 The existing `phase12g-certified-bronze-export-v1` adapter remains the only path from an external certified solver export into authoritative Bronze geometry evaluation. It requires a caller-provided trusted authority allowlist and canonical checksum validation. No repository template or synthetic unit fixture is promoted into an authoritative production corpus.
 
+## Operator handoff boundary
+
+`Phase12GOperatorPackageService` and `tools/phase12g_operator_package.gd` provide the operator-facing handoff around these contracts. The supported modes cover:
+- pre-collection manifest creation and checksum validation;
+- raw evidence validation and binding to one declared session without modifying the raw source;
+- deterministic package merge/audit/report generation to separate output paths;
+- certified-Bronze export validation/import through the trusted-authority and checksum boundary;
+- dry-run validation/evaluation that performs no derived writes.
+
+The tool deliberately treats `INCOMPLETE`, `FAIL`, and `INSUFFICIENT_EVIDENCE` as valid empirical outcomes rather than CLI failures. Only malformed, undeclared, incompatible, checksum-invalid, untrusted, or unsafe overwrite requests fail the operator command. Usage and safe collection order are documented in `PHASE12G_OPERATOR_TOOLING.md`.
+
 ## Production immutability
 
 `validation/phase12g/observations.v1.json` remains the empty production placeholder until real study observations exist. `validation/phase12g/bronze_geometry.v1.json` remains non-authoritative until a real certified corpus exists. Source evidence and manifests are read as inputs; derived aggregates/audits must be written to separate explicit output paths.
@@ -44,7 +55,9 @@ The existing `phase12g-certified-bronze-export-v1` adapter remains the only path
 - session-manifest checksum/build/rules/content binding: COMPLETE;
 - cross-study compatible-build merge guard: COMPLETE;
 - deterministic package audit/missing-evidence reporting: COMPLETE;
-- trusted/checksummed certified-Bronze ingestion boundary: COMPLETE.
+- trusted/checksummed certified-Bronze ingestion boundary: COMPLETE;
+- operator CLI for manifest create/validate, bind, package audit/aggregate/report and certified-Bronze import: COMPLETE;
+- non-destructive dry-run and source-overwrite guards: COMPLETE.
 
 ### Evidence dependencies that automation cannot fabricate
 - representative failed-Retry causal-hypothesis observations for the >=70% gate;
@@ -55,4 +68,4 @@ The existing `phase12g-certified-bronze-export-v1` adapter remains the only path
 - qualitative/actionability Causal Review usability observations;
 - an externally certified authoritative Bronze solution corpus for isolation/beneficial-relation and normalized role-to-zone evidence-dependent content gates.
 
-Phase 12G therefore remains **IN PROGRESS**. Phase 12H may not begin until the required real human and certified-solver evidence is actually supplied, evaluated, and reconciled without inventing data.
+After the operator tooling passes executable CI, no further automatable Phase-12G platform gap is currently identified by the frozen authority chain. Phase 12G therefore remains **IN PROGRESS** solely because the required external evidence does not yet exist in the repository. Phase 12H may not begin until the required real human and certified-solver evidence is actually supplied, evaluated, and reconciled without inventing data.
