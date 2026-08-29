@@ -1,6 +1,6 @@
 # IMPLEMENTATION STATUS
 
-Branch: `main`
+Branch: `work`
 
 ## Phase state
 - 12A Vertical Slice: **COMPLETE**
@@ -13,48 +13,45 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 207
+## Current implementation checkpoint — Increment 208
 
 ### Phase / subsystem
-**12G empirical validation — external-evidence gate recheck with no speculative implementation changes**
+**Production boot repair and CI failure-propagation checkpoint — 12G validation paused until executable boot is verified**
 
-### Repository truth / entry validation
-- Re-read `IMPLEMENTATION_START_HERE.md`, this status file, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact current subsystem authorities `PHASE12G_EMPIRICAL_VALIDATION.md`, `PHASE12G_STUDY_PACKAGE.md`, and `PHASE12G_OPERATOR_TOOLING.md`.
-- Entry head: `0ad30b934a83d8bcd2af4a3250cbf9e483883a0c` (Increment 206), commit `12G: record external evidence blocker`.
-- Inspected repository history: no newer commit or supplied evidence checkpoint exists after Increment 206.
-- Re-read both production Phase-12G evidence boundaries directly. `validation/phase12g/observations.v1.json` still has `collection_state = EMPTY_AWAITING_REAL_OBSERVATIONS` and `samples = []`. `validation/phase12g/bronze_geometry.v1.json` still has `authoritative_corpus = false`, `status = AWAITING_AUTHORITATIVE_CERTIFIED_SOLUTIONS`, and `solutions = []`.
-- Inspected GitHub Actions for exact entry head `0ad30b934a83d8bcd2af4a3250cbf9e483883a0c`: seven workflow runs exist and all completed `success`, including `Godot Headless Tests`, `Content Population Validator`, `Phase 12G Empirical Evidence Harness`, and the four Phase-12F adversarial suites.
+### Failure and root cause
+- A real Windows/Godot 4.7.1 launch failed during bootstrap with `content_load:contracts:invalid_document:campaign_chapter1_batch_01.json`.
+- The production shell registers `content/contracts` as the `contracts` family, and `ContentLoader` validates every JSON document in that directory against the family kind. All six campaign batch files declared the separate, non-production kind `campaign_contracts`; therefore the first sorted campaign batch was rejected before the title screen.
+- The canonical content structure is one `contracts` family containing the vertical-slice contract and all six campaign batches. Campaign progression metadata remains separately owned by `content/campaign`; no canonical source defines a second runtime `campaign_contracts` family.
+- Content-population tests appeared green because their authored-batch checks parse campaign JSON directly rather than exercising production family loading. The dedicated production shell boot test did exercise the real loader and failed.
+- The `Godot Headless Tests` workflow nevertheless appeared green because its job had `continue-on-error: true`, while the suite step deliberately returned success after publishing a separate failing `organism-cargo/godot-headless` commit status. This allowed the workflow conclusion to be green while the real suite status was failure.
 
-### Implemented in Increment 207
-- Executed the exact Increment-206 `NEXT ACTION`: checked for newly supplied genuine human observations and trusted certified-Bronze evidence.
-- Found **no genuine external evidence** to ingest or evaluate.
-- Therefore made no gameplay, simulation, content, save/runtime, empirical-threshold, trust-policy, operator-tooling, evidence-placeholder, or Phase-12H implementation changes.
-- Preserved the frozen production placeholders exactly as non-evidence and kept Phase 12G open.
-- Recorded this evidence-gate recheck as the only repository checkpoint change, so the absence of legitimate continuation input and the exact next action remain durable repository truth rather than chat-only state.
+### Implemented in Increment 208
+- Corrected `kind` from `campaign_contracts` to `contracts` in every campaign contract batch, C01–C48, without changing payloads or frozen gameplay.
+- Removed job-level `continue-on-error` from the headless workflow and made the suite step return its accumulated failure code after writing the observable status output. The always-run commit-status publisher remains in place, so a failing suite now makes both the custom status and the Actions job visibly fail.
+- Kept Phase 12G open and paused empirical continuation pending genuine executable boot verification.
 
 ### Validation / policy
-- Entry head is executable-green across all seven configured workflows.
-- Production observation and Bronze geometry files were inspected directly and remain intentionally empty/non-authoritative.
-- `PHASE12G_EMPIRICAL_VALIDATION.md`, `PHASE12G_STUDY_PACKAGE.md`, and `PHASE12G_OPERATOR_TOOLING.md` explicitly forbid fabricating evidence, certifying synthetic solver data, loosening trust rules, inventing proxy metrics, or adding speculative tooling solely to create progress.
-- Per `PHASE11_FINAL_FREEZE.md`, the empirical gates are mandatory validation obligations. Tooling existence or synthetic fixtures cannot satisfy them.
-- No test repair was required because no implementation source changed and the latest executable repository state is green.
+- Confirmed all JSON files under `content/contracts` now declare `kind: contracts`, matching the production family loader.
+- Parsed every repository JSON document successfully and verified the campaign batches still cover C01–C48 exactly once.
+- `git diff --check` passes.
+- Attempted to install the pinned Godot 4.7.1 Linux binary and run the real project/headless suites, but this execution environment blocks the GitHub release download with HTTP 403 and contains no Godot binary. This is an environment limitation, not a passing executable result.
 
-### Blockers / cautions
-- **External evidence blocker only.** Required genuine evidence is still absent for: failed-Retry hypothesis quality, memorable post-launch significance, ordinary familiar first-launch planning duration, species decision distinctness/redundancy, demo identity description, Causal Review actionability, and externally certified authoritative Bronze geometry.
-- Phase 12G must remain **IN PROGRESS** until genuine supplied evidence is ingested and evaluated against the frozen gates.
-- Phase 12H must **not** begin while Phase 12G is open.
-- This is not `IMPLEMENTATION COMPLETE = YES`.
+### Current phase state / blockers
+- **12G remains IN PROGRESS and empirical validation must not continue yet.**
+- Production boot root cause is repaired in repository data, but the checkpoint remains blocked on running the actual Godot 4.7.1 production smoke boot and relevant headless/content suites in an environment with the pinned engine available.
+- Genuine external Phase-12G human and certified-Bronze evidence remains absent as previously recorded.
+- Phase 12H must not begin. This is not `IMPLEMENTATION COMPLETE = YES`.
 
 ### Canonical contradictions
-- **NONE discovered.**
+- **NONE discovered.** The defect was inconsistent content-family metadata, not a frozen-gameplay contradiction.
 
 ## NEXT ACTION
-At the start of the next run, re-read the required repository authority chain and inspect repository state for newly supplied genuine Phase-12G evidence.
+Run the pinned Godot 4.7.1 executable against the committed checkpoint in CI or another environment where the engine is available:
 
-1. If no new genuine external human observations or trusted certified-Bronze solver export/corpus exists, make **no speculative gameplay/tooling changes**, keep Phase 12G blocked on external evidence, preserve production placeholders, and do not begin 12H.
-2. If genuine human evidence exists, validate and ingest it only through the pre-collection manifest -> bind -> package/report path defined by `PHASE12G_STUDY_PACKAGE.md` and `PHASE12G_OPERATOR_TOOLING.md`; evaluate the exact frozen empirical gates and record PASS/FAIL/INCOMPLETE/MEASURE_ONLY without reinterpretation.
-3. If a genuine certified solver export exists, accept it only through the trusted-authority + canonical-checksum certified-Bronze import boundary; then evaluate the frozen geometry obligations.
-4. Advance Phase 12G only when the actual required evidence is sufficient and the frozen gates genuinely pass. If a gate fails, record the evidence and reopen only the minimum affected canonical rule under the design-change protocol.
-5. Begin 12H only after Phase 12G is genuinely closed.
+1. Run `--headless --editor --path . --quit`.
+2. Run the production boot contract `--headless --path . --script tests/unit/shell_content_boot_test_runner.gd`.
+3. Run the real smoke boot `--headless --path . --quit-after 1` and the relevant content suites (`launch_authored_batch_test_runner.gd`, chapter 4–6 authored-content runners, and `phase12d_full_content_test_runner.gd`).
+4. Confirm the Actions workflow and `organism-cargo/godot-headless` commit status both fail on any real suite failure and both pass only when the suite passes.
+5. Repair any directly related failures before resuming 12G. Resume empirical validation only after the executable genuinely boots; do not begin 12H while 12G is open.
 
 Do not report overall completion until Phase 12G is genuinely closed, 12H is completed, and `IMPLEMENTATION COMPLETE = YES`.
