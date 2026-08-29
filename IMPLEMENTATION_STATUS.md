@@ -13,38 +13,37 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 206
+## Current implementation checkpoint — Increment 207
 
 ### Phase / subsystem
-**12G empirical validation — automatable-platform closure verification and explicit external-evidence handoff**
+**12G empirical validation — external-evidence gate recheck with no speculative implementation changes**
 
 ### Repository truth / entry validation
 - Re-read `IMPLEMENTATION_START_HERE.md`, this status file, `AUTONOMY_RULES.md`, `DESIGN_STATUS.md`, `PHASE11_FINAL_FREEZE.md`, then the exact current subsystem authorities `PHASE12G_EMPIRICAL_VALIDATION.md`, `PHASE12G_STUDY_PACKAGE.md`, and `PHASE12G_OPERATOR_TOOLING.md`.
-- Entry head: `bcfab160520cc060accee21d67c5df4bf31e800b` (Increment 205), commit `12G: normalize persisted evidence checksums`.
-- Inspected all seven exact-head Increment-205 GitHub Actions workflows. Every workflow completed **success**: `Content Population Validator`, `Godot Headless Tests`, `Phase 12G Empirical Evidence Harness`, and all four Phase-12F adversarial suites.
-- Inspected the executable `Phase 12G Empirical Evidence Harness` job `98029588352` directly. Project import, empirical evaluator/store/report/geometry tests, study infrastructure, session-bound package tests, operator package orchestration, and the actual `tools/phase12g_operator_package.gd` dry-run smoke all completed **success**.
-- Inspected the executable headless job `98029588173` directly. Godot 4.7.1 installation, the full headless contract suite, and status publication completed **success**.
+- Entry head: `0ad30b934a83d8bcd2af4a3250cbf9e483883a0c` (Increment 206), commit `12G: record external evidence blocker`.
+- Inspected repository history: no newer commit or supplied evidence checkpoint exists after Increment 206.
+- Re-read both production Phase-12G evidence boundaries directly. `validation/phase12g/observations.v1.json` still has `collection_state = EMPTY_AWAITING_REAL_OBSERVATIONS` and `samples = []`. `validation/phase12g/bronze_geometry.v1.json` still has `authoritative_corpus = false`, `status = AWAITING_AUTHORITATIVE_CERTIFIED_SOLUTIONS`, and `solutions = []`.
+- Inspected GitHub Actions for exact entry head `0ad30b934a83d8bcd2af4a3250cbf9e483883a0c`: seven workflow runs exist and all completed `success`, including `Godot Headless Tests`, `Content Population Validator`, `Phase 12G Empirical Evidence Harness`, and the four Phase-12F adversarial suites.
 
-### Implemented in Increment 206
-- Confirmed the Increment-205 persistence-boundary checksum repair is executable-green on the exact committed SHA, including the operator manifest/bind/package path and certified-Bronze import path that previously failed.
-- Reconciled the Phase-12G platform state against all three current Phase-12G authority documents. No remaining automatable implementation, validation, ingestion, operator, provenance, cohort, checksum, merge, report, dry-run, overwrite-guard, or certified-Bronze boundary obligation is identified.
-- Recorded the distinction explicitly in repository state: the **automatable Phase-12G platform is complete**, while Phase 12G itself remains **IN PROGRESS** because the frozen empirical gates require evidence that automation must not fabricate.
-- Updated `PHASE12G_EMPIRICAL_VALIDATION.md` to make that boundary unambiguous and to define the only legitimate continuation trigger: genuine human observations and/or an externally certified authoritative Bronze solver corpus supplied through the already-validated ingestion paths.
-- No production evidence placeholder was populated or altered. No synthetic observation or solver result was promoted to production evidence.
-- No gameplay, simulation, campaign, content, save/runtime behavior, empirical threshold, cohort rule, trust rule, or frozen design was changed.
+### Implemented in Increment 207
+- Executed the exact Increment-206 `NEXT ACTION`: checked for newly supplied genuine human observations and trusted certified-Bronze evidence.
+- Found **no genuine external evidence** to ingest or evaluate.
+- Therefore made no gameplay, simulation, content, save/runtime, empirical-threshold, trust-policy, operator-tooling, evidence-placeholder, or Phase-12H implementation changes.
+- Preserved the frozen production placeholders exactly as non-evidence and kept Phase 12G open.
+- Recorded this evidence-gate recheck as the only repository checkpoint change, so the absence of legitimate continuation input and the exact next action remain durable repository truth rather than chat-only state.
 
 ### Validation / policy
-- Exact-head CI is fully green before this checkpoint.
-- The dedicated Phase-12G harness proves the actual operator CLI entry point, not only unit-level services.
-- The production placeholders remain intentionally non-evidence: `validation/phase12g/observations.v1.json` awaits real representative human observations, and `validation/phase12g/bronze_geometry.v1.json` remains non-authoritative until a trusted certified solver corpus exists.
-- Per `PHASE11_FINAL_FREEZE.md`, empirical gates are mandatory validation obligations and cannot be closed by tooling existence, synthetic fixtures, or guessed measurements.
-- Because the repository identifies no further automatable 12G work, inventing additional tooling merely to create another increment would widen scope without satisfying a frozen gate. This checkpoint therefore closes the automatable subproblem and preserves the external-evidence blocker as repository truth.
+- Entry head is executable-green across all seven configured workflows.
+- Production observation and Bronze geometry files were inspected directly and remain intentionally empty/non-authoritative.
+- `PHASE12G_EMPIRICAL_VALIDATION.md`, `PHASE12G_STUDY_PACKAGE.md`, and `PHASE12G_OPERATOR_TOOLING.md` explicitly forbid fabricating evidence, certifying synthetic solver data, loosening trust rules, inventing proxy metrics, or adding speculative tooling solely to create progress.
+- Per `PHASE11_FINAL_FREEZE.md`, the empirical gates are mandatory validation obligations. Tooling existence or synthetic fixtures cannot satisfy them.
+- No test repair was required because no implementation source changed and the latest executable repository state is green.
 
 ### Blockers / cautions
-- **External evidence blocker only.** Required real evidence is still absent for: failed-Retry hypothesis quality, memorable post-launch significance, ordinary familiar first-launch planning duration, species decision distinctness/redundancy, demo identity description, Causal Review actionability, and externally certified authoritative Bronze geometry.
+- **External evidence blocker only.** Required genuine evidence is still absent for: failed-Retry hypothesis quality, memorable post-launch significance, ordinary familiar first-launch planning duration, species decision distinctness/redundancy, demo identity description, Causal Review actionability, and externally certified authoritative Bronze geometry.
 - Phase 12G must remain **IN PROGRESS** until genuine supplied evidence is ingested and evaluated against the frozen gates.
 - Phase 12H must **not** begin while Phase 12G is open.
-- This is not `IMPLEMENTATION COMPLETE = YES`; the implementation automation should remain available for the moment genuine evidence appears in repository state.
+- This is not `IMPLEMENTATION COMPLETE = YES`.
 
 ### Canonical contradictions
 - **NONE discovered.**
