@@ -219,18 +219,18 @@ func _render_critical_signal_rows() -> void:
 		row.text = _critical_signal_row_text(signal_value)
 		_critical_signal_list.add_child(row)
 
-func _critical_signal_row_text(signal: Dictionary) -> String:
-	var caption_line: String = String(signal.get("caption", "")) if bool(signal.get("caption_visible", false)) else "Caption disabled; visible source/label channels remain active."
+func _critical_signal_row_text(signal_data: Dictionary) -> String:
+	var caption_line: String = String(signal_data.get("caption", "")) if bool(signal_data.get("caption_visible", false)) else "Caption disabled; visible source/label channels remain active."
 	return "T%02d • %s • source=%s\n%s\nicon=%s • pattern=%s • shape=%s • motion=%s • flash=%s" % [
-		int(signal.get("tick", 0)),
-		String(signal.get("text_label", "EVENT")),
-		String(signal.get("source", "System")),
+		int(signal_data.get("tick", 0)),
+		String(signal_data.get("text_label", "EVENT")),
+		String(signal_data.get("source", "System")),
 		caption_line,
-		String(signal.get("icon", "info")),
-		String(signal.get("pattern", "solid_outline")),
-		String(signal.get("shape", "outlined_badge")),
-		String(signal.get("motion_mode", "standard")),
-		String(signal.get("flash_mode", "bounded_fade")),
+		String(signal_data.get("icon", "info")),
+		String(signal_data.get("pattern", "solid_outline")),
+		String(signal_data.get("shape", "outlined_badge")),
+		String(signal_data.get("motion_mode", "standard")),
+		String(signal_data.get("flash_mode", "bounded_fade")),
 	]
 
 func _clear_critical_signal_rows() -> void:
