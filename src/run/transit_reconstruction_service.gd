@@ -33,7 +33,10 @@ func resume_current(compatibility: Dictionary) -> Dictionary:
 				return _failure("mismatch_persist_failed:%s" % String(mismatch_write.get("error", "unknown")))
 		elif recovery_class == "D":
 			var baseline_value: Variant = record.get("canonical_committed_input", {})
-			var planning_baseline: Dictionary = baseline_value.duplicate(true) if baseline_value is Dictionary else {}
+			var planning_baseline: Dictionary = {}
+			if baseline_value is Dictionary:
+				var baseline_dictionary: Dictionary = baseline_value
+				planning_baseline = baseline_dictionary.duplicate(true)
 			var invalidated_record: Dictionary = record.duplicate(true)
 			invalidated_record["lifecycle_state"] = "ABANDONED/INVALIDATED"
 			invalidated_record["compatibility_recovery_reason"] = String(reconstructed.get("error", "missing_compatibility_package"))
