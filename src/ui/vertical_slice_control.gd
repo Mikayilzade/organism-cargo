@@ -7,7 +7,8 @@ var _flow: VerticalSliceFlowCoordinator
 var _context: Dictionary = {}
 var _title_label: Label
 var _detail_label: Label
-var _planning_panel: VBoxContainer
+var _planning_panel: ScrollContainer
+var _planning_content: VBoxContainer
 var _manifest_row: HBoxContainer
 var _hold_grid: GridContainer
 var _planning_status_label: Label
@@ -42,22 +43,29 @@ func _ready() -> void:
 	_detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_detail_label)
 
-	_planning_panel = VBoxContainer.new()
+	_planning_panel = ScrollContainer.new()
 	_planning_panel.name = "PlanningPanel"
+	_planning_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_planning_panel.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_planning_panel.follow_focus = true
 	add_child(_planning_panel)
+	_planning_content = VBoxContainer.new()
+	_planning_content.name = "PlanningContent"
+	_planning_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_planning_panel.add_child(_planning_content)
 
 	_manifest_row = HBoxContainer.new()
 	_manifest_row.name = "ManifestRow"
-	_planning_panel.add_child(_manifest_row)
+	_planning_content.add_child(_manifest_row)
 
 	_hold_grid = GridContainer.new()
 	_hold_grid.name = "HoldGrid"
-	_planning_panel.add_child(_hold_grid)
+	_planning_content.add_child(_hold_grid)
 
 	_planning_status_label = Label.new()
 	_planning_status_label.name = "PlanningStatus"
 	_planning_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_planning_panel.add_child(_planning_status_label)
+	_planning_content.add_child(_planning_status_label)
 
 	_primary_button = Button.new()
 	_primary_button.name = "PrimaryAction"

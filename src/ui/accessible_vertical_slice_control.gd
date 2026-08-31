@@ -242,19 +242,19 @@ func _clear_critical_signal_rows() -> void:
 		child.queue_free()
 
 func _ensure_semantic_labels() -> void:
-	if _planning_panel == null:
+	if _planning_content == null:
 		return
 	if _semantic_focus_label == null:
 		_semantic_focus_label = Label.new()
 		_semantic_focus_label.name = "SemanticFocusRegion"
 		_semantic_focus_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		_planning_panel.add_child(_semantic_focus_label)
-		_planning_panel.move_child(_semantic_focus_label, 0)
+		_planning_content.add_child(_semantic_focus_label)
+		_planning_content.move_child(_semantic_focus_label, 0)
 	if _support_config_label == null:
 		_support_config_label = Label.new()
 		_support_config_label.name = "SupportConfigStatus"
 		_support_config_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		_planning_panel.add_child(_support_config_label)
+		_planning_content.add_child(_support_config_label)
 
 func _ensure_critical_signal_panel() -> void:
 	if _critical_signal_panel != null:
