@@ -219,18 +219,18 @@ func _render_critical_signal_rows() -> void:
 		row.text = _critical_signal_row_text(signal_value)
 		_critical_signal_list.add_child(row)
 
-func _critical_signal_row_text(signal: Dictionary) -> String:
-	var caption_line: String = String(signal.get("caption", "")) if bool(signal.get("caption_visible", false)) else "Caption disabled; visible source/label channels remain active."
+func _critical_signal_row_text(signal_data: Dictionary) -> String:
+	var caption_line: String = String(signal_data.get("caption", "")) if bool(signal_data.get("caption_visible", false)) else "Caption disabled; visible source/label channels remain active."
 	return "T%02d • %s • source=%s\n%s\nicon=%s • pattern=%s • shape=%s • motion=%s • flash=%s" % [
-		int(signal.get("tick", 0)),
-		String(signal.get("text_label", "EVENT")),
-		String(signal.get("source", "System")),
+		int(signal_data.get("tick", 0)),
+		String(signal_data.get("text_label", "EVENT")),
+		String(signal_data.get("source", "System")),
 		caption_line,
-		String(signal.get("icon", "info")),
-		String(signal.get("pattern", "solid_outline")),
-		String(signal.get("shape", "outlined_badge")),
-		String(signal.get("motion_mode", "standard")),
-		String(signal.get("flash_mode", "bounded_fade")),
+		String(signal_data.get("icon", "info")),
+		String(signal_data.get("pattern", "solid_outline")),
+		String(signal_data.get("shape", "outlined_badge")),
+		String(signal_data.get("motion_mode", "standard")),
+		String(signal_data.get("flash_mode", "bounded_fade")),
 	]
 
 func _clear_critical_signal_rows() -> void:
@@ -242,19 +242,19 @@ func _clear_critical_signal_rows() -> void:
 		child.queue_free()
 
 func _ensure_semantic_labels() -> void:
-	if _planning_panel == null:
+	if _planning_content == null:
 		return
 	if _semantic_focus_label == null:
 		_semantic_focus_label = Label.new()
 		_semantic_focus_label.name = "SemanticFocusRegion"
 		_semantic_focus_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		_planning_panel.add_child(_semantic_focus_label)
-		_planning_panel.move_child(_semantic_focus_label, 0)
+		_planning_content.add_child(_semantic_focus_label)
+		_planning_content.move_child(_semantic_focus_label, 0)
 	if _support_config_label == null:
 		_support_config_label = Label.new()
 		_support_config_label.name = "SupportConfigStatus"
 		_support_config_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		_planning_panel.add_child(_support_config_label)
+		_planning_content.add_child(_support_config_label)
 
 func _ensure_critical_signal_panel() -> void:
 	if _critical_signal_panel != null:

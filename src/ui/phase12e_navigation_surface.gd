@@ -26,6 +26,7 @@ var _campaign_complete_panel: VBoxContainer
 var _campaign_complete_summary: Label
 var _campaign_complete_buttons: Array[Button] = []
 var _selected_campaign_complete_index: int = 0
+var _last_synced_state: int = -1
 
 func configure(control: VerticalSliceControl, flow: VerticalSliceFlowCoordinator, context: Dictionary) -> Dictionary:
 	_control = control
@@ -41,11 +42,17 @@ func sync_from_flow() -> void:
 		return
 	visible = true
 	var state: int = _flow.current_state()
+	var previous_state: int = _last_synced_state
+	_last_synced_state = state
 	_review_panel.visible = state == AppStateMachine.State.CAUSAL_REVIEW
 	_codex_panel.visible = state == AppStateMachine.State.CODEX
 	_recovery_panel.visible = state == AppStateMachine.State.SAVE_RECOVERY
 	_campaign_complete_panel.visible = state == AppStateMachine.State.CAMPAIGN_COMPLETE
 	if _review_panel.visible:
+		# Every newly completed run starts on the safe Retry action. Returning from
+		# Codex is a temporary sub-screen return and preserves the review selection.
+		if previous_state != AppStateMachine.State.CAUSAL_REVIEW and previous_state != AppStateMachine.State.CODEX:
+			_selected_review_index = 0
 		_refresh_review_focus()
 	elif _codex_panel.visible:
 		_render_codex()
@@ -59,6 +66,7 @@ func sync_from_flow() -> void:
 func review_move(delta: int) -> Dictionary:
 	if _flow == null or _flow.current_state() != AppStateMachine.State.CAUSAL_REVIEW:
 		return _fail("review_navigation_not_active")
+	sync_from_flow()
 	_selected_review_index = posmod(_selected_review_index + delta, REVIEW_ACTIONS.size())
 	_refresh_review_focus()
 	return {"ok": true, "error": "", "selected_action": REVIEW_ACTIONS[_selected_review_index]}
@@ -66,6 +74,7 @@ func review_move(delta: int) -> Dictionary:
 func review_activate_selected() -> Dictionary:
 	if _flow == null or _flow.current_state() != AppStateMachine.State.CAUSAL_REVIEW:
 		return _fail("review_navigation_not_active")
+	sync_from_flow()
 	var action: StringName = REVIEW_ACTIONS[_selected_review_index]
 	var result: Dictionary = _activate_review_action(action)
 	if bool(result.get("ok", false)):

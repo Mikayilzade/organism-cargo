@@ -7,7 +7,9 @@ var _flow: VerticalSliceFlowCoordinator
 var _context: Dictionary = {}
 var _title_label: Label
 var _detail_label: Label
-var _planning_panel: VBoxContainer
+var _planning_panel: Control
+var _planning_scroll: ScrollContainer
+var _planning_content: VBoxContainer
 var _manifest_row: HBoxContainer
 var _hold_grid: GridContainer
 var _planning_status_label: Label
@@ -25,6 +27,12 @@ var _cell_buttons: Dictionary = {}
 var _manifest_buttons: Dictionary = {}
 
 func _ready() -> void:
+	# Center-anchored hosts must grow minimum content around the anchor rather than
+	# pushing the Planning panel and required actions beyond the Deck safe area.
+	grow_horizontal = Control.GROW_DIRECTION_BOTH
+	grow_vertical = Control.GROW_DIRECTION_BOTH
+	reset_size()
+
 	_title_label = Label.new()
 	_title_label.name = "StateTitle"
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -36,22 +44,36 @@ func _ready() -> void:
 	_detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_detail_label)
 
-	_planning_panel = VBoxContainer.new()
+	# Keep the VBox allocation boundary independent from the oversized planning
+	# content. ScrollContainer propagates its child's minimum size; a plain Control
+	# viewport does not, so PlanningPanel remains bounded while content scrolls.
+	_planning_panel = Control.new()
 	_planning_panel.name = "PlanningPanel"
+	_planning_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(_planning_panel)
+	_planning_scroll = ScrollContainer.new()
+	_planning_scroll.name = "PlanningScroll"
+	_planning_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_planning_scroll.follow_focus = true
+	_planning_panel.add_child(_planning_scroll)
+	_planning_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_planning_content = VBoxContainer.new()
+	_planning_content.name = "PlanningContent"
+	_planning_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_planning_scroll.add_child(_planning_content)
 
 	_manifest_row = HBoxContainer.new()
 	_manifest_row.name = "ManifestRow"
-	_planning_panel.add_child(_manifest_row)
+	_planning_content.add_child(_manifest_row)
 
 	_hold_grid = GridContainer.new()
 	_hold_grid.name = "HoldGrid"
-	_planning_panel.add_child(_hold_grid)
+	_planning_content.add_child(_hold_grid)
 
 	_planning_status_label = Label.new()
 	_planning_status_label.name = "PlanningStatus"
 	_planning_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_planning_panel.add_child(_planning_status_label)
+	_planning_content.add_child(_planning_status_label)
 
 	_primary_button = Button.new()
 	_primary_button.name = "PrimaryAction"

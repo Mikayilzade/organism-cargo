@@ -63,20 +63,20 @@ func run(tree: SceneTree, run_id_factory: Callable) -> Array[String]:
 	for raw_signal: Variant in signals:
 		if not raw_signal is Dictionary:
 			continue
-		var signal: Dictionary = raw_signal
-		var kind: String = String(signal.get("kind", "event"))
-		_expect(bool(signal.get("caption_visible", false)), "%s caption remains visible with master audio at zero" % kind)
-		_expect(not bool(signal.get("audio_available", true)), "%s does not depend on an audio device" % kind)
-		_expect(not String(signal.get("source", "")).is_empty(), "%s keeps source identity visible" % kind)
-		_expect(not String(signal.get("text_label", "")).is_empty(), "%s keeps a text label visible" % kind)
-		_expect(not String(signal.get("icon", "")).is_empty(), "%s keeps a non-color icon channel" % kind)
-		_expect(not String(signal.get("pattern", "")).is_empty(), "%s keeps a non-color pattern channel" % kind)
-		_expect(not String(signal.get("shape", "")).is_empty(), "%s keeps a non-color shape channel" % kind)
-		_expect_equal(signal.get("motion_mode"), "snap_fade", "%s obeys Reduced Motion" % kind)
-		_expect_equal(signal.get("overlay_motion"), "static_pattern", "%s uses static overlays under Reduced Motion" % kind)
-		_expect_equal(signal.get("flash_mode"), "persistent_outline", "%s obeys Reduced Flashing" % kind)
-		_expect(not bool(signal.get("full_screen_flash", true)), "%s never relies on full-screen flash" % kind)
-		_expect(not bool(signal.get("authoritative_simulation_changed", true)), "%s remains presentation-only" % kind)
+		var signal_data: Dictionary = raw_signal
+		var kind: String = String(signal_data.get("kind", "event"))
+		_expect(bool(signal_data.get("caption_visible", false)), "%s caption remains visible with master audio at zero" % kind)
+		_expect(not bool(signal_data.get("audio_available", true)), "%s does not depend on an audio device" % kind)
+		_expect(not String(signal_data.get("source", "")).is_empty(), "%s keeps source identity visible" % kind)
+		_expect(not String(signal_data.get("text_label", "")).is_empty(), "%s keeps a text label visible" % kind)
+		_expect(not String(signal_data.get("icon", "")).is_empty(), "%s keeps a non-color icon channel" % kind)
+		_expect(not String(signal_data.get("pattern", "")).is_empty(), "%s keeps a non-color pattern channel" % kind)
+		_expect(not String(signal_data.get("shape", "")).is_empty(), "%s keeps a non-color shape channel" % kind)
+		_expect_equal(signal_data.get("motion_mode"), "snap_fade", "%s obeys Reduced Motion" % kind)
+		_expect_equal(signal_data.get("overlay_motion"), "static_pattern", "%s uses static overlays under Reduced Motion" % kind)
+		_expect_equal(signal_data.get("flash_mode"), "persistent_outline", "%s obeys Reduced Flashing" % kind)
+		_expect(not bool(signal_data.get("full_screen_flash", true)), "%s never relies on full-screen flash" % kind)
+		_expect(not bool(signal_data.get("authoritative_simulation_changed", true)), "%s remains presentation-only" % kind)
 
 	var hazard_onset: Dictionary = _first_signal(signals, &"hazard_onset")
 	_expect_equal(hazard_onset.get("icon"), "heat", "actual H01 onset uses frozen heat icon")

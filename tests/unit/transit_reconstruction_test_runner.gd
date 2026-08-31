@@ -98,10 +98,19 @@ func _test_missing_compatibility_never_silently_replays() -> void:
 	_expect_true(not bool(resumed.get("ok", true)), "wrong compatibility package is rejected before replay")
 	_expect_equal(String(resumed.get("recovery_class", "")), "D", "missing exact compatibility follows frozen class D boundary")
 	var loaded: Dictionary = store.load(&"session")
+	_expect_true(bool(loaded.get("ok", false)), "class-D invalidation remains durable")
 	if bool(loaded.get("ok", false)):
 		var envelope: SaveEnvelope = loaded["envelope"]
 		var persisted: Dictionary = envelope.payload["committed_run"]
-		_expect_equal(String(persisted.get("lifecycle_state", "")), "COMMITTED", "compatibility rejection does not fabricate a result")
+		_expect_equal(String(persisted.get("lifecycle_state", "")), "ABANDONED/INVALIDATED", "missing compatibility invalidates the legacy in-progress run")
+		_expect_equal(persisted.get("planning_baseline", {}), record["canonical_committed_input"], "class D preserves committed input as the planning baseline")
+		_expect_true(bool(persisted.get("restart_under_current_version_required", false)), "class D requires restart under the current version")
+		_expect_true(not persisted.has("tick_checksums"), "class D does not fabricate an authoritative trace")
+		_expect_true(not persisted.has("final_result_checksum"), "class D does not fabricate an old result")
+		_expect_true(not persisted.has("completion_id"), "class D does not fabricate a completion")
+		_expect_true(not persisted.has("reconstruction_verified"), "class D does not mark an unavailable replay verified")
+	var profile_load: Dictionary = store.load(&"profile")
+	_expect_true(not bool(profile_load.get("ok", false)), "class D does not create or apply progression")
 
 func _record(lifecycle: String, cursor: int) -> Dictionary:
 	var committed_input: Dictionary = {
@@ -179,7 +188,7 @@ func _defs() -> Dictionary:
 func _fresh_store(name: String) -> AtomicSaveStore:
 	var root: String = "user://%s" % name
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(root))
-	for suffix: String in ["session.sav", "session.sav.bak", "session.sav.tmp"]:
+	for suffix: String in ["session.sav", "session.sav.bak", "session.sav.tmp", "profile.sav", "profile.sav.bak", "profile.sav.tmp"]:
 		var path: String = root.path_join(suffix)
 		if FileAccess.file_exists(path):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))

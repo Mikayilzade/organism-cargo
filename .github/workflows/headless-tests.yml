@@ -14,7 +14,6 @@ jobs:
   headless-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -105,7 +104,7 @@ jobs:
             if [ ${rc} -ne 0 ]; then echo "::error title=${label}::Headless contract failed with exit code ${rc}"; failure=${rc}; break; fi
           done
           echo "exit_code=${failure}" >> "${GITHUB_OUTPUT}"
-          exit 0
+          exit "${failure}"
 
       - name: Publish observable commit test status
         if: always()

@@ -51,8 +51,14 @@ func _run() -> void:
 	_expect(bool(control.activate_primary_action().get("ok", false)), "campaign -> brief through UI")
 	_expect_equal(control.state_title(), "Contract Brief", "brief presentation")
 	_expect(bool(control.activate_primary_action().get("ok", false)), "brief -> planning through UI")
+	# Visibility/minimum-size changes queue a Container re-sort. Measure the
+	# rendered Planning geometry only after Godot has completed that layout frame.
+	await process_frame
 	_expect(_control_inside_visible_rect(control.get_node_or_null("PrimaryAction") as Control), "Planning primary action remains on-screen at 1280x800/200 percent")
-	_expect(_control_inside_visible_rect(control.get_node_or_null("PlanningPanel") as Control), "Planning panel remains inside the rendered Deck viewport at 200 percent")
+	_expect(
+		_control_inside_visible_rect(control.get_node_or_null("PlanningPanel") as Control),
+		"Planning panel remains inside the rendered Deck viewport at 200 percent — %s" % _planning_geometry_diagnostics(control)
+	)
 
 	var revision := flow.apply_plan("revision-ui-a", _input(), _legal_facts())
 	_expect(bool(revision.get("structural_legal", false)), "legal plan available to presentation")
@@ -182,6 +188,19 @@ func _control_inside_visible_rect(control: Control) -> bool:
 	if control == null or not control.is_visible_in_tree():
 		return false
 	return root.get_visible_rect().encloses(control.get_global_rect())
+
+func _planning_geometry_diagnostics(control: Control) -> String:
+	var panel: Control = control.get_node_or_null("PlanningPanel") as Control
+	var planning_scroll: Control = control.get_node_or_null("PlanningPanel/PlanningScroll") as Control
+	var content: Control = control.get_node_or_null("PlanningPanel/PlanningScroll/PlanningContent") as Control
+	return "root_visible=%s control=%s panel=%s panel_min=%s scroll=%s content_min=%s" % [
+		str(root.get_visible_rect()),
+		str(control.get_global_rect()),
+		str(Rect2() if panel == null else panel.get_global_rect()),
+		str(Vector2.ZERO if panel == null else panel.get_combined_minimum_size()),
+		str(Rect2() if planning_scroll == null else planning_scroll.get_global_rect()),
+		str(Vector2.ZERO if content == null else content.get_combined_minimum_size()),
+	]
 
 func _contains_scroll_container(node: Node) -> bool:
 	if node is ScrollContainer:
