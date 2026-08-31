@@ -13,44 +13,47 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 213
+## Current implementation checkpoint — Increment 214
 
 ### Phase / subsystem
-**Production boot repair follow-up — Phase-12E reserved-keyword test blockers repaired; awaiting same-PR CI verification**
+**Production boot repair follow-up — critical-signal builder parser and Deck maximum-scale Planning layout repaired; awaiting same-PR CI verification**
 
-### Actual failure and root cause
-- Authoritative `Godot Headless Tests` run #238 confirms production boot, persistent shell smoke boot, transit reconstruction compilation, the corrected Class-D test, and every preceding suite now pass.
-- The next first failure is `Player-facing vertical slice control contract test`: `vertical_slice_control_test_runner.gd` cannot preload `res://tests/unit/phase12e_rendered_critical_signal_acceptance.gd` because that acceptance script declares `var signal: Dictionary = raw_signal` inside its critical-signal loop.
-- `signal` is a reserved GDScript keyword, so the acceptance script cannot parse. The subsequent preload-resolution and inferred-`Variant` `.new()` / `.run()` errors in the parent runner are treated as cascades pending the rerun.
-- A directly related scan found the same reserved local identifier in `phase12e_input_accessibility_test_runner.gd`.
+### Actual failures and root causes
+- Authoritative `Godot Headless Tests` run #239 confirms production boot, persistent smoke boot, transit reconstruction, Class-D recovery, and the Phase-12E acceptance-script keyword repairs pass.
+- The next suite, `Player-facing vertical slice control contract test`, exposes two independent failures.
+- First, `res://src/ui/critical_signal_presentation_builder.gd:16` declares a local dictionary as `signal`, a reserved GDScript keyword. The builder cannot parse; its load/constructor failures and downstream missing critical-signal assertions are cascades pending compilation.
+- The same production builder contains a second local named exactly `signal` in `_append_signal`; both occurrences have the same parse risk.
+- Independently, at the canonical Steam Deck 1280x800 viewport with 200% content scale, both the Planning panel and required primary action extend outside the visible rectangle. The root control is center-anchored by its host but retained the default end-only minimum-size growth, so its 640x360 accessible minimum expands down/right from the center anchor rather than around it.
+- Intentional corrupt-save JSON diagnostics remain expected recovery-test output and were not treated as product failures.
 
-### Implemented in Increment 213
-- Renamed the acceptance-loop local from `signal` to `signal_data` and updated every reference belonging to that dictionary.
-- Renamed the matching critical-signal local in the Phase-12E input/accessibility test runner and updated its references in the same coherent batch.
-- Confirmed no parameter, local, or constant named exactly `signal` remains in the directly related Phase-12E acceptance/test files or `vertical_slice_control_test_runner.gd`.
-- Did not alter legitimate signal declarations/connections, assertions, accessibility expectations, test ordering, production behavior, or frozen gameplay.
+### Implemented in Increment 214
+- Renamed both reserved production locals in `CriticalSignalPresentationBuilder` to `signal_data` and updated only their owned references. Signal ordering, transient `_sequence` removal, settings validation, tick metadata, and output contents are unchanged.
+- Made `VerticalSliceControl` respond correctly when hosted from center anchors: minimum-size growth now expands in both directions horizontally and vertically, and `reset_size()` reapplies the declared minimum around the anchor before child layout.
+- This keeps the existing 640x360 readable UI minimum centered within the 640x400 logical safe area produced by 1280x800 at 200% scale, rather than lowering scale, shrinking/hiding required controls, or weakening the rendered acceptance.
+- Did not alter legitimate signal declarations/connections, tests, gameplay, accessibility requirements, or frozen semantics.
 
 ### Validation / policy
-- Static reserved-identifier scan passes for `tests/unit/phase12e*` and `tests/unit/vertical_slice_control_test_runner.gd`.
-- Reviewed the diffs to confirm only identifier names changed; all critical-signal values, defaults, captions, non-audio/non-color requirements, Reduced Motion, and Reduced Flashing assertions remain identical.
+- Re-read the maximum-scale Steam Deck requirements in `PHASE11_UX_ACCESSIBILITY.md`: required action buttons may not fall off-screen at 1280x800 maximum scale, and Planning must remain fully operable.
+- Confirmed no local variable or parameter named exactly `signal` remains in `critical_signal_presentation_builder.gd`; the legitimate Godot `signal action_failed` declaration remains untouched.
+- Reviewed the builder diff to confirm identifier-only changes and the layout diff to confirm it changes container growth/placement only.
 - Confirmed repository JSON still parses, all `content/contracts` documents declare `kind: contracts`, and campaign definitions cover C01–C48 exactly once.
 - `git diff --check` passes.
-- Local Godot 4.7.1 execution remains unavailable because this environment has no engine binary and blocks the pinned download with HTTP 403. Authoritative verification remains the next run on existing draft PR #1.
+- Local Godot 4.7.1 execution remains unavailable because this environment has no engine binary and blocks the pinned download with HTTP 403. Authoritative rendered verification remains the next run on existing draft PR #1.
 
 ### Current phase state / blockers
 - **12G remains IN PROGRESS and empirical validation must not continue yet.**
-- The known Phase-12E acceptance preload blocker and directly related reserved-keyword occurrence are repaired. Full `Godot Headless Tests` green status awaits the same-PR rerun.
+- Both known independent run-#239 blockers are repaired. Full `Godot Headless Tests` green status awaits the same-PR rerun.
 - Phase 12H must not begin. This is not `IMPLEMENTATION COMPLETE = YES`.
 
 ### Canonical contradictions
-- **NONE discovered.** The failure was invalid GDScript test identifiers; accessibility and gameplay semantics are unchanged.
+- **NONE discovered.** The changes repair invalid GDScript identifiers and responsive placement while preserving accessibility and gameplay semantics.
 
 ## NEXT ACTION
 Push this coherent repair to existing draft PR #1 and inspect the resulting `Godot Headless Tests` run:
 
-1. Confirm the rendered critical-signal acceptance preloads and the Player-facing vertical slice control contract test passes without the recorded cascade errors.
-2. Confirm the Phase-12E input/accessibility runner also parses and retains all critical-signal assertions.
-3. If the workflow reveals another first failure, inspect its exact complete Godot output and repair only that directly related defect without weakening tests or changing frozen gameplay/accessibility behavior.
+1. Confirm `CriticalSignalPresentationBuilder` parses and its prior builder-load/missing-signal cascades disappear.
+2. Confirm `PlanningPanel` and `PrimaryAction` are both enclosed by the visible 1280x800/200% rectangle and the full Player-facing vertical slice control contract test passes.
+3. If another first failure appears, inspect its exact complete Godot output and repair only that directly related defect without weakening tests or changing frozen gameplay/accessibility behavior.
 4. Continue through the blocker chain until the complete `Godot Headless Tests` workflow is genuinely green.
 5. Resume Phase 12G only after executable and suite verification is genuinely green; do not begin 12H while 12G is open.
 

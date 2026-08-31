@@ -25,6 +25,12 @@ var _cell_buttons: Dictionary = {}
 var _manifest_buttons: Dictionary = {}
 
 func _ready() -> void:
+	# Center-anchored hosts must grow minimum content around the anchor rather than
+	# pushing the Planning panel and required actions beyond the Deck safe area.
+	grow_horizontal = Control.GROW_DIRECTION_BOTH
+	grow_vertical = Control.GROW_DIRECTION_BOTH
+	reset_size()
+
 	_title_label = Label.new()
 	_title_label.name = "StateTitle"
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

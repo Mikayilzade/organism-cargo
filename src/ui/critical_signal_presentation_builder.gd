@@ -13,9 +13,9 @@ func build(settings: Object, completed: Dictionary, review: Dictionary, simulati
 	for index: int in range(output.size()):
 		var signal_value: Variant = output[index]
 		if signal_value is Dictionary:
-			var signal: Dictionary = signal_value
-			signal.erase("_sequence")
-			output[index] = signal
+			var signal_data: Dictionary = signal_value
+			signal_data.erase("_sequence")
+			output[index] = signal_data
 	return output
 
 func _signal_less(left_value: Variant, right_value: Variant) -> bool:
@@ -136,12 +136,12 @@ func _append_signal(output: Array, settings: Object, kind: StringName, source: S
 	var signal_value: Variant = settings.call("critical_signal", kind, source, detail, channel)
 	if not signal_value is Dictionary:
 		return
-	var signal: Dictionary = signal_value
-	if not bool(signal.get("ok", false)):
+	var signal_data: Dictionary = signal_value
+	if not bool(signal_data.get("ok", false)):
 		return
-	signal["tick"] = tick
-	signal["_sequence"] = output.size()
-	output.append(signal)
+	signal_data["tick"] = tick
+	signal_data["_sequence"] = output.size()
+	output.append(signal_data)
 
 func _hazard_source_label(hazard_id: String, simulation_defs: Dictionary) -> String:
 	var hazards_value: Variant = simulation_defs.get("hazards_by_id", {})
