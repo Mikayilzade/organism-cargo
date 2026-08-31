@@ -7,7 +7,8 @@ var _flow: VerticalSliceFlowCoordinator
 var _context: Dictionary = {}
 var _title_label: Label
 var _detail_label: Label
-var _planning_panel: ScrollContainer
+var _planning_panel: Control
+var _planning_scroll: ScrollContainer
 var _planning_content: VBoxContainer
 var _manifest_row: HBoxContainer
 var _hold_grid: GridContainer
@@ -43,16 +44,23 @@ func _ready() -> void:
 	_detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_detail_label)
 
-	_planning_panel = ScrollContainer.new()
+	# Keep the VBox allocation boundary independent from the oversized planning
+	# content. ScrollContainer propagates its child's minimum size; a plain Control
+	# viewport does not, so PlanningPanel remains bounded while content scrolls.
+	_planning_panel = Control.new()
 	_planning_panel.name = "PlanningPanel"
 	_planning_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_planning_panel.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_planning_panel.follow_focus = true
 	add_child(_planning_panel)
+	_planning_scroll = ScrollContainer.new()
+	_planning_scroll.name = "PlanningScroll"
+	_planning_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_planning_scroll.follow_focus = true
+	_planning_panel.add_child(_planning_scroll)
+	_planning_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_planning_content = VBoxContainer.new()
 	_planning_content.name = "PlanningContent"
 	_planning_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_planning_panel.add_child(_planning_content)
+	_planning_scroll.add_child(_planning_content)
 
 	_manifest_row = HBoxContainer.new()
 	_manifest_row.name = "ManifestRow"

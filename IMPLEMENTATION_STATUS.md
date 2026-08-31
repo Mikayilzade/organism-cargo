@@ -13,49 +13,46 @@ Branch: `main`
 - 12H Release Candidate: **NO**
 - IMPLEMENTATION COMPLETE: **NO**
 
-## Current implementation checkpoint — Increment 215
+## Current implementation checkpoint — Increment 216
 
 ### Phase / subsystem
-**Production boot repair follow-up — remaining Deck Planning overflow and fresh-review selection state repaired; awaiting same-PR CI verification**
+**Production boot repair follow-up — Planning viewport minimum-size propagation isolated; awaiting same-PR CI verification**
 
-### Actual failures and root causes
-- Authoritative `Godot Headless Tests` run #240 confirms `CriticalSignalPresentationBuilder` and critical-signal acceptance now pass. `PrimaryAction` is also on-screen at 1280x800/200%.
-- `Player-facing vertical slice control contract test` has three remaining failures: PlanningPanel still extends outside the maximum-scale viewport; a second review selects `retry` instead of expected `return_to_map` after two right moves; accepting it remains in `CAUSAL_REVIEW` instead of reaching `CAMPAIGN_MAP`.
-- The Planning root is now centered correctly, but `PlanningPanel` is a plain `VBoxContainer`. Its manifest, hold grid, status, and Phase-12E semantic/support labels contribute their full combined minimum height to the panel, so the panel itself can exceed the 640x400 logical Deck viewport even though the fixed primary action remains visible.
-- The two review failures share one state-lifecycle cause. `Phase12ENavigationSurface._selected_review_index` remains at Reset Contract (index 1) after leaving the first review. A second transit can complete directly through the flow before the navigation surface synchronizes, so the next right move starts from stale index 1 instead of a fresh review's safe Retry default at index 0.
-- Temporary Codex return is distinct from a genuinely new review and must preserve the current review selection.
-- Intentional corrupt-save JSON diagnostics remain expected recovery-test output and were not changed.
+### Actual failure and corrected root cause
+- Authoritative `Godot Headless Tests` run #241 confirms both Review / Return-to-map failures are fixed. The only remaining actual failure in `Player-facing vertical slice control contract test` is `Planning panel remains inside the rendered Deck viewport at 200 percent`.
+- Run #241 disproved Increment 215's claim that converting the node named `PlanningPanel` directly into a `ScrollContainer` fully repaired the bound. The content became scrollable, and PrimaryAction stayed visible, but the outer PlanningPanel rectangle still exceeded the 640x400 logical viewport.
+- The remaining cause is Godot Container minimum-size propagation: because `PlanningPanel` itself was the `ScrollContainer`, its large `PlanningContent` could still contribute to the scroll container's combined minimum size and therefore to the parent VBox allocation. Scrolling content does not by itself guarantee that the scroll viewport's own outer rectangle is bounded.
+- Intentional corrupt-save JSON parse diagnostics remain expected recovery-fixture output and were not changed.
 
-### Implemented in Increment 215
-- Converted `PlanningPanel` into a vertically expandable `ScrollContainer` with horizontal scrolling disabled and focus-follow enabled; moved the existing planning widgets into a dedicated full-width `PlanningContent` VBox.
-- Moved accessible semantic-focus and support-status labels into the same scrollable PlanningContent. Required Planning controls and rule text remain present, readable, focus reachable, and vertically scrollable rather than clipped, hidden, or shrunk.
-- Added navigation-surface state tracking. Entry into a genuinely new Causal Review resets selection to safe-default Retry; return from Codex to the same review preserves selection.
-- `review_move` and `review_activate_selected` synchronize entry state before using the selected index, covering direct flow completion before the first semantic review command.
-- Did not change review actions, tests, UI scale, gameplay, accessibility requirements, or frozen semantics.
+### Implemented in Increment 216
+- Replaced the node named `PlanningPanel` with a vertically expanding plain `Control`, creating a genuine allocation boundary whose combined minimum size is independent of its oversized descendants.
+- Added a full-rect child `PlanningScroll` inside that bounded panel. The existing `PlanningContent` VBox and all manifest, grid, status, semantic-focus, and support-status content remain inside this scroll container.
+- Preserved vertical scrolling, disabled horizontal scrolling, and retained `follow_focus` so keyboard/controller focus keeps required controls visible.
+- The parent VerticalSliceControl VBox now bounds PlanningPanel to its available height, while only PlanningContent grows beyond that height and scrolls internally.
+- Did not change the test, 200% scale, text size, required content, PrimaryAction placement, gameplay, or frozen accessibility semantics.
 
 ### Validation / policy
-- Re-read `PHASE11_UX_ACCESSIBILITY.md`: required actions must remain reachable at maximum scale, Planning must remain fully operable, and wrapped rule content may scroll rather than clip.
-- Inspected the full Planning minimum-size chain and verified the bounded outer node named `PlanningPanel` now owns scrollable content instead of inheriting the content's unbounded vertical extent.
-- Traced both review sequences: new Transit -> Review resets to index 0; Review -> Codex -> same Review preserves the selected index; Reset -> Planning -> new Transit -> Review resets to index 0 before navigation.
+- Re-read the maximum-scale Planning requirements in `PHASE11_UX_ACCESSIBILITY.md` and inspected the relevant minimum-size chain: root visible rect -> centered VerticalSliceControl -> plain bounded PlanningPanel -> full-rect PlanningScroll -> oversized PlanningContent.
+- Verified structurally that the node asserted by the test is now the plain outer boundary, not the descendant ScrollContainer that receives PlanningContent's minimum size.
+- Confirmed Review navigation repairs remain unchanged.
 - Confirmed repository JSON still parses, all `content/contracts` documents declare `kind: contracts`, and campaign definitions cover C01–C48 exactly once.
 - `git diff --check` passes.
-- Local Godot 4.7.1 execution remains unavailable because this environment has no engine binary and blocks the pinned download with HTTP 403. Authoritative rendered/state verification remains the next run on existing draft PR #1.
+- Local Godot 4.7.1 execution remains unavailable because this environment has no engine binary and blocks the pinned download with HTTP 403. Authoritative rectangle verification remains the next run on existing draft PR #1.
 
 ### Current phase state / blockers
 - **12G remains IN PROGRESS and empirical validation must not continue yet.**
-- All three known run-#240 failures are repaired. Full `Godot Headless Tests` green status awaits the same-PR rerun.
+- Review navigation is verified fixed. The sole run-#241 PlanningPanel bound is repaired architecturally but awaits rendered same-PR verification.
 - Phase 12H must not begin. This is not `IMPLEMENTATION COMPLETE = YES`.
 
 ### Canonical contradictions
-- **NONE discovered.** The changes implement the frozen maximum-scale reachability and safe fresh-review focus behavior.
+- **NONE discovered.** The repair constrains the viewport rather than its accessible content.
 
 ## NEXT ACTION
 Push this coherent repair to existing draft PR #1 and inspect the resulting `Godot Headless Tests` run:
 
-1. Confirm the bounded `PlanningPanel` rectangle is enclosed at 1280x800/200%, required Planning content remains focus-reachable through its scroll container, and the Player-facing control layout assertion passes.
-2. Confirm every genuinely new Causal Review defaults to Retry, two right moves select Return to map, acceptance reaches Campaign Map, and Codex round-trips preserve same-review selection.
-3. If another first failure appears, inspect its exact complete Godot output and repair only that directly related defect without weakening tests or changing frozen gameplay/accessibility behavior.
-4. Continue through the blocker chain until the complete `Godot Headless Tests` workflow is genuinely green.
-5. Resume Phase 12G only after executable and suite verification is genuinely green; do not begin 12H while 12G is open.
+1. Confirm at 1280x800/200% that the root visible rect encloses the VerticalSliceControl, bounded outer PlanningPanel, and PrimaryAction, while oversized PlanningContent scrolls inside PlanningScroll with focus-follow intact.
+2. If the Player-facing vertical slice control contract passes, continue through all remaining headless cases and inspect the next authoritative first failure, if any.
+3. Repair only directly evidenced failures without weakening tests or changing frozen gameplay/accessibility behavior until the complete `Godot Headless Tests` workflow is genuinely green.
+4. Resume Phase 12G only after executable and suite verification is genuinely green; do not begin 12H while 12G is open.
 
 Do not report overall completion until Phase 12G is genuinely closed, 12H is completed, and `IMPLEMENTATION COMPLETE = YES`.
